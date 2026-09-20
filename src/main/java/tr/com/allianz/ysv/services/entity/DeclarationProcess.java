@@ -20,10 +20,7 @@ import lombok.Setter;
 import tr.com.allianz.ysv.services.enums.MovableType;
 import tr.com.allianz.ysv.services.enums.ProcessStatus;
 
-/**
- * One row of {@code CUSTOMER.ALZ_SBM_DECL_PROCESS}: a single (year, month, city, district,
- * file no, movable type) declaration line loaded into the database by the OPUS script.
- */
+
 @Entity
 @Table(name = "ALZ_SBM_DECL_PROCESS")
 @Getter
