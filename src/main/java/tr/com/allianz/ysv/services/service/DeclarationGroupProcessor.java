@@ -23,14 +23,6 @@ import tr.com.allianz.ysv.services.mapper.SbmMapper;
 import tr.com.allianz.ysv.services.repository.DeclarationProcessRepository;
 import tr.com.allianz.ysv.services.util.JsonUtil;
 
-/**
- * Transfers exactly one declaration group (one SBM request) and owns its status transitions.
- *
- * <p>Each group runs in its own transaction, which starts by taking a pessimistic row lock:
- * that lock, not the {@code PROCESSING} status, is what prevents two operators from sending
- * the same group at the same time. A group that another transaction already moved out of an
- * eligible status is reported as a failure instead of being sent twice.</p>
- */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -45,13 +37,6 @@ public class DeclarationGroupProcessor {
     private final SbmMapper sbmMapper;
     private final SbmProperties sbmProperties;
 
-    /**
-     * @param operationType POST for a new declaration, PUT for an update or a cancel
-     * @param zeroAmounts   {@code true} for the cancel flow, which sends every amount as 0
-     * @param processIds    ids of the rows forming one declaration group
-     * @param user          user that triggered the operation
-     * @return empty when SBM accepted the group, the failure detail otherwise
-     */
     @Transactional
     public Optional<FailureDetail> process(OperationType operationType,
                                            boolean zeroAmounts,
@@ -100,12 +85,7 @@ public class DeclarationGroupProcessor {
         }
     }
 
-    /**
-     * Promotes rows that SBM confirmed through the query function to {@code COMPLETED}.
-     *
-     * @param processIds rows to promote
-     * @param user       user that triggered the query
-     */
+
     @Transactional
     public void markCompleted(Collection<Long> processIds, String user) {
         List<DeclarationProcess> rows = declarationProcessRepository.lockByIds(processIds);
