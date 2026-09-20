@@ -16,11 +16,7 @@ import tr.com.allianz.ysv.services.enums.ProcessStatus;
 @Repository
 public interface DeclarationProcessRepository extends JpaRepository<DeclarationProcess, Long> {
 
-    /**
-     * Candidates of a batch operation, ordered by the declaration key (İl-İlçe-Yıl-Ay) so
-     * that the rows of one SBM request are adjacent and {@code ysvTutarList} comes out in a
-     * stable order.
-     */
+
     @Query("""
             select p from DeclarationProcess p
             where p.status in :statuses
@@ -34,7 +30,6 @@ public interface DeclarationProcessRepository extends JpaRepository<DeclarationP
                                             @Param("month") Integer month,
                                             @Param("cityCode") Integer cityCode);
 
-    /** Candidates pinned by explicit id. */
     @Query("""
             select p from DeclarationProcess p
             where p.id in :ids and p.status in :statuses
@@ -43,10 +38,7 @@ public interface DeclarationProcessRepository extends JpaRepository<DeclarationP
     List<DeclarationProcess> findCandidatesByIds(@Param("ids") Collection<Long> ids,
                                                  @Param("statuses") Collection<ProcessStatus> statuses);
 
-    /**
-     * Re-reads one declaration group under a row lock so that two operators cannot transfer
-     * the same group at the same time.
-     */
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select p from DeclarationProcess p where p.id in :ids order by p.id")
     List<DeclarationProcess> lockByIds(@Param("ids") Collection<Long> ids);
