@@ -58,15 +58,3 @@ esb:
 sbm:
   retry:
     max-attempts: 2          # only for SEC-00002 and 5xx
-
-# PEN test savunma katmanı. api-key koda/git'e yazılmaz; ortam secret'ından
-# API_GUARD_API_KEY olarak enjekte edilir. Boşsa anahtar kontrolü kapalı, rate limit açık.
-api-guard:
-  enabled: true
-  api-key: ${API_GUARD_API_KEY:}
-  rate-limit:
-    enabled: true
-    capacity: 120
-    refill-tokens: 120
-    refill-period: 1m
-
