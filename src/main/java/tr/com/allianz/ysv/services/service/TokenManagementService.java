@@ -15,16 +15,7 @@ import tr.com.allianz.ysv.services.enums.OperationType;
 import tr.com.allianz.ysv.services.exception.TokenException;
 import tr.com.allianz.ysv.services.util.MaskUtil;
 
-/**
- * 2. AŞAMA — Her SBM çağrısından önce {@code alz-token-management}'ten <b>yeni</b> token alır.
- *
- * <p>Bu uygulamada token cache'i bilerek yoktur: cache {@code alz-token-management}
- * tarafındadır ve SBM eski token'a {@code SEC-00002} döner. İstek parametreleri
- * ({@code base-url}, {@code path}, {@code client-name}, {@code function-name},
- * {@code user-name}, {@code company-code}) tamamen ortam bazlıdır. Cevaptan gelen
- * {@code accessToken} ve {@code clientCredentials} ({@code Requester-ID-Type} /
- * {@code Requester-ID-No}) {@link SbmClientService} tarafından SBM header'larına yazılır.</p>
- */
+
 @Slf4j
 @Service
 public class TokenManagementService {
@@ -38,11 +29,7 @@ public class TokenManagementService {
         this.properties = properties;
     }
 
-    /**
-     * @param operationType operation the token will be used for; drives {@code functionName}
-     * @return a validated token response
-     * @throws TokenException when the token service is unreachable or answers without a token
-     */
+
     public TokenResponse generateToken(OperationType operationType) {
         String transactionId = UUID.randomUUID().toString();
         TokenRequest request = TokenRequest.builder()
