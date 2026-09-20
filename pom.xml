@@ -34,8 +34,8 @@
         <spring-cloud.version>2025.0.0</spring-cloud.version>
         <build-packaging-type>jar</build-packaging-type>
         <ojdbc.version>19.3.0.0</ojdbc.version>
-        <!-- Tomcat güvenlik zafiyetini (RewriteValve URL decode bypass) kapatmak için sürümü eziyoruz -->
-        <tomcat.version>10.1.57</tomcat.version>
+        <!-- Tomcat güvenlik zafiyetlerini (FORM auth bypass, security constraint bypass, DIGEST replay) kapatmak için sürümü eziyoruz -->
+        <tomcat.version>10.1.58</tomcat.version>
         <logback.version>1.5.35</logback.version>
         <micrometer.version>1.15.12</micrometer.version>
         <!-- Jackson güvenlik zafiyetini kapatmak için sürümü eziyoruz (CVE-2026-68497: Duration/XMLGregorianCalendar DoS, 2.22.2+ gerekli) -->
@@ -47,8 +47,10 @@
              ControllerAdviceBean(Object) constructor'ını çağırıp /v3/api-docs'ta
              500 veriyordu. Spring Boot 3.5 karşılığı 2.8.x. -->
         <springdoc.version>2.8.9</springdoc.version>
-        <!-- Java 25 sınıf dosyalarını (major 69) analiz edebilen ilk sürüm 0.8.14 -->
         <jacoco.version>0.8.14</jacoco.version>
+        <!-- SonarQube'un coverage'ı %0 raporlamamasi icin JaCoCo XML raporunun yolunu acikca belirtiyoruz -->
+        <sonar.coverage.jacoco.xmlReportPaths>${project.build.directory}/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
+        <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
         <!-- 1. AŞAMA: YSV beyanname Excel'ini Swagger'dan okuyup DB'ye insert eden servis için.
              Prod DB'de manuel script yasak olduğu için veri girişi uygulama üzerinden yapılır. -->
         <poi.version>5.3.0</poi.version>
@@ -357,25 +359,12 @@
                 </configuration>
             </plugin>
 
-            <!-- ${org.mockito:mockito-core:jar} özelliğini üretir; surefire Mockito'yu agent olarak yükler -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>properties</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
-                    <!-- Java 21+ dinamik agent yüklemeyi kısıtlıyor; Mockito açıkça -javaagent ile verilir -->
-                    <argLine>@{argLine} -javaagent:${org.mockito:mockito-core:jar} -Dfile.encoding=UTF-8</argLine>
+
+                    <argLine>@{argLine} -Dfile.encoding=UTF-8</argLine>
                 </configuration>
             </plugin>
 
