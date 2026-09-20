@@ -21,19 +21,6 @@ import tr.com.allianz.ysv.services.repository.DeclarationProcessRepository;
 import tr.com.allianz.ysv.services.service.ExcelDeclarationParser.ParsedRow;
 import tr.com.allianz.ysv.services.service.ExcelDeclarationParser.ParsedSheet;
 
-/**
- * 1. AŞAMA — Yüklenen Excel'i {@code CUSTOMER.ALZ_SBM_DECL_PROCESS} tablosuna {@code
- * STATUS=NEW} olarak yazar.
- *
- * <p>Prod DB'de manuel script çalıştırmak firma politikası gereği yasak olduğu için veri
- * girişi bu servisle yapılır. Adımlar: {@link ExcelDeclarationParser} ile tipli satırlar
- * elde edilir → dosyada <b>tek (yıl, ay)</b> olduğu doğrulanır (değilse tüm dosya 400) →
- * DB'de mükerrer {@code ysvDosyaNo} olan satırlar reddedilir → geçerli satırlar insert
- * edilir. Hatalı satırlar sonuç raporunda döner; tüm dosya reddedilmez.</p>
- *
- * <p>{@code COMPANY_CODE} daima {@code 045} yazılır (Excel'deki 2320 OPUS iç kodudur).
- * {@code PREV_MONTH_REFUND_AMOUNT} Excel'de kolon yoksa {@code NULL} bırakılır.</p>
- */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -43,13 +30,6 @@ public class DeclarationImportService {
     private final DeclarationProcessRepository repository;
     private final SbmProperties sbmProperties;
 
-    /**
-     * @param file yüklenen .xlsx
-     * @param user işlemi tetikleyen kullanıcı ({@code X-User-Name}), {@code CREATED_BY_USER}'a yazılır
-     * @return yazılan satır sayısı + reddedilen satırların detayları
-     * @throws IllegalArgumentException dosya okunamazsa, zorunlu kolon eksikse veya dosyada
-     *         birden fazla (yıl, ay) varsa (HTTP 400)
-     */
     @Transactional
     public ImportResultResponse importFile(MultipartFile file, String user) {
         String fileName = file.getOriginalFilename();
