@@ -41,6 +41,6 @@ token-management:
  path: /alz-token-management/api/v1/tokens/sbm-token-generate
  client-name: ${TOKEN_MANAGEMENT_CLIENT_NAME}
  user-name: ${TOKEN_MANAGEMENT_USER_NAME}
- company-code: ${SBM_COMPANY_CODE}
+ company-code: ${TOKEN_MANAGEMENT_COMPANY_CODE}
  connect-timeout: 30s
  read-timeout: 30s

@@ -1,18 +1,19 @@
 # sbm-declaration-servicesss
 
 Yangın Sigorta Vergisi (YSV) beyanname verilerini Allianz Oracle veritabanından okuyup
-**ESB üzerinden SBM'ye (Sigorta Bilgi ve Gözetim Merkezi)** ileten Spring Boot 3.3 / Java 21
+**ESB üzerinden SBM'ye (Sigorta Bilgi ve Gözetim Merkezi)** ileten Spring Boot 3.5 / Java 25
 REST servisi.
 
 | Öğe | Değer |
 |---|---|
 | Base package | `tr.com.allianz.ysv.services` |
 | Main class | `DeclarationServiceApplication` |
-| Java | 21 |
-| Spring Boot | 3.3.5 |
-| Build | Maven |
+| Java | 25 (`maven.compiler.release`) |
+| Spring Boot | 3.5.14 |
+| Build | Maven (wrapper yok → `mvn clean verify`) |
+| Runtime image | `harbor.allianz-tr.local/alz-base/redhat/ubi9-temurin-jdk25-rootless:u9.6-j25_36` |
 | HTTP client | Spring `RestClient` (Apache HttpClient 5 üzerinde) |
-| DB | Oracle (`ojdbc11`) + Spring Data JPA, tüm profillerde |
+| DB | Oracle (`com.oracle.ojdbc:ojdbc8` 19.3.0.0 + `orai18n`) + Spring Data JPA |
 | Context path | `/sbm-declaration-services` |
 
 ---
@@ -102,12 +103,12 @@ git clone https://github.com/m-ogur34/sbm-declaration-services.git
 cd sbm-declaration-services
 ```
 
-### 2.2 IntelliJ IDEA — Java 21 SDK
+### 2.2 IntelliJ IDEA — Java 25 SDK
 
-1. `File > Project Structure > SDKs` → **Java 21** (Temurin/Oracle JDK 21) ekli olmalı.
-2. `File > Project Structure > Project` → *SDK: 21*, *Language level: 21*.
+1. `File > Project Structure > SDKs` → **Java 25** (Temurin/Oracle JDK 25) ekli olmalı.
+2. `File > Project Structure > Project` → *SDK: 25*, *Language level: 25*.
 3. `File > Settings > Build, Execution, Deployment > Build Tools > Maven > Runner`
-   → *JRE: Project SDK (21)*, *VM Options:* `-Dfile.encoding=UTF-8`.
+   → *JRE: Project SDK (25)*, *VM Options:* `-Dfile.encoding=UTF-8`.
 4. `File > Settings > Editor > File Encodings` → *Global*, *Project* ve *Properties Files*
    için **UTF-8**, "Transparent native-to-ascii conversion" işaretli.
 5. `File > Settings > Build, Execution, Deployment > Compiler > Annotation Processors`
@@ -254,13 +255,16 @@ Hata gövdesi (tüm hatalar için tek tip):
 | `prep` | `helm/chart/configs/application-prep.yml` | |
 | `prod` | `helm/chart/configs/application-prod.yml` | `live.yaml` ve `dr.yaml` kullanır |
 
-**Ortak ayarlar** `helm/chart/common-configs/application.yml` içindedir: context-path,
-logging seviyeleri, `spring.jpa`, Oracle driver, actuator endpoint'leri, ESB path'leri ve
-timeout'ları, `sbm.company-code` ve retry ayarı.
+**Ortak ayarlar** `helm/chart/common-configs/application.yml` içindedir: logging seviyeleri,
+`spring.jpa`, actuator, `sbm.company-code`, `sbm.retry` ve **token isteğinin ortam bağımsız
+parametreleri** (`path`, `client-name`, `user-name`, `company-code`, timeout'lar) — token
+tüm ortamlarda aynı değişkenlerle alındığı için bunlar ortakta tutulur.
 
 `configs/application-<env>.yml` dosyalarında ortama özgü olanlar bulunur:
-`spring.application.name`, ESB base URL'i, log seviyesi ve **`token-management` bloğunun
-tamamı**. Token ayarlarının hiçbiri ortak config'de tutulmaz.
+`spring.application.name`, ESB base URL'i, log seviyesi ve **`token-management.base-url`**
+(auth host'u ortama göre değişir). Ortak config'de base-url için bilerek default
+tutulmaz — bir ortam dosyası yüklenmezse uygulama sessizce yanlış auth ortamına gitmek
+yerine açılmaz.
 
 `src/main/resources` altında sadece `application.yml` ve `application-dev.yml` vardır.
 
@@ -288,14 +292,18 @@ yoktur.
 esb:
   base-url: ${ESB_SERVER:http://esb.allianz.com.tr:12000}
   ysv:
-    beyanname-path: /api/rest/vergi-beyan-rs/v10/ysv-beyanname
-    sorgu-path: /api/rest/vergi-beyan-rs/v10/ysv-beyanname/sorgu
-    sorgu-method: GET
+    # ESB (OSB) Proxy Service path'i — gönder/güncelle/sorgu ÜÇÜ DE aynı.
+    # Proxy, SBM Business Service'ine (.../v10/ysv-beyanname) yönlendirir.
+    beyanname-path: /sbmDeclarationServices   # EsbProperties default'u
+    sorgu-path: /sbmDeclarationServices
 sbm:
-  company-code: "045"
+  company-code: ${SBM_COMPANY_CODE}
   retry:
     max-attempts: 2          # yalnızca SEC-00002 ve 5xx için
 ```
+
+Sorgu `GET` + query string ile gider: `?sigortaSirketKodu=045&ysvDosyaNo=...` (gövde yok).
+SC-UAT'ta doğrulanan proxy adresi: `ESB_SERVER=http://10.70.47.135:21011`.
 
 ESB adresi **koda gömülü değildir**. `helm/values/<ortam>.yaml` içindeki
 `global.overrides.esb.server` değeri pod'a `ESB_SERVER` ortam değişkeni olarak geçer ve
@@ -305,25 +313,46 @@ IP'si var) adres IP ile override edilebilir.
 
 #### Token parametreleri ortam bazlıdır
 
-`token-management` ayarlarının **tamamı** ortama özgüdür ve yalnızca
-`helm/chart/configs/application-<profil>.yml` içinde bulunur — ortak config'de
-`token-management` başlığı **yoktur**, kodda da hiçbir varsayılan değer tutulmaz.
+Token **tüm ortamlarda aynı değişkenlerle** alınır; ortama göre değişen tek şey auth
+host'udur. Gizli değerler yml'e yazılmaz, Vault'tan ortam değişkeni olarak gelir.
 
 ```yaml
+# common-configs/application.yml — ortam bağımsız
 token-management:
-  base-url: https://int-sc-test-auth.allianz.com.tr   # yalnızca SC-TEST'te bilinen değerler
   path: /alz-token-management/api/v1/tokens/sbm-token-generate
-  client-name: ysv
-  user-name: WDA2422_16178
-  company-code: "045"
-  connect-timeout: 5s
+  client-name: ${TOKEN_MANAGEMENT_CLIENT_NAME}
+  user-name: ${TOKEN_MANAGEMENT_USER_NAME}
+  company-code: ${TOKEN_MANAGEMENT_COMPANY_CODE}
+  connect-timeout: 30s
   read-timeout: 30s
+
+# configs/application-<ortam>.yml — ortama özgü
+token-management:
+  base-url: https://int-sc-uat-auth.allianz.com.tr
 ```
 
-`TokenManagementProperties` sınıfı `@Validated` ve zorunlu alanları `@NotBlank`. Bir profilde
-bu parametreler doldurulmamışsa **uygulama başlangıçta hata verir ve ayağa kalkmaz**; eksiklik
-ilk beyanname gönderiminde değil, deploy anında görünür. `sc-uat`, `prep` ve `prod`
-dosyalarında anahtarlar bilerek boş bırakıldı (bkz. "Açık Konular" #5).
+`function-name` yml'de yazılı değildir; `TokenManagementProperties` içindeki default
+`"test"` geçerlidir, gerekirse ortam config'inden ezilir.
+
+> **Placeholder adı = Vault'un export ettiği ortam değişkeni adı.** Spring, `${camelCase}`
+> yazımını `TOKEN_MANAGEMENT_CLIENT_NAME` gibi bir env adıyla eşleştiremez (yalnızca aynı
+> adı ve tamamen büyük harfli hâlini dener). Bu yüzden placeholder'lar `values/<ortam>.yaml`
+> içindeki `export` satırlarıyla **birebir aynı** yazılır.
+
+| yml placeholder | Vault template export'u | Vault anahtarı |
+|---|---|---|
+| `${TOKEN_MANAGEMENT_CLIENT_NAME}` | `TOKEN_MANAGEMENT_CLIENT_NAME` | `tokenManagementClientName` |
+| `${TOKEN_MANAGEMENT_USER_NAME}` | `TOKEN_MANAGEMENT_USER_NAME` | `tokenManagementUserName` |
+| `${TOKEN_MANAGEMENT_COMPANY_CODE}` | `TOKEN_MANAGEMENT_COMPANY_CODE` | `tokenManagementCompanyCode` |
+| `${SBM_COMPANY_CODE}` | `SBM_COMPANY_CODE` | `tokenManagementCompanyCode` |
+
+`sbm.company-code` (SBM sözleşmesindeki `sigortaSirketKodu` ve DB'deki `COMPANY_CODE`) ile
+`token-management.company-code` (token isteğinin alanı) **ayrı alanlardır**; bugün aynı
+Vault anahtarından beslenseler de ayrı tutulur.
+
+`TokenManagementProperties` sınıfı `@Validated` ve zorunlu alanları `@NotBlank`. Bir ortam
+değişkeni eksikse **uygulama başlangıçta hata verir ve ayağa kalkmaz**; eksiklik ilk
+beyanname gönderiminde değil, deploy anında görünür.
 
 Her istekten önce yeni token alınır (**cache yoktur**). SBM'ye giden header'lar token
 yanıtından üretilir:
@@ -441,25 +470,27 @@ Vault yolları: `sc-test → kv/data/TEST`, `sc-uat → kv/data/UAT`, `prep → 
 
 ## 8. Açık Konular
 
-1. **Sorgu metodu `GET` mi `POST` mu?** SBM dökümanı `ysv-beyanname/sorgu` için "GET"
-   diyor ama gövdeli bir request örneği veriyor. `esb.ysv.sorgu-method` property'si ile
-   `GET`/`POST` arasında değiştirilebilir bırakıldı; `SbmClientService` iki varyantı da
-   destekliyor. SBM/ESB ekibinden teyit alınmalı.
+1. **Sorgu (GET) ESB proxy route'u.** Uygulama SBM sözleşmesine uygun şekilde `GET` +
+   query string (`?sigortaSirketKodu=045&ysvDosyaNo=...`) gönderiyor; gövde yok
+   (`esb.ysv.sorgu-method` property'si kaldırıldı). SC-UAT'ta OSB proxy'si GET'te bu
+   parametreleri SBM Business Service'ine taşımadığı için `CORE-00004` alınıyor →
+   **düzeltme ESB tarafında.** Not: SBM dökümanı sorgu isteğini gövdeli bir JSON örneğiyle
+   de gösteriyor; proxy düzelince hangi varyantın beklendiği netleşecek.
 2. **`gecmisAyIadeTutari`.** Güncel SBM dökümanında alan `ysvTutarList`'in her elemanında
    yer alıyor; kod da onu tutar kalemine (`SbmAmountItem`) koyuyor, root'a değil. DB'de
    değer varsa gönderiliyor, yoksa `@JsonInclude(NON_NULL)` ile payload'dan çıkarılıyor.
    Gerçek bir gönderimle uçtan uca doğrulanmadı.
-3. **Token `functionName` değeri.** Örnek istekte `"test"` geçiyor. Uygulama operasyona göre
-   `ysv-beyanname-gonder` / `-guncelle` / `-sorgu` gönderiyor; alz-token-management ekibinden
-   beklenen değer teyit edilmeli.
-4. **alz-token-management parametreleri.** Parametrelerin **tamamı** (`base-url`, `path`,
-   `client-name`, `user-name`, `company-code`) ortam bazlıdır ve
-   `helm/chart/configs/application-<profil>.yml` içinde tutulur; ortak config'de
-   `token-management` başlığı hiç yoktur. Yalnızca **SC-TEST** değerleri biliniyor;
-   `sc-uat`, `prep` ve `prod` değerleri token ekibinden alınacak. O profillerde anahtarlar
-   boş bırakıldı — değer uydurulmadı. `TokenManagementProperties` `@Validated` +
-   `@NotBlank` olduğu için eksik ayarla uygulama **başlangıçta hata verir ve ayağa
-   kalkmaz**; sorun ilk beyanname gönderiminde değil, deploy anında görünür.
+3. **Token `functionName` değeri.** Uygulama artık operasyona göre isim türetmiyor;
+   `token-management.function-name` ayarından okuyor, default `"test"` (SC-TEST/SC-UAT'ta
+   çalıştığı doğrulandı). Token ekibi (Hüseyin Dağ / Ömer Faruk Ceylan) operasyona özel
+   isim isterse ortam config'inden ezilir.
+4. **alz-token-management parametreleri.** Token tüm ortamlarda aynı değişkenlerle
+   alınıyor: `path`, `client-name`, `user-name`, `company-code` ve timeout'lar ortak
+   config'te; ortama göre değişen tek alan `base-url` (her ortamın auth host'u).
+   Gizli değerler Vault'tan ortam değişkeni olarak geliyor (bkz. §5 tablosu).
+   `TokenManagementProperties` `@Validated` + `@NotBlank` olduğu için eksik ayarla uygulama
+   **başlangıçta hata verir ve ayağa kalkmaz**; sorun ilk beyanname gönderiminde değil,
+   deploy anında görünür.
 5. **Alan tipleri: number mı string mi?** SBM dökümanının alan türü tablosu, PDF'deki istek
    örneği, sorgu yanıt örneği ve legacy SOAP WSDL stub'ları sayısal alanların JSON
    **number** olduğunu doğruluyor. Dökümanın güncellenmiş istek örneğinde değerler tırnaklı
@@ -471,12 +502,11 @@ Vault yolları: `sc-test → kv/data/TEST`, `sc-uat → kv/data/UAT`, `prep → 
    düzenleniyor ve hatalı kayıtlar SBM'nin `RISK-HAVUZU-00007` / `RISK-HAVUZU-00008`
    hatalarıyla yakalanıyor. Uygulamada büyükşehir listesi tutulmuyor; tek kural
    `DISTRICT_CODE` null/0 ise alanın gönderilmemesi.
-7. **ESB path namespace'i.** ESB kendi path namespace'ini kullanıyor olabilir: legacy SOAP'ta
-   `YsvServices/ProxyService/YsvBeyanService` deseni kullanılmış. Bizim mevcut path'lerimiz
-   SBM'nin kendi path'i (`/api/rest/vergi-beyan-rs/v10/ysv-beyanname`); ESB ekibinden teyit
-   edilmeli, aksi halde `CORE-00009` (kaynak bulunamadı) alınır. Path'ler property'den
-   yönetildiği için (`esb.ysv.beyanname-path`, `esb.ysv.sorgu-path`) kod değişikliği
-   gerekmez.
+7. **ESB proxy path'i — çözüldü.** SC-UAT'ta doğrulandı (2026-09-01): üç işlem de
+   `/sbmDeclarationServices` proxy path'ini kullanıyor, proxy SBM Business Service'ine
+   (`.../v10/ysv-beyanname`) yönlendiriyor. `EsbProperties` default'u budur; ortam farkı
+   yalnızca `ESB_SERVER` (host:port). SC-UAT = `http://10.70.47.135:21011`; diğer
+   ortamların adresleri ESB ekibinden alınacak (`helm/values/<ortam>.yaml` içinde TODO).
 8. **ESB DNS kaydı.** Legacy SOAP client pom'unda "esb.allianz.com.tr olarak bir dns kaydı
    bulunmamakta" notu ve UAT için `10.70.52.149` IP'si var. Adres bu yüzden
    `${ESB_SERVER:...}` üzerinden okunuyor ve `helm/values/<ortam>.yaml` içindeki

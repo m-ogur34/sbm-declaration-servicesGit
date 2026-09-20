@@ -6,9 +6,11 @@ Kod yazmadan önce bu dosyanın tamamını oku. Bir çelişki görürsen kod de�
 
 > **ÖNCELİK:** Uçtan uca çalışma prensibinin güncel ve ayrıntılı hâli
 > **`CALISMA-PRENSIBI.md`**'dedir (gerçek SBM/ESB dökümanlarına göre yazıldı).
-> Ortam/profil/Vault/DB bağlantısı için **`HELM-VE-KONFIG.md`**. Bu dosya (`CLAUDE.md`)
-> ile onlar çelişirse **`CALISMA-PRENSIBI.md` geçerlidir**. 2026-08-30'da güncellenen
-> kararlar aşağıda işaretlendi (⟳).
+> Proje işleyişi, canlı öncesi değerlendirme ve açık maddeler için **`PROJE-REHBERI.md`**;
+> ortam/profil/Vault/DB bağlantısı için **`README.md` §5**. (`HELM-VE-KONFIG.md`
+> kaldırıldı — içeriği bu iki dosyaya taşındı.) Bu dosya (`CLAUDE.md`) ile onlar
+> çelişirse **`CALISMA-PRENSIBI.md` geçerlidir**. 2026-08-30'da güncellenen kararlar
+> aşağıda işaretlendi (⟳); 2026-09-21 güncellemeleri (⟲) ile.
 
 ---
 
@@ -40,7 +42,10 @@ Allianz Sigorta içi proje. Şirket kodu: **045**.
 
 ## 2. Teknoloji
 
-- Spring Boot 3.5.x / **Java 21**
+- ⟲ Spring Boot 3.5.14 / **Java 25** (`java.version` = `maven.compiler.release` = 25)
+- ⟲ Runtime image: `harbor.allianz-tr.local/alz-base/redhat/ubi9-temurin-jdk25-rootless:u9.6-j25_36`
+  — **rootless**: Dockerfile'a `USER` / `adduser` / `chown` satırı eklenmez, image içi
+  `HEALTHCHECK` yoktur (sağlık kontrolü k8s probe'ları ile, `helm/chart/values.yaml`)
 - HTTP istemcisi: **Spring `RestClient`** (RestTemplate/WebClient kullanma)
 - Oracle DB
 - Java paket kökü: `tr.com.allianz.ysv.services`
@@ -111,10 +116,11 @@ ve projeye özgü bağımlılıklar değişir.
 
 ### properties
 
-`java.version` 21, `spring-framework.version` 6.2.19, `spring-boot.version` 3.5.14,
+⟲ `java.version` 25, `spring-framework.version` 6.2.19, `spring-boot.version` 3.5.14,
 `spring-cloud.version` 2025.0.0, `build-packaging-type` jar,
-`maven.compiler.source/target` 21, `project.build.sourceEncoding` UTF-8,
-`ojdbc.version` 19.3.0.0, `springdoc-openapi-starter-webmvc-ui.version` 2.7.0,
+`maven.compiler.source/target/release` 25, `project.build.sourceEncoding` UTF-8,
+`ojdbc.version` 19.3.0.0, `springdoc-openapi-starter-webmvc-ui.version` **2.8.9**
+(2.6.0/2.7.0 Spring 6.2'de `/v3/api-docs` 500 veriyor), `prometheus-metrics-bom` 1.3.10,
 `jackson-bom.version` 2.22.0, `tomcat.version` 10.1.56, `logback.version` 1.5.35,
 `micrometer.version` 1.15.12.
 
@@ -153,7 +159,7 @@ bunu kullanır. Sadece okuma; yazma yok.
 ### build
 
 - `<finalName>${project.artifactId}</finalName>`
-- `jacoco-maven-plugin` 0.8.11 → `prepare-agent`, `report` (test fazı),
+- ⟲ `jacoco-maven-plugin` **0.8.14** (Java 25 için) → `prepare-agent`, `report` (test fazı),
   `check` (verify fazı)
 - `maven-surefire-plugin` → `<argLine>@{argLine}</argLine>` (JaCoCo ile uyum için şart)
 
@@ -191,10 +197,21 @@ YSV'nin kendi token servisi **yoktur ve olmayacaktır**. Merkezi servis kullanı
 
 ### Kritik konfigürasyon kuralı
 
-`alz-token-management` request parametrelerinin **tamamı ortam bazlıdır**:
-`base-url`, `path`, `clientName`, `functionName`, `userName`, `companyCode`.
-Hiçbiri ortak/paylaşılan default olarak yazılmaz — hepsi
-`helm/chart/configs/application-<ortam>.yml` içinde ayrı ayrı tanımlanır.
+⟲ **Güncellendi:** token tüm ortamlarda **aynı değişkenlerle** alınır. `path`,
+`client-name`, `user-name`, `company-code` ve timeout'lar
+`helm/chart/common-configs/application.yml` içindedir; ortama göre değişen tek alan
+**`base-url`**'dir ve `helm/chart/configs/application-<ortam>.yml` içinde verilir.
+Ortak config'de `base-url` için default tutulmaz (eksikse uygulama açılmasın).
+
+⟲ **Placeholder adı = Vault'un export ettiği env adı.** Spring `${camelCase}` yazımını
+`TOKEN_MANAGEMENT_CLIENT_NAME` env'iyle eşleştiremez; sadece aynı adı ve tamamen büyük
+harfli hâlini dener. Bu yüzden yml'de `${TOKEN_MANAGEMENT_CLIENT_NAME}`,
+`${TOKEN_MANAGEMENT_USER_NAME}`, `${TOKEN_MANAGEMENT_COMPANY_CODE}`, `${SBM_COMPANY_CODE}`
+yazılır — `helm/values/<ortam>.yaml` içindeki `export` satırlarıyla birebir aynı.
+
+⟲ `sbm.company-code` (SBM `sigortaSirketKodu` + DB `COMPANY_CODE`) ile
+`token-management.company-code` (token isteği alanı) **ayrı alanlardır**; aynı Vault
+anahtarından beslenseler de birleştirilmez.
 
 ### Kaldırılmış olması gereken eski yapı
 
@@ -413,6 +430,11 @@ Tam liste `CALISMA-PRENSIBI.md` §11'de. Öne çıkanlar:
 ## 13. Tuzaklar — bunları yapma
 
 - ❌ Maven wrapper (`mvnw`, `.mvn/`) ekleme veya koruma.
+- ❌ yml'de `${tokenManagementClientName}` gibi camelCase placeholder yazma — çözülmez,
+  uygulama açılmaz. Vault export adını birebir kullan.
+- ❌ Dockerfile'a `USER` / `adduser` / `chown` / `HEALTHCHECK` ekleme — base image rootless
+  UBI9; `addgroup`/`adduser`/`wget` yok.
+- ❌ `sbm.company-code` ile `token-management.company-code`'u tek property'de birleştirme.
 - ❌ `.editorconfig`, `Jenkinsfile`, `lombok.config` gibi ek dosyalar bırakma.
 - ❌ Token cache'i ekleme.
 - ❌ `Requester-ID-Type` / `Requester-ID-No` header'larını hardcode etme.

@@ -205,7 +205,8 @@ Content-Type: application/json
   kimlik/tip gönderileceği **token servisinin ayarıdır** — bu uygulama token ne
   dönerse onu iletir, değiştirmez.
 - `accessToken` ve `clientIdNumber` loglara maskeli yazılır.
-- Ortam bazlı konfig ve DB bağlantısının nasıl çözüldüğü: bkz. **`HELM-VE-KONFIG.md`**.
+- Ortam bazlı konfig ve DB bağlantısının nasıl çözüldüğü: bkz. **`README.md` §5**
+  (`HELM-VE-KONFIG.md` kaldırıldı).
 
 ### 4.3 Eski yapı (obsolete — kod kalıntısı varsa temizlenir)
 

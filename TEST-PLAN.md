@@ -1,7 +1,7 @@
 # TEST-PLAN — YSV → SBM entegrasyonu
 
 > VDI'da adım adım işaretlenecek çalışma listesi. Referans: `CALISMA-PRENSIBI.md`,
-> `HELM-VE-KONFIG.md`. Durum: `[ ]` yapılacak · `[x]` tamam · `[!]` sorun/beklemede.
+> `PROJE-REHBERI.md`, `README.md` §5. Durum: `[ ]` yapılacak · `[x]` tamam · `[!]` sorun/beklemede.
 
 ---
 
@@ -78,7 +78,7 @@ ESB_SERVER=http://10.70.47.135:21011
 - [x] `GET /actuator/health` → `{"status":"UP"}`
 - [x] Swagger: `http://localhost:8080/sbm-declaration-services/swagger-ui.html`
 
-### 3b. k8s (SC-TEST/UAT) — `HELM-VE-KONFIG.md` §5
+### 3b. k8s (SC-TEST/UAT) — `README.md` §5
 - [ ] `helm dependency update ./helm/chart`
 - [ ] deploy + `kubectl exec ... env | grep SPRING_PROFILES_ACTIVE / SPRING_DATASOURCE_`
 - [ ] `helm/values/<ortam>.yaml` → `ESB_SERVER` (SC-UAT için `http://10.70.47.135:21011`)

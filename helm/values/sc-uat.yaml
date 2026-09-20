@@ -38,6 +38,7 @@ springboot-deployment:
             export SWAGGER_API_KEY="{{ .Data.data.swaggerApiKey }}"
             export TOKEN_MANAGEMENT_CLIENT_NAME="{{ .Data.data.tokenManagementClientName }}"
             export SBM_COMPANY_CODE="{{ .Data.data.tokenManagementCompanyCode }}"
+            export TOKEN_MANAGEMENT_COMPANY_CODE="{{ .Data.data.tokenManagementCompanyCode }}"
             export TOKEN_MANAGEMENT_USER_NAME="{{ .Data.data.tokenManagementUserName }}"
           {{- end }}
   autoscale:
