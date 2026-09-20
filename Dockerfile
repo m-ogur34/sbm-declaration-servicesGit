@@ -1,6 +1,4 @@
-# The jar is produced by "mvnw clean verify" on the CI agent, which is the only place with
-# access to the internal Nexus, so this image only carries the runtime.
-FROM registry.allianz.com.tr/base/eclipse-temurin:21-jre-alpine
+FROM harbor.allianz-tr.local/alz-base/redhat/ubi9-temurin-jdk25-rootless:u9.6-j25_36
 
 ARG JAR_FILE=target/sbm-declaration-services.jar
 
