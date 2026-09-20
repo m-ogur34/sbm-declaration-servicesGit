@@ -19,10 +19,7 @@ import lombok.Setter;
 import tr.com.allianz.ysv.services.enums.LogLevel;
 import tr.com.allianz.ysv.services.enums.OperationType;
 
-/**
- * One row of {@code CUSTOMER.ALZ_SBM_DECL_LOG}: the legally required evidence of every REST
- * call made against SBM, written for successful and failed calls alike.
- */
+
 @Entity
 @Table(name = "ALZ_SBM_DECL_LOG")
 @Getter

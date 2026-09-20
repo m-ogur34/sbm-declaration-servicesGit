@@ -4,27 +4,26 @@ spring:
       driver-class-name: oracle.jdbc.OracleDriver
     cognos:
       driver-class-name: oracle.jdbc.OracleDriver
+  management:
+    endpoints:
+      web:
+        exposure:
+          include: "*"
+      loggers:
+        enabled: true
   jpa:
     show-sql: true
     hibernate:
       ddl-auto: none
-    properties:
-      hibernate:
-        use_sql_comments: true
-        format_sql: true
+  properties:
+    hibernate:
+      use_sql_comments: true
+      format_sql: true
+      type: trace
   application:
     name: sbm-declaration-services
   jta:
     enabled: false
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info,metrics,prometheus,loggers
-  endpoint:
-    loggers:
-      enabled: true
 
 logging:
   level:
@@ -38,7 +37,7 @@ esb:
   base-url: ${ESB_SERVER:http://esb.allianz.com.tr:12000}
 
 token-management:
-  base-url: https://int-sc-uat-auth.allianz.com.tr
+  base-url: https://int-prep-auth.allianz.com.tr
   path: /alz-token-management/api/v1/tokens/sbm-token-generate
   client-name: ${tokenManagementClientName}
   user-name: ${tokenManagementUserName}

@@ -11,13 +11,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-/**
- * SBM sorgu (GET) cevabının {@code data} bloğu: sorgulanan beyannamenin kendisi.
- *
- * <p>Dökümandaki alanlara ek olarak SBM gerçek cevapta {@code telefon}, {@code vkn},
- * {@code adres}, {@code unvan} da döndürüyor (ESB capture'ından doğrulandı). Bilinmeyen
- * alanlar yok sayılır; bu yüzden ileride eklenecek alanlar cevabı bozmaz.</p>
- */
 @Getter
 @Setter
 @Builder

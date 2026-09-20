@@ -28,27 +28,7 @@ import tr.com.allianz.ysv.services.enums.SbmErrorCode;
 import tr.com.allianz.ysv.services.exception.TokenException;
 import tr.com.allianz.ysv.services.util.JsonUtil;
 
-/**
- * 3. ve 4. AŞAMA — SBM ile ESB üzerinden haberleşen tek sınıf.
- *
- * <p>Akış: her çağrıda önce {@link TokenManagementService}'ten <b>taze</b> token alınır
- * (cache yok), sonra istek {@code esb.allianz.com.tr:12000} adresine atılır; ESB ortam
- * bazlı olarak ilgili SBM ortamına yönlendirir. SBM adresleri hiçbir zaman doğrudan
- * çağrılmaz.</p>
- *
- * <ul>
- *   <li>{@link #send} — yeni beyanname, HTTP POST</li>
- *   <li>{@link #update} — güncelleme / iptal (tutar sıfırlama), HTTP PUT</li>
- *   <li>{@link #query} — sorgu, HTTP GET + query string {@code ?sigortaSirketKodu=...&ysvDosyaNo=...}</li>
- * </ul>
- *
- * <p>Hatalar {@link SbmCallResult} olarak <b>döndürülür</b>, fırlatılmaz: çağıran her
- * durumda audit log satırını yazabilsin diye. Tek istisna {@link TokenException} —
- * token yoksa SBM'ye hiçbir şey gitmemiştir.</p>
- *
- * <p>SBM cevap zarfı her işlemde aynıdır: {@code { "result": bool, "data": <...>,
- * "status": int } }. Başarı ölçütü: HTTP 2xx <b>ve</b> {@code result == true}.</p>
- */
+
 @Slf4j
 @Service
 public class SbmClientService {
@@ -85,14 +65,6 @@ public class SbmClientService {
         return callWithRetry(HttpMethod.PUT, esbProperties.beyannameUrl(), request, OperationType.PUT);
     }
 
-    /**
-     * Beyanname sorgusu: {@code ysv-beyanname} üzerinde HTTP GET; parametreler
-     * <b>query string</b> ile taşınır ({@code ?sigortaSirketKodu=045&ysvDosyaNo=...}).
-     *
-     * <p>SBM dökümanındaki Postman örneği sorguyu bu şekilde tanımlar; gövde yoktur.
-     * {@code request} nesnesi audit log'a yazılacak istek özeti için {@code call}'a
-     * verilir ama HTTP gövdesi olarak gönderilmez (bkz. {@link #call}).</p>
-     */
     public SbmCallResult query(SbmQueryRequest request) {
         String url = UriComponentsBuilder.fromUriString(esbProperties.sorguUrl())
                 .queryParam("sigortaSirketKodu", request.getSigortaSirketKodu())
@@ -114,11 +86,7 @@ public class SbmClientService {
         }
     }
 
-    /**
-     * Sadece süresi dolmuş token ve sunucu tarafı hatası tekrar denenebilir. Diğer her şey
-     * veri/yetki sorunudur; yeniden göndermek mükerrer beyanname riski taşır
-     * (RISK-HAVUZU-00004).
-     */
+
     static boolean isRetryable(SbmCallResult result) {
         if (result.getHttpStatus() >= 500) {
             return true;
@@ -152,11 +120,6 @@ public class SbmClientService {
         }
     }
 
-    /**
-     * Değerler token cevabından gelir; hiçbiri hardcode değildir ve {@code Authorization}
-     * başlığı audit payload'una yazılmaz. Her iki başlık da SBM'nin tüm servislerinde
-     * zorunludur (POST/PUT/GET).
-     */
     private void applyAuthHeaders(HttpHeaders headers, TokenResponse token) {
         headers.setBearerAuth(token.getAccessToken());
         if (token.getClientCredentials().getClientIdentityType() != null) {

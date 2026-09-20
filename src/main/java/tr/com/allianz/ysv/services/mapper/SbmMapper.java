@@ -17,35 +17,15 @@ import tr.com.allianz.ysv.services.enums.SbmErrorCode;
 import tr.com.allianz.ysv.services.exception.SbmIntegrationException;
 import tr.com.allianz.ysv.services.util.DistrictCodeResolver;
 
-/**
- * Builds SBM request bodies out of a declaration group.
- *
- * <p>Only what would make the request meaningless is checked here - a missing file number,
- * payment date, city code or movable type, and a duplicated movable type - and it is
- * reported with SBM's own code so operators deal with one vocabulary. Everything else,
- * including whether a city / district combination is the one SBM expects, is left to SBM:
- * it answers RISK-HAVUZU-00007 / RISK-HAVUZU-00008 and the reason lands in
- * {@code ERROR_DETAILS}.</p>
- */
+
 @Slf4j
 @Component
 public class SbmMapper {
 
-    /** SBM limits {@code ysvDosyaNo} to 36 characters even though the column is wider. */
     static final int SBM_FILE_NO_MAX_LENGTH = 36;
 
-    /** SBM limits {@code sigortaSirketKodu} to 3 characters. */
     static final int COMPANY_CODE_MAX_LENGTH = 3;
 
-    /**
-     * Builds the POST body. {@code ay}, {@code yil}, {@code ilKodu} and {@code ilceKodu} are
-     * sent; {@code ilceKodu} is left out when the database holds no district (null or 0).
-     *
-     * @param group all rows sharing one declaration group key, at least one element
-     * @param companyCode SBM company code ("045")
-     * @return the request body
-     * @throws SbmIntegrationException when the group cannot produce a valid SBM request
-     */
     public SbmDeclarationRequest toSendRequest(List<DeclarationProcess> group, String companyCode) {
         requireGroupAndCompanyCode(group, companyCode);
         String fileNo = resolveFileNo(group);
@@ -62,17 +42,6 @@ public class SbmMapper {
                 .build();
     }
 
-    /**
-     * Builds the PUT body. Period and location fields are left {@code null} so that
-     * {@code @JsonInclude(NON_NULL)} keeps them out of the payload, exactly as the SBM
-     * document requires.
-     *
-     * @param group all rows sharing one declaration group key, at least one element
-     * @param companyCode SBM company code ("045")
-     * @param zeroAmounts {@code true} for the cancel flow, which zeroes every amount
-     * @return the request body
-     * @throws SbmIntegrationException when the group cannot produce a valid SBM request
-     */
     public SbmDeclarationRequest toUpdateRequest(List<DeclarationProcess> group,
                                                  String companyCode,
                                                  boolean zeroAmounts) {
@@ -83,11 +52,6 @@ public class SbmMapper {
         return baseRequest(head, companyCode, group, fileNo, zeroAmounts).build();
     }
 
-    /**
-     * @param ysvDosyaNo SBM file number to look up
-     * @param companyCode SBM company code ("045")
-     * @return the query parameters (GET query string)
-     */
     public SbmQueryRequest toQueryRequest(String ysvDosyaNo, String companyCode) {
         requireCompanyCode(companyCode);
         if (ysvDosyaNo == null || ysvDosyaNo.isBlank()) {
@@ -122,10 +86,7 @@ public class SbmMapper {
         requireCompanyCode(companyCode);
     }
 
-    /**
-     * SBM declares {@code sigortaSirketKodu} as String(max 3), so a longer value is refused
-     * here rather than spent on a call that can only come back as CORE-01008.
-     */
+
     private void requireCompanyCode(String companyCode) {
         if (companyCode == null || companyCode.isBlank()) {
             throw new SbmIntegrationException(SbmErrorCode.RISK_HAVUZU_00002.getCode(),
@@ -138,9 +99,7 @@ public class SbmMapper {
         }
     }
 
-    /**
-     * @return {@code head} unchanged, once it is known to carry a payment date
-     */
+
     private DeclarationProcess requirePaymentDate(DeclarationProcess head, String fileNo) {
         if (head.getPaymentDate() == null) {
             throw new SbmIntegrationException(SbmErrorCode.CORE_01000.getCode(),
@@ -149,17 +108,6 @@ public class SbmMapper {
         return head;
     }
 
-    /**
-     * {@code ysvDosyaNo} is not part of the grouping key - SBM identifies a declaration by
-     * İl-İlçe-Yıl-Ay - so it is read back from the rows of the group. One declaration is
-     * expected to carry one file number; a group holding several is a data problem worth an
-     * operator's attention, but not a reason to stop the transfer, so the first one is used
-     * and the rest are reported in the application log.
-     *
-     * @param group rows of one declaration group
-     * @return the file number to send
-     * @throws SbmIntegrationException when no usable file number exists, or it is too long
-     */
     private String resolveFileNo(List<DeclarationProcess> group) {
         Set<String> fileNumbers = new LinkedHashSet<>();
         for (DeclarationProcess process : group) {
@@ -184,10 +132,7 @@ public class SbmMapper {
         return fileNo;
     }
 
-    /**
-     * SBM declares {@code ysvDosyaNo} as String(max 36); the column is wider, so the limit
-     * has to be enforced here.
-     */
+
     private void requireFileNoLength(String fileNo) {
         if (fileNo.length() > SBM_FILE_NO_MAX_LENGTH) {
             throw new SbmIntegrationException(SbmErrorCode.CORE_01008.getCode(),
@@ -228,7 +173,6 @@ public class SbmMapper {
                 .build();
     }
 
-    /** SBM requires every amount, so a missing value is transferred as an explicit zero. */
     private static BigDecimal amount(BigDecimal value, boolean zeroAmounts) {
         if (zeroAmounts || value == null) {
             return BigDecimal.ZERO;
@@ -236,10 +180,7 @@ public class SbmMapper {
         return value;
     }
 
-    /**
-     * {@code gecmisAyIadeTutari} is not part of the documented SBM field list, so it is only
-     * sent when the database actually holds a value.
-     */
+
     private static BigDecimal refundAmount(BigDecimal value, boolean zeroAmounts) {
         if (value == null) {
             return null;

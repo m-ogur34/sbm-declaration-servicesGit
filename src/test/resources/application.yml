@@ -4,6 +4,9 @@
 spring:
   main:
     banner-mode: "off"
+  cloud:
+    vault:
+      enabled: false
 
 esb:
   base-url: http://esb.test.local:12000
@@ -22,9 +25,6 @@ token-management:
   company-code: "045"
   connect-timeout: 1s
   read-timeout: 2s
-
-api-guard:
-  enabled: false
 
 sbm:
   company-code: "045"

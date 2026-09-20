@@ -8,14 +8,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-/**
- * SBM {@code ysv-beyanname/sorgu} (GET) çağrısının cevap zarfı.
- *
- * <p>POST/PUT ile aynı zarf yapısı: {@code { "result": bool, "data": {...}, "status": int } }.
- * Başarıda {@code data} sorgulanan beyannamedir ({@link SbmQueryData}); hatada
- * {@code data} yoktur ve {@link #error} dolar. Bu tip {@code DeclarationService.query}
- * tarafından çağırana aynen döndürülür.</p>
- */
 @Getter
 @Setter
 @Builder

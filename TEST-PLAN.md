@@ -157,10 +157,10 @@ ESB_SERVER=http://10.70.47.135:21011
 
 ---
 
-## 7. PEN test savunma katmanı — test edilmedi (lokalde `api-guard.enabled=false`)
+## 7. PEN test savunma katmanı
 
-- [ ] `X-Api-Key` yoksa `/api/v1/**` → 401 (k8s'te `API_GUARD_API_KEY` ile)
-- [ ] rate limit → 429 + `Retry-After`
+Rate limit / API key uygulamada yok (ApiGuard 2026-09-18'de kaldırıldı; gateway katmanında).
+
 - [ ] actuator: sadece `health/info/metrics/prometheus`
 
 ---

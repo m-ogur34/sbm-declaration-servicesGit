@@ -524,8 +524,8 @@ token cache yok; her çağrıda taze token; `Transaction-Id` loglanıyor;
 7. **`mvn clean verify`** — ilk kez VDI'da (iç Nexus'lu) derlenecek.
 8. **Excel `menkulTipi` formatı:** iş biriminden `MENKUL`/`GAYRIMENKUL` metniyle
    istenecek (§3.2). Sayısal `1`/`2` gelmeye devam ederse parser dönüştürür.
-9. **PEN test kapsamı** (§14): rate limit + broken access control (API key ile
-   doğrudan istek) senaryolarından geçilmeli. Yaklaşım kararı bekleniyor.
+9. **PEN test kapsamı** (§14): rate limit + erişim kontrolü gateway/altyapı
+   katmanında; uygulama içi ApiGuard kaldırıldı (2026-09-18).
 
 ---
 
@@ -587,42 +587,20 @@ hem `GAYRIMENKUL` satırı içerir → `ysvTutarList` 2 elemanlı POST/PUT üret
 
 Proje penetrasyon testine girecek. En az şu iki başlıktan geçmeli:
 
-### 14.1 Rate limiting
+### 14.1 Rate limiting / API key — **uygulamada YOK (2026-09-18 kararı)**
 
-Tüm `/api/v1/**` uçlarına istek hızı sınırı uygulanır (aşımda **HTTP 429** +
-`Retry-After`). Amaç: kaba kuvvet / kaynak tüketimi saldırılarını sınırlamak.
-Sınır değerleri ortam bazlı config'ten okunur.
-→ **Yaklaşım kararı bekleniyor** (bkz. aşağıdaki seçenekler).
+Uygulama içi `ApiGuardFilter` (token-bucket rate limit + `X-Api-Key`) kaldırıldı.
+Rate limit ve kimlik doğrulama iç gateway / altyapı katmanına bırakıldı; servis bu
+konuda kod veya `api-guard.*` config taşımaz.
 
 ### 14.2 Broken access control
 
 Uygulama uçlarına **kimlik doğrulaması olmadan doğrudan istek** atılamamalı.
-Bugün `/api/v1/declarations/**` uçları korumasız — iç gateway'e güveniliyor. PEN
-testi "derinlemesine savunma" bekliyor: servisin kendisi de bir kimlik
-kontrolü yapmalı (ör. paylaşılan API key header'ı veya mTLS / servis-hesabı JWT).
-Ayrıca:
+`/api/v1/declarations/**` uçlarında kimlik kontrolü iç gateway'e bırakıldı (§14.1).
+Servis tarafında kalanlar:
 - Actuator: sadece `health`, `info`, `metrics`, `prometheus` açık; `env`,
   `beans`, `mappings`, `heapdump`, `threaddump` **kapalı**.
 - Hata cevaplarında stack trace / iç detay sızmamalı (`GlobalExceptionHandler`).
 - `Authorization`, token, `Requester-ID-No` **loglara yazılmaz** (maskeli).
 - Güvenlik başlıkları (`X-Content-Type-Options`, `X-Frame-Options` vb.).
 - Girdi doğrulama: dosya boyutu / tipi (yalnız `.xlsx`), satır sayısı üst sınırı.
-
-### 14.3 Yaklaşım — **KARAR: A (hafif filtre)**
-
-Ek bağımlılık yok. Tek bir servlet `Filter` katmanı:
-
-- **Rate limit:** in-memory token-bucket (istemci başına — API key veya
-  `X-Forwarded-For`). Aşımda `429` + `Retry-After`. Parametreler
-  (`capacity`, `refill/period`) ortam config'inden okunur; kapatılabilir bir
-  `enabled` bayrağı olur.
-- **Access control:** aynı filtre, korunan yollarda (`/api/v1/**`) paylaşılan
-  **API key header'ı** (`X-Api-Key`) kontrol eder; eşleşmezse `401`. Beklenen
-  değer config/secret'tan gelir, koda gömülmez. `/actuator/health|info|metrics|
-  prometheus`, `/swagger-ui`, `/v3/api-docs` muaf.
-- **Sınır:** in-memory sayaç çok-replica'da instance-local'dir. Gerçek trafik /
-  çok-replica ihtiyacı doğarsa Resilience4j + Redis'e geçiş ayrı bir iş kalemi
-  (bugün gerekmiyor — istekler zaten iç ağdan ve düşük hacimli).
-
-Not: bu, iç gateway'in kimlik doğrulamasının **yerine** değil, üstüne eklenen
-ikinci katmandır (derinlemesine savunma).

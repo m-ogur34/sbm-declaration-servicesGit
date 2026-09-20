@@ -14,15 +14,7 @@ import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
 
-/**
- * ESB ve {@code alz-token-management} çağrıları için {@link RestClient} bean'leri.
- *
- * <p>Alt taşıyıcı Apache HttpClient 5: bağlantı havuzu ve ayrı connect/read timeout
- * kontrolü sağlar. (Sorgu GET + query string ile yapılır, GET gövdesi kullanılmaz.)</p>
- *
- * <p>Client'lara base-url verilmez; servisler mutlak URL'i kendi ayarlarından kurar,
- * böylece hedef adres loglarda her zaman açıkça görünür.</p>
- */
+
 @Configuration(proxyBeanMethods = false)
 public class RestClientConfig {
 
@@ -43,11 +35,6 @@ public class RestClientConfig {
                 .build();
     }
 
-    /**
-     * @param connectTimeout time allowed to establish the TCP connection
-     * @param readTimeout    time allowed between the request and the full response
-     * @return a request factory backed by a pooled Apache HttpClient 5 instance
-     */
     static ClientHttpRequestFactory requestFactory(Duration connectTimeout, Duration readTimeout) {
         ConnectionConfig connectionConfig = ConnectionConfig.custom()
                 .setConnectTimeout(Timeout.ofMilliseconds(connectTimeout.toMillis()))

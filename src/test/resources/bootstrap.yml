@@ -1,0 +1,5 @@
+# Testler gerçek Vault'a bağlanmaz: main/resources/bootstrap.yml'i gölgeler.
+spring:
+  cloud:
+    vault:
+      enabled: false

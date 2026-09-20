@@ -15,14 +15,6 @@ import org.springframework.web.multipart.MultipartFile;
 import tr.com.allianz.ysv.services.dto.response.ImportResultResponse;
 import tr.com.allianz.ysv.services.service.DeclarationImportService;
 
-/**
- * 1. AŞAMA — YSV beyanname Excel'ini yükleyen uç.
- *
- * <p>{@code POST /api/v1/declarations/upload} (multipart) → {@link DeclarationImportService}
- * dosyayı doğrulayıp geçerli satırları {@code ALZ_SBM_DECL_PROCESS}'e {@code STATUS=NEW}
- * ile yazar. Kullanıcı adı {@code X-User-Name} header'ından alınır (iç gateway doldurur),
- * yoksa {@code SYSTEM} yazılır.</p>
- */
 @RestController
 @RequestMapping("/api/v1/declarations")
 @RequiredArgsConstructor

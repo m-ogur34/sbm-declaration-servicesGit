@@ -74,8 +74,8 @@ springboot-deployment:
       nginx.ingress.kubernetes.io/proxy-buffer-size: 128k
     hosts:
       - alias: '0'
-        host: finance.allianz.com.tr
+        prefix: 'int-'
+        host: elementer.allianz.com.tr
         paths:
           - path: /sbm-declaration-services
             pathType: Prefix
-        prefix: 'int-'

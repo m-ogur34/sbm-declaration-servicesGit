@@ -8,22 +8,12 @@ import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
 
-/**
- * 4. AŞAMA — ESB (OSB katmanı) yönlendirme ayarları.
- *
- * <p>Uygulama {@code rs.sbm.org.tr} adreslerini asla doğrudan çağırmaz; her ortam için
- * tek bir ESB base-url kullanılır ({@code esb.allianz.com.tr:12000}) ve ESB isteği kendi
- * ortamına karşılık gelen SBM adresine yönlendirir. Gönder/güncelle ve sorgu <b>aynı</b>
- * path'tedir; sorgu sadece HTTP GET olması ve parametreleri query string ile taşımasıyla
- * ayrılır.</p>
- */
 @Getter
 @Setter
 @Validated
 @ConfigurationProperties(prefix = "esb")
 public class EsbProperties {
 
-    /** Single ESB entry point, e.g. {@code http://esb.allianz.com.tr:12000}. */
     @NotBlank
     private String baseUrl;
 
@@ -49,13 +39,7 @@ public class EsbProperties {
     @Getter
     @Setter
     public static class Ysv {
-
-        /**
-         * ESB (OSB) Proxy Service endpoint URI'si. SC-UAT'ta doğrulandı: gönder/güncelle/sorgu
-         * tek proxy path'i üzerinden çalışır ({@code /sbmDeclarationServices}); proxy SBM'nin
-         * gerçek adresine ({@code .../api/rest/vergi-beyan-rs/v10/ysv-beyanname}) yönlendirir.
-         * Tüm Allianz OSB ortamlarında aynıdır; ortam farkı sadece {@code base-url}'dedir.
-         */
+        
         @NotBlank
         private String beyannamePath = "/sbmDeclarationServices";
 

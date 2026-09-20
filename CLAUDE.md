@@ -397,8 +397,8 @@ loglanmalı (SBM destek talebi için gerekiyor).
 Tam liste `CALISMA-PRENSIBI.md` §11'de. Öne çıkanlar:
 
 - ⟳ Firma politikası: birim test kapsamı **≥ %90**; proje **PEN testine** girecek
-  (rate limit + broken access control) — `ApiGuardFilter` + `api-guard.*` config eklendi
-  (`CALISMA-PRENSIBI.md` §14).
+  — uygulama içi `ApiGuardFilter` 2026-09-18'de **kaldırıldı**; rate limit / erişim kontrolü
+  gateway katmanında (`CALISMA-PRENSIBI.md` §14).
 - ⟳ DB scriptleri tüm ortamlara deploy edilecek → `db/rollback_db.sql` eklendi.
   Lokal test için `db/local/*` + `db/sample_data_scenarios.sql` + `application-local.yml`.
 - `functionName` (default `test`) ve `userName` token ekibiyle (Hüseyin Dağ /

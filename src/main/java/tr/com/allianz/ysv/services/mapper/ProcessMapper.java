@@ -5,9 +5,6 @@ import org.mapstruct.Mapper;
 import tr.com.allianz.ysv.services.dto.response.ProcessView;
 import tr.com.allianz.ysv.services.entity.DeclarationProcess;
 
-/**
- * Entity to read model mapping for the listing endpoint.
- */
 @Mapper
 public interface ProcessMapper {
 

@@ -33,14 +33,7 @@ import tr.com.allianz.ysv.services.mapper.SbmMapper;
 import tr.com.allianz.ysv.services.repository.DeclarationProcessRepository;
 import tr.com.allianz.ysv.services.util.JsonUtil;
 
-/**
- * Entry point of the declaration workflow: selects the rows to work on, folds them into SBM
- * requests and delegates the transfer of each group to {@link DeclarationGroupProcessor}.
- *
- * <p>The batch itself is deliberately not transactional. One long transaction spanning every
- * remote call would hold row locks for the whole run, and a failure in the last group would
- * roll back the ones SBM has already accepted.</p>
- */
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -55,36 +48,21 @@ public class DeclarationService {
     private final SbmProperties sbmProperties;
     private final JsonUtil jsonUtil;
 
-    /**
-     * Sends the matching {@code NEW} / {@code ERROR} declarations to SBM with HTTP POST.
-     */
+
     public BatchOperationResponse send(DeclarationFilterRequest filter, String user) {
         return runBatch(filter, ProcessStatus.SENDABLE, OperationType.POST, false, user);
     }
 
-    /**
-     * Updates the matching {@code SENT} / {@code COMPLETED} declarations with HTTP PUT.
-     */
+
     public BatchOperationResponse update(DeclarationFilterRequest filter, String user) {
         return runBatch(filter, ProcessStatus.UPDATABLE, OperationType.PUT, false, user);
     }
 
-    /**
-     * SBM has no delete operation: a cancellation is an update with every amount set to 0.
-     */
+
     public BatchOperationResponse cancel(DeclarationFilterRequest filter, String user) {
         return runBatch(filter, ProcessStatus.UPDATABLE, OperationType.PUT, true, user);
     }
 
-    /**
-     * Looks a declaration up at SBM and, when SBM confirms it, promotes the local rows from
-     * {@code SENT} to {@code COMPLETED}.
-     *
-     * @param ysvDosyaNo SBM file number
-     * @param user       user that triggered the query
-     * @return SBM's answer
-     * @throws SbmIntegrationException when SBM rejects the query or answers unparsably
-     */
     public SbmQueryResponse query(String ysvDosyaNo, String user) {
         SbmQueryRequest request = sbmMapper.toQueryRequest(ysvDosyaNo, sbmProperties.getCompanyCode());
         List<Long> relatedIds = declarationProcessRepository.findBySbmFileNo(ysvDosyaNo).stream()
@@ -116,9 +94,7 @@ public class DeclarationService {
         return response;
     }
 
-    /**
-     * Paged listing for the operations screen.
-     */
+
     @Transactional(readOnly = true)
     public PageResponse<ProcessView> search(ProcessStatus status,
                                             Integer year,
@@ -163,12 +139,6 @@ public class DeclarationService {
                 filter.year(), filter.month(), filter.cityCode());
     }
 
-    /**
-     * SBM accepts one declaration per İl-İlçe-Yıl-Ay (RISK-HAVUZU-00004), so that is the
-     * grouping key; {@code ysvDosyaNo} is not part of it and is read back from the rows.
-     * The rows of a group become the elements of {@code ysvTutarList}, one per movable type
-     * (RISK-HAVUZU-00005).
-     */
     private Map<DeclarationGroupKey, List<Long>> groupByDeclaration(List<DeclarationProcess> candidates) {
         Map<DeclarationGroupKey, List<Long>> groups = new LinkedHashMap<>();
         for (DeclarationProcess process : candidates) {
