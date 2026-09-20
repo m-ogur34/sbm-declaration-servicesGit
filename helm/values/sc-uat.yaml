@@ -1,9 +1,3 @@
-global:
-  overrides:
-    esb:
-      # SC-UAT'ta dogrulandi (2026-09-01): OSB proxy /sbmDeclarationServices
-      server: http://10.70.47.135:21011
-
 springboot-deployment:
   gateway:
     migration:
@@ -12,9 +6,6 @@ springboot-deployment:
     env:
       java:
         args: -Xms3g -Xmx3g -XX:+FlightRecorder
-      others:
-        - name: COMMON_CONFIG
-          value: application-config-common.yml
       springboot:
         profile: sc-uat
       sysType: SC-UAT
@@ -35,7 +26,6 @@ springboot-deployment:
              export SPRING_DATASOURCE_URL="{{ .Data.data.URL_OPUSUAT_FINANS }}"
           {{- end }}
           {{ with secret "kv/data/UAT/apps/sbm-declaration-services" -}}
-            export SWAGGER_API_KEY="{{ .Data.data.swaggerApiKey }}"
             export TOKEN_MANAGEMENT_CLIENT_NAME="{{ .Data.data.tokenManagementClientName }}"
             export SBM_COMPANY_CODE="{{ .Data.data.tokenManagementCompanyCode }}"
             export TOKEN_MANAGEMENT_COMPANY_CODE="{{ .Data.data.tokenManagementCompanyCode }}"

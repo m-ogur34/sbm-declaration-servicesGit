@@ -453,18 +453,69 @@ helm/
     └── sc-uat.yaml
 ```
 
-`chart/Chart.yaml` Allianz `springboot-deployment` chart'ını
-(`oci://harbor.allianz-tr.local/middleware`, `1.x.x`) bağımlılık olarak alır. ConfigMap
-template'leri `.Files.Glob` ile `common-configs/` ve `configs/` klasörlerini okur; kaynak
-adları `_helpers.tpl` içindeki `allianz.bundlename` helper'ından üretilir.
+### Hangi dosya ne işe yarar
+
+Bu repo **umbrella chart**'tır: Deployment / Service / Ingress / HPA şablonları bu repoda
+**yoktur**, Allianz'ın ortak `springboot-deployment` chart'ından gelir
+(`chart/Chart.yaml` → `oci://harbor.allianz-tr.local/middleware`, `1.x.x`). Bu repodaki
+`templates/` yalnızca üç ConfigMap/Secret şablonu ile helper'ı içerir.
+
+| Dosya | Ne yapar | Ne zaman değişir |
+|---|---|---|
+| `chart/Chart.yaml` | Parent chart bağımlılığı ve chart sürümü | Parent chart sürümü yükselince |
+| `chart/values.yaml` | **Ortamdan bağımsız uygulama tanımı**: bundle/repo adı, context path, image repo grubu, actuator probe'ları, podLogger, ingress host'u | Uygulama genelinde bir şey değişince |
+| `chart/common-configs/application.yml` | **Tüm ortamlarda geçerli Spring ayarları** → `<bundle>-common-config` ConfigMap'i | Ortak bir ayar değişince |
+| `chart/configs/application-<ortam>.yml` | **Yalnızca o ortama özgü Spring ayarları** → hepsi tek `<bundle>-config` ConfigMap'ine yazılır, pod `SPRING_PROFILES_ACTIVE` ile kendine ait olanı okur | Ortama özel bir ayar değişince |
+| `chart/templates/*.yaml` | `.Files.Glob` ile yukarıdaki iki klasörü ConfigMap'e basar; `certs/` varsa Secret üretir | Neredeyse hiç |
+| `helm/values/<ortam>.yaml` | **Deploy anında `-f` ile verilen ortam dosyası**: profil, JVM args, CPU/memory, replica, Vault şablonu | Ortam kaynakları/gizli değerleri değişince |
+
+Kural: bir ayar **tüm ortamlarda aynıysa** `common-configs/application.yml`'e yazılır.
+Referans `accounting-services` projesinde de böyledir; orada
+`configs/application-sc-uat.yml` yalnızca üç satırdır. Bizde de ortam dosyalarında sadece
+`token-management.base-url` (auth host'u) ve log seviyesi vardır.
+
+### `helm/values/<ortam>.yaml` içindeki bloklar
+
+```yaml
+springboot-deployment:        # bu anahtarın ALTINDAKİ her şey parent chart'a geçer
+  gateway:
+    migration:
+      mode: istio             # servis mesh / gateway geçiş modu
+  app:
+    env:
+      java:
+        args: -Xms3g -Xmx3g   # JAVA_ARGS → Dockerfile ENTRYPOINT'inde kullanılır
+      springboot:
+        profile: sc-uat       # SPRING_PROFILES_ACTIVE → configs/application-sc-uat.yml
+      sysType: SC-UAT         # Allianz platform etiketi (log/monitoring tarafı)
+    resources: ...            # pod CPU/memory limit ve request'leri
+    secretManager:
+      vault:
+        secret: kv/data/UAT   # Vault yolu
+        template: |           # Vault agent bu şablonu render edip env değişkeni export eder
+          export SPRING_DATASOURCE_URL=...
+          export TOKEN_MANAGEMENT_CLIENT_NAME=...
+  autoscale:                  # app'in ALTINDA DEĞİL — springboot-deployment seviyesinde
+    minReplicas: 1
+    maxReplicas: 1
+```
+
+`global:` bloğu **yalnızca `chart/values.yaml`'da** bulunur; ortam dosyalarında yoktur.
+Helm'in yerleşik `global` mekanizmasıdır: hem bu chart hem de alt chart okur.
+
+| `global` anahtarı | Anlamı |
+|---|---|
+| `repoName`, `bundleName` | Artifact adı ve ConfigMap/Secret adlarının öneki |
+| `overrides.bundleName` | Bundle adını ezmek için (`_helpers.tpl` → `allianz.bundlename`) |
+| `overrides.esb.server` | Pod'a `ESB_SERVER` ortam değişkeni olarak geçer ve `${ESB_SERVER:http://esb.allianz.com.tr:12000}` ifadesini ezer. **Normalde boş** — tüm ortamlar aynı ESB girişini kullanır; yalnızca DNS çözülmeyen bir ortamda IP vermek için |
+| `overrides.chart.ingress.skipHostPrefix` | Ingress host'una ortam öneki (`int-`) eklenip eklenmeyeceği |
 
 Vault yolları: `sc-test → kv/data/TEST`, `sc-uat → kv/data/UAT`, `prep → kv/data/PREP`,
 `live` ve `dr → kv/data/PROD`. `live`/`dr` için `-Xms4g -Xmx4g`, memory limit `6Gi`,
 `minReplicas: 1`, `maxReplicas: 5`.
 
 > ⚠️ Klasör adının `chart` mı `charts` mı olduğu Jenkins pipeline ile teyit edilmeli.
-> Bu repo `accounting-services` projesindeki gibi tekil `chart` kullanıyor; `Jenkinsfile`
-> içindeki `helm upgrade` komutu da bu yolu kullanıyor.
+> Bu repo `accounting-services` projesindeki gibi tekil `chart` kullanıyor.
 
 ---
 

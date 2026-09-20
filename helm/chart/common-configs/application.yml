@@ -1,44 +1,92 @@
-spring:
-  datasource:
-    opus:
-      driver-class-name: oracle.jdbc.OracleDriver
-    cognos:
-      driver-class-name: oracle.jdbc.OracleDriver
-  management:
-    endpoints:
-      web:
-        exposure:
-          include: "*"
-      loggers:
-        enabled: true
-  jpa:
-    show-sql: true
-    hibernate:
-      ddl-auto: none
-  properties:
-    hibernate:
-      use_sql_comments: true
-      format_sql: true
-      type: trace
-  application:
-    name: sbm-declaration-services
-  jta:
-    enabled: false
+# Tum ortamlarda gecerli ayarlar. Bu dosya <bundle>-common-config ConfigMap'ine
+# basilir (templates/common-configmap.yaml). Ortama gore degisen tek sey
+# configs/application-<ortam>.yml icindedir.
+server:
+  port: 8080
+  servlet:
+    context-path: /sbm-declaration-services
+  error:
+    include-message: always
 
 logging:
   level:
     root: INFO
-    com.allianz.common.collection: INFO
-    org.springframework.web: INFO
-    org.springframework.security: DEBUG
     tr.com.allianz.ysv.services: INFO
+    org.springframework.web: INFO
+    org.hibernate.type.descriptor.sql.BasicBinder: INFO
 
+spring:
+  application:
+    name: sbm-declaration-services
+  datasource:
+    # URL / kullanici / sifre Vault agent'inin export ettigi SPRING_DATASOURCE_*
+    # degiskenlerinden gelir (helm/values/<ortam>.yaml).
+    driver-class-name: oracle.jdbc.OracleDriver
+    hikari:
+      pool-name: sbm-declaration-pool
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 30000
+  jpa:
+    open-in-view: false
+    show-sql: true
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.OracleDialect
+        use_sql_comments: true
+        format_sql: true
+        jdbc:
+          batch_size: 50
+        order_inserts: true
+  jta:
+    enabled: false
+  jackson:
+    default-property-inclusion: non_null
+    serialization:
+      write-dates-as-timestamps: false
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,loggers
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: always
+    loggers:
+      enabled: true
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /v3/api-docs
+
+# ESB: tum ortamlarda ayni giris noktasi. Ortam yonlendirmesini ESB kendisi yapar.
+# Gerekirse helm/values/<ortam>.yaml -> global.overrides.esb.server ile ESB_SERVER
+# ortam degiskeni verilerek ezilebilir.
 esb:
   base-url: ${ESB_SERVER:http://esb.allianz.com.tr:12000}
+  ysv:
+    # ESB (OSB) Proxy Service path'i - gonder/guncelle/sorgu UCU DE ayni.
+    # Proxy, SBM Business Service'ine (.../v10/ysv-beyanname) yonlendirir.
+    beyanname-path: /sbmDeclarationServices
+    sorgu-path: /sbmDeclarationServices
+  connect-timeout: 10s
+  read-timeout: 60s
 
+# Token tum ortamlarda ayni degiskenlerle alinir; ortama gore degisen tek alan
+# base-url'dir (configs/application-<ortam>.yml). Placeholder adlari,
+# helm/values/<ortam>.yaml icindeki Vault export adlariyla birebir aynidir.
 token-management:
-  # base-url ortam bazlidir (configs/application-<ortam>.yml);
-  # burada ortak bir default tutulmaz - eksikse uygulama acilmasin.
   path: /alz-token-management/api/v1/tokens/sbm-token-generate
   client-name: ${TOKEN_MANAGEMENT_CLIENT_NAME}
   user-name: ${TOKEN_MANAGEMENT_USER_NAME}
@@ -46,7 +94,8 @@ token-management:
   connect-timeout: 30s
   read-timeout: 30s
 
-# Tum ortamlarda ayni Vault anahtari; eksikse uygulama acilmaz (fail-fast).
+# SBM sozlesmesindeki sigortaSirketKodu ve DB'deki COMPANY_CODE.
+# token-management.company-code'dan AYRI bir alandir.
 sbm:
   company-code: ${SBM_COMPANY_CODE}
   retry:

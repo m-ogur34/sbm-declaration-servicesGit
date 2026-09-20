@@ -343,8 +343,10 @@ geri gönderir**. `CANCELLED` durumu veya tutarların DB'de de sıfırlanması g
 - [ ] Cevap zarfı fallback'i: `data` yoksa kök seviyeden oku
 - [ ] `SWAGGER_API_KEY` export'unu kaldır; `bootstrap.yml`'i kaldır; `spring.management`/`datasource.opus|cognos` artıklarını temizle
 - [x] `common-configs/application.yml`: `sbm.company-code` + `sbm.retry` geri eklendi
-- [ ] `common-configs/application.yml`: hikari havuzu, Oracle dialect, `open-in-view: false`, jackson ayarları hâlâ eksik; `management` bloğu geçersiz `spring.management` altında
-- [ ] **Karar gerekiyor:** token `base-url` ortak config'te `int-prep-auth`; ortam dosyaları bunu eziyor ama bir ortam dosyası yüklenmezse tüm ortamlar PREP auth'a gider. Ortak değer ya kaldırılmalı ya da doğru ortak adres yazılmalı
+- [x] `common-configs/application.yml` referans `accounting-services` yapısına göre yeniden yazıldı: `server`, `logging`, `spring` (datasource/hikari/jpa/jackson/multipart), `management`, `springdoc`, `esb`, `token-management`, `sbm` — hepsi ortakta
+- [x] Ortam dosyaları sadeleşti: `configs/application-<ortam>.yml` artık yalnızca `token-management.base-url` + log seviyesi
+- [x] `helm/values/*` referansla hizalandı: `global:` bloğu ortam dosyalarından kaldırıldı (yalnızca `chart/values.yaml`'da), `COMMON_CONFIG` env'i kaldırıldı (referansta yok), kullanılmayan `SWAGGER_API_KEY` export'u kaldırıldı
+- [ ] **ESB:** tüm ortamlar `${ESB_SERVER:http://esb.allianz.com.tr:12000}` kullanıyor. SC-UAT'ta VDI'dan bu adrese erişilemiyordu (`10.70.47.135:21011` çalışmıştı) — pod içinden DNS çözülüyor mu, deploy sonrası ilk kontrol edilecek şey bu
 - [ ] `spring.profiles.active: dev` default'unu kaldır veya chart'ın `SPRING_PROFILES_ACTIVE` verdiğini doğrula
 
 **P3**
