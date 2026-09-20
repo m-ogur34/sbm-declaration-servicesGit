@@ -22,8 +22,6 @@ public class DeclarationLogService {
 
     private final DeclarationLogRepository declarationLogRepository;
 
- responsePayload raw response body
-     */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void logCall(Collection<Long> processIds,
                         OperationType operationType,

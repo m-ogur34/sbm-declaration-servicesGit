@@ -39,8 +39,14 @@ esb:
 token-management:
   base-url: https://int-prep-auth.allianz.com.tr
   path: /alz-token-management/api/v1/tokens/sbm-token-generate
-  client-name: ${tokenManagementClientName}
-  user-name: ${tokenManagementUserName}
-  company-code: ${tokenManagementCompanyCode}
+  client-name: ${TOKEN_MANAGEMENT_CLIENT_NAME}
+  user-name: ${TOKEN_MANAGEMENT_USER_NAME}
+  company-code: ${SBM_COMPANY_CODE}
   connect-timeout: 30s
   read-timeout: 30s
+
+# Tum ortamlarda ayni Vault anahtari; eksikse uygulama acilmaz (fail-fast).
+sbm:
+  company-code: ${SBM_COMPANY_CODE}
+  retry:
+    max-attempts: 2          # sadece SEC-00002 ve HTTP 5xx icin

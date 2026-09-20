@@ -1,7 +1,8 @@
 global:
   overrides:
     esb:
-      server: ~
+      # SC-UAT'ta dogrulandi (2026-09-01): OSB proxy /sbmDeclarationServices
+      server: http://10.70.47.135:21011
 
 springboot-deployment:
   gateway:
@@ -16,7 +17,7 @@ springboot-deployment:
           value: application-config-common.yml
       springboot:
         profile: sc-uat
-        sysType: SC-UAT
+      sysType: SC-UAT
     resources:
       limits:
         cpu: '2'
@@ -39,6 +40,6 @@ springboot-deployment:
             export SBM_COMPANY_CODE="{{ .Data.data.tokenManagementCompanyCode }}"
             export TOKEN_MANAGEMENT_USER_NAME="{{ .Data.data.tokenManagementUserName }}"
           {{- end }}
-    autoscale:
-      minReplicas: 1
-      maxReplicas: 1
+  autoscale:
+    minReplicas: 1
+    maxReplicas: 1

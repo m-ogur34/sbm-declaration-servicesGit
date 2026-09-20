@@ -10,12 +10,6 @@ WORKDIR /app
 
 COPY ${JAR_FILE} /app/app.jar
 
-RUN addgroup -S allianz && adduser -S allianz -G allianz && chown -R allianz:allianz /app
-USER allianz
-
 EXPOSE 8080
-
-HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
-    CMD wget -q -O - http://localhost:8080/sbm-declaration-services/actuator/health/liveness || exit 1
 
 ENTRYPOINT ["sh", "-c", "exec java $JAVA_ARGS -jar /app/app.jar"]

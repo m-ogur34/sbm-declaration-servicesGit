@@ -1,3 +1,10 @@
+global:
+  overrides:
+    esb:
+      # TODO: PREP OSB proxy host:port'u ESB ekibinden alinacak.
+      # Bos birakilirsa default kullanilir: http://esb.allianz.com.tr:12000
+      server: ~
+
 springboot-deployment:
   gateway:
     migration:
