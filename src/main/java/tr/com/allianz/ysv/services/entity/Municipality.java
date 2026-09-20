@@ -13,10 +13,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-/**
- * One row of {@code CUSTOMER.ALZ_SBM_MUNICIPALITY}: reference data used to resolve and
- * display municipality names for a (city, district) pair.
- */
+
 @Entity
 @Table(name = "ALZ_SBM_MUNICIPALITY")
 @Getter
