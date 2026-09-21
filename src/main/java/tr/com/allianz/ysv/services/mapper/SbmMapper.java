@@ -67,10 +67,10 @@ public class SbmMapper {
     }
 
     private SbmDeclarationRequest.SbmDeclarationRequestBuilder baseRequest(DeclarationProcess head,
-                                                                          String companyCode,
-                                                                          List<DeclarationProcess> group,
-                                                                          String fileNo,
-                                                                          boolean zeroAmounts) {
+                                                                           String companyCode,
+                                                                           List<DeclarationProcess> group,
+                                                                           String fileNo,
+                                                                           boolean zeroAmounts) {
         return SbmDeclarationRequest.builder()
                 .sigortaSirketKodu(companyCode)
                 .sonOdemeTarihi(head.getPaymentDate())
@@ -99,7 +99,6 @@ public class SbmMapper {
         }
     }
 
-
     private DeclarationProcess requirePaymentDate(DeclarationProcess head, String fileNo) {
         if (head.getPaymentDate() == null) {
             throw new SbmIntegrationException(SbmErrorCode.CORE_01000.getCode(),
@@ -107,6 +106,7 @@ public class SbmMapper {
         }
         return head;
     }
+
 
     private String resolveFileNo(List<DeclarationProcess> group) {
         Set<String> fileNumbers = new LinkedHashSet<>();
