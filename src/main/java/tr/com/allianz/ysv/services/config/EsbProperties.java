@@ -39,7 +39,7 @@ public class EsbProperties {
     @Getter
     @Setter
     public static class Ysv {
-        
+
         @NotBlank
         private String beyannamePath = "/sbmDeclarationServices";
 
