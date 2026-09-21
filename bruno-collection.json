@@ -1,0 +1,319 @@
+{
+  "name": "sbm-declaration-services",
+  "version": "1",
+  "items": [
+    {
+      "type": "http",
+      "name": "1 - Gonder (POST)",
+      "seq": 1,
+      "request": {
+        "url": "{{baseUrl}}/api/v1/declarations/send",
+        "method": "POST",
+        "headers": [
+          {
+            "name": "Content-Type",
+            "value": "application/json",
+            "enabled": true
+          },
+          {
+            "name": "X-User-Name",
+            "value": "{{user}}",
+            "enabled": true
+          }
+        ],
+        "params": [],
+        "body": {
+          "mode": "json",
+          "json": "{\n  \"year\": {{year}},\n  \"month\": {{month}},\n  \"cityCode\": {{cityCode}}\n}"
+        },
+        "auth": {
+          "mode": "none"
+        },
+        "script": {
+          "req": "",
+          "res": ""
+        },
+        "vars": {
+          "req": [],
+          "res": []
+        },
+        "assertions": [],
+        "tests": "",
+        "docs": "NEW ve ERROR durumundaki kayitlari (yil, ay, ilKodu, ilceKodu) bazinda gruplar ve her grup icin SBM'ye bir POST atar. Dar bir kume icin govdeyi {\"processIds\": [1, 2]} olarak degistirin. Yanit: { totalGroups, successCount, failCount, failures[] }. DIKKAT: gercekten SBM'ye veri gonderir."
+      }
+    },
+    {
+      "type": "http",
+      "name": "2 - Guncelle (PUT)",
+      "seq": 2,
+      "request": {
+        "url": "{{baseUrl}}/api/v1/declarations/update",
+        "method": "PUT",
+        "headers": [
+          {
+            "name": "Content-Type",
+            "value": "application/json",
+            "enabled": true
+          },
+          {
+            "name": "X-User-Name",
+            "value": "{{user}}",
+            "enabled": true
+          }
+        ],
+        "params": [],
+        "body": {
+          "mode": "json",
+          "json": "{\n  \"year\": {{year}},\n  \"month\": {{month}},\n  \"cityCode\": {{cityCode}}\n}"
+        },
+        "auth": {
+          "mode": "none"
+        },
+        "script": {
+          "req": "",
+          "res": ""
+        },
+        "vars": {
+          "req": [],
+          "res": []
+        },
+        "assertions": [],
+        "tests": "",
+        "docs": "SENT / COMPLETED durumundaki kayitlari SBM'de gunceller. PUT govdesinde ay/yil/ilKodu/ilceKodu yer almaz; sigortaSirketKodu + sonOdemeTarihi + ysvDosyaNo + ysvTutarList gonderilir."
+      }
+    },
+    {
+      "type": "http",
+      "name": "3 - Sorgula (GET)",
+      "seq": 3,
+      "request": {
+        "url": "{{baseUrl}}/api/v1/declarations/query/{{ysvDosyaNo}}",
+        "method": "GET",
+        "headers": [
+          {
+            "name": "X-User-Name",
+            "value": "{{user}}",
+            "enabled": true
+          }
+        ],
+        "params": [],
+        "body": {
+          "mode": "none"
+        },
+        "auth": {
+          "mode": "none"
+        },
+        "script": {
+          "req": "",
+          "res": ""
+        },
+        "vars": {
+          "req": [],
+          "res": []
+        },
+        "assertions": [],
+        "tests": "",
+        "docs": "Beyannameyi SBM'den sorgular. Basarili olursa ilgili satirlari COMPLETED yapar. Yanit zarfi: { result, data, status }."
+      }
+    }
+  ],
+  "environments": [
+    {
+      "name": "sc-test",
+      "variables": [
+        {
+          "name": "baseUrl",
+          "value": "https://int-sc-test-elementer.allianz.com.tr/sbm-declaration-services",
+          "enabled": true,
+          "secret": false,
+          "type": "text"
+        },
+        {
+          "name": "user",
+          "value": "pentest",
+          "enabled": true,
+          "secret": false,
+          "type": "text"
+        },
+        {
+          "name": "year",
+          "value": "2026",
+          "enabled": true,
+          "secret": false,
+          "type": "text"
+        },
+        {
+          "name": "month",
+          "value": "8",
+          "enabled": true,
+          "secret": false,
+          "type": "text"
+        },
+        {
+          "name": "cityCode",
+          "value": "34",
+          "enabled": true,
+          "secret": false,
+          "type": "text"
+        },
+        {
+          "name": "ysvDosyaNo",
+          "value": "PENTEST260801",
+          "enabled": true,
+          "secret": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "sc-uat",
+      "variables": [
+        {
+          "name": "baseUrl",
+          "value": "https://int-sc-uat-elementer.allianz.com.tr/sbm-declaration-services",
+          "enabled": true,
+          "secret": false,
+          "type": "text"
+        },
+        {
+          "name": "user",
+          "value": "pentest",
+          "enabled": true,
+          "secret": false,
+          "type": "text"
+        },
+        {
+          "name": "year",
+          "value": "2026",
+          "enabled": true,
+          "secret": false,
+          "type": "text"
+        },
+        {
+          "name": "month",
+          "value": "8",
+          "enabled": true,
+          "secret": false,
+          "type": "text"
+        },
+        {
+          "name": "cityCode",
+          "value": "34",
+          "enabled": true,
+          "secret": false,
+          "type": "text"
+        },
+        {
+          "name": "ysvDosyaNo",
+          "value": "PENTEST260801",
+          "enabled": true,
+          "secret": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "prep",
+      "variables": [
+        {
+          "name": "baseUrl",
+          "value": "https://int-prep-elementer.allianz.com.tr/sbm-declaration-services",
+          "enabled": true,
+          "secret": false,
+          "type": "text"
+        },
+        {
+          "name": "user",
+          "value": "pentest",
+          "enabled": true,
+          "secret": false,
+          "type": "text"
+        },
+        {
+          "name": "year",
+          "value": "2026",
+          "enabled": true,
+          "secret": false,
+          "type": "text"
+        },
+        {
+          "name": "month",
+          "value": "8",
+          "enabled": true,
+          "secret": false,
+          "type": "text"
+        },
+        {
+          "name": "cityCode",
+          "value": "34",
+          "enabled": true,
+          "secret": false,
+          "type": "text"
+        },
+        {
+          "name": "ysvDosyaNo",
+          "value": "PENTEST260801",
+          "enabled": true,
+          "secret": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "prod",
+      "variables": [
+        {
+          "name": "baseUrl",
+          "value": "https://int-elementer.allianz.com.tr/sbm-declaration-services",
+          "enabled": true,
+          "secret": false,
+          "type": "text"
+        },
+        {
+          "name": "user",
+          "value": "pentest",
+          "enabled": true,
+          "secret": false,
+          "type": "text"
+        },
+        {
+          "name": "year",
+          "value": "2026",
+          "enabled": true,
+          "secret": false,
+          "type": "text"
+        },
+        {
+          "name": "month",
+          "value": "8",
+          "enabled": true,
+          "secret": false,
+          "type": "text"
+        },
+        {
+          "name": "cityCode",
+          "value": "34",
+          "enabled": true,
+          "secret": false,
+          "type": "text"
+        },
+        {
+          "name": "ysvDosyaNo",
+          "value": "PENTEST260801",
+          "enabled": true,
+          "secret": false,
+          "type": "text"
+        }
+      ]
+    }
+  ],
+  "brunoConfig": {
+    "version": "1",
+    "name": "sbm-declaration-services",
+    "type": "collection",
+    "ignore": [
+      "node_modules",
+      ".git"
+    ]
+  }
+}

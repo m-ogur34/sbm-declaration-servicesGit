@@ -522,7 +522,7 @@ Vault yolları: `sc-test → kv/data/TEST`, `sc-uat → kv/data/UAT`, `prep → 
 | Dosya | İçerik |
 |---|---|
 | `PENTEST-REHBERI.md` | Ortam URL'leri, kimlik doğrulama modeli, tüm uçların curl'leri, negatif senaryolar, bilgi sızıntısı kontrolleri |
-| `bruno/` | Bruno koleksiyonu — 12 istek + 4 ortam (`sc-test`, `sc-uat`, `prep`, `prod`). Bruno'da *Open Collection* ile `bruno/` klasörü seçilir |
+| `bruno-collection.json` | Bruno koleksiyonu (JSON) — gönder / güncelle / sorgula + 4 ortam (`sc-test`, `sc-uat`, `prep`, `prod`). Bruno'da *Import Collection → Bruno Collection* ile yüklenir |
 | `pentest-ornek-beyanname.xlsx` | 12 geçerli satır / 6 beyanname grubu, dönem 2026-8 |
 | `pentest-hatali-satirlar.xlsx` | Doğrulama yollarını tetikleyen hatalı satırlar |
 | `db/cleanup_test_data.sql` | Test verisini temizleme (SC-TEST / SC-UAT) |
