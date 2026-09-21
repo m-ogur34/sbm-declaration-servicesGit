@@ -1,0 +1,22 @@
+meta {
+  name: 08 Iptal (tutarlari sifirla)
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{baseUrl}}/api/v1/declarations/cancel
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  X-User-Name: {{user}}
+}
+
+body:json {
+  {
+    "processIds": [1, 2]
+  }
+}

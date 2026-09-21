@@ -1,0 +1,29 @@
+meta {
+  name: 06 SBM'ye gonder (POST)
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{baseUrl}}/api/v1/declarations/send
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  X-User-Name: {{user}}
+}
+
+body:json {
+  {
+    "year": {{year}},
+    "month": {{month}},
+    "cityCode": {{cityCode}}
+  }
+}
+
+docs {
+  DIKKAT: gercekten SBM'ye (ESB uzerinden) veri gonderir.
+  Dar bir kumeyle calismak icin govdeyi {"processIds":[1,2]} olarak degistirin.
+}

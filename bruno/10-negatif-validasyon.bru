@@ -1,0 +1,27 @@
+meta {
+  name: 10 Negatif - gecersiz alanlar
+  type: http
+  seq: 10
+}
+
+post {
+  url: {{baseUrl}}/api/v1/declarations/send
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "year": 1999,
+    "month": 13,
+    "cityCode": 99
+  }
+}
+
+docs {
+  Beklenen: 400, code=ALZ-VALIDATION, details[] icinde alan bazli mesajlar.
+}

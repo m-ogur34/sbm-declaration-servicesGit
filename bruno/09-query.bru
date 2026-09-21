@@ -1,0 +1,15 @@
+meta {
+  name: 09 SBM'den sorgula
+  type: http
+  seq: 9
+}
+
+get {
+  url: {{baseUrl}}/api/v1/declarations/query/{{ysvDosyaNo}}
+  body: none
+  auth: none
+}
+
+headers {
+  X-User-Name: {{user}}
+}

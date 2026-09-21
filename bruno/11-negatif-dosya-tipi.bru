@@ -1,0 +1,19 @@
+meta {
+  name: 11 Negatif - xlsx olmayan dosya
+  type: http
+  seq: 11
+}
+
+post {
+  url: {{baseUrl}}/api/v1/declarations/upload
+  body: multipartForm
+  auth: none
+}
+
+body:multipart-form {
+  file: @file(PENTEST-REHBERI.md)
+}
+
+docs {
+  Beklenen: 400, "Sadece .xlsx dosyasi yuklenebilir".
+}

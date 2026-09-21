@@ -6,3 +6,16 @@ token-management:
 logging:
   level:
     tr.com.allianz.ysv.services: DEBUG
+
+# Sadece test ortamlarinda: log seviyesini calisirken degistirebilmek ve
+# health detaylarini gorebilmek icin. PREP/PROD'da acik degil.
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,loggers
+  endpoint:
+    health:
+      show-details: always
+    loggers:
+      enabled: true

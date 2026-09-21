@@ -517,6 +517,19 @@ Vault yolları: `sc-test → kv/data/TEST`, `sc-uat → kv/data/UAT`, `prep → 
 > ⚠️ Klasör adının `chart` mı `charts` mı olduğu Jenkins pipeline ile teyit edilmeli.
 > Bu repo `accounting-services` projesindeki gibi tekil `chart` kullanıyor.
 
+## 7.1 Test ve PEN test paketi
+
+| Dosya | İçerik |
+|---|---|
+| `PENTEST-REHBERI.md` | Ortam URL'leri, kimlik doğrulama modeli, tüm uçların curl'leri, negatif senaryolar, bilgi sızıntısı kontrolleri |
+| `bruno/` | Bruno koleksiyonu — 12 istek + 4 ortam (`sc-test`, `sc-uat`, `prep`, `prod`). Bruno'da *Open Collection* ile `bruno/` klasörü seçilir |
+| `pentest-ornek-beyanname.xlsx` | 12 geçerli satır / 6 beyanname grubu, dönem 2026-8 |
+| `pentest-hatali-satirlar.xlsx` | Doğrulama yollarını tetikleyen hatalı satırlar |
+| `db/cleanup_test_data.sql` | Test verisini temizleme (SC-TEST / SC-UAT) |
+
+Ortam URL deseni: `https://<önek>elementer.allianz.com.tr/sbm-declaration-services`
+(`int-sc-test-`, `int-sc-uat-`, `int-prep-`, `int-`).
+
 ---
 
 ## 8. Açık Konular
