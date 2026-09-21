@@ -30,6 +30,7 @@ public class DeclarationImportService {
     private final DeclarationProcessRepository repository;
     private final SbmProperties sbmProperties;
 
+
     @Transactional
     public ImportResultResponse importFile(MultipartFile file, String user) {
         String fileName = file.getOriginalFilename();
