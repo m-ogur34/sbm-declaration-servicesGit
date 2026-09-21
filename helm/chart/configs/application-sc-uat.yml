@@ -1,21 +1,9 @@
-spring:
-  datasource:
-    opus:
-      driver-class-name: oracle.jdbc.OracleDriver
-    cognos:
-      driver-class-name: oracle.jdbc.OracleDriver
-  jpa:
-    show-sql: true
-    hibernate:
-      ddl-auto: none
-    properties:
-      hibernate:
-        use_sql_comments: true
-        format_sql: true
-  application:
-    name: sbm-declaration-services
-  jta:
-    enabled: false
+token-management:
+  base-url: https://int-sc-uat-auth.allianz.com.tr
+
+logging:
+  level:
+    tr.com.allianz.ysv.services: DEBUG
 
 management:
   endpoints:
@@ -25,20 +13,3 @@ management:
   endpoint:
     loggers:
       enabled: true
-
-logging:
-  level:
-    root: INFO
-    com.allianz.common.collection: INFO
-    org.springframework.web: INFO
-    org.springframework.security: DEBUG
-    tr.com.allianz.ysv.services: INFO
-
-token-management:
-  base-url: https://int-sc-uat-auth.allianz.com.tr
-
-springdoc:
-  swagger-ui:
-    path: /swagger-ui.html
-  api-docs:
-    path: /v3/api-docs

@@ -30,7 +30,7 @@ springboot-deployment:
           {{- end }}
           {{ with secret "kv/data/PROD/apps/sbm-declaration-services" -}}
             export TOKEN_MANAGEMENT_CLIENT_NAME="{{ .Data.data.tokenManagementClientName }}"
-            export SBM_COMPANY_CODE="{{ .Data.data.tokenManagementCompanyCode }}"
+            export TOKEN_MANAGEMENT_COMPANY_CODE="{{ .Data.data.tokenManagementCompanyCode }}"
             export TOKEN_MANAGEMENT_USER_NAME="{{ .Data.data.tokenManagementUserName }}"
             export SBM_COMPANY_CODE="{{ .Data.data.sbmCompanyCode }}"
           {{- end }}

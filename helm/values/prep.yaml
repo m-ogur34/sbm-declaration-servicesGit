@@ -27,10 +27,10 @@ springboot-deployment:
              export SPRING_DATASOURCE_USERNAME="{{ .Data.data.username_allzwebpol }}"
              export SPRING_DATASOURCE_PASSWORD="{{ .Data.data.password_allzwebpol }}"
              export SPRING_DATASOURCE_URL="{{ .Data.data.URL_OPUSPREP_FINANS }}"
-          {{- end }}          
+          {{- end }}
           {{ with secret "kv/data/PREP/apps/sbm-declaration-services" -}}
             export TOKEN_MANAGEMENT_CLIENT_NAME="{{ .Data.data.tokenManagementClientName }}"
-            export SBM_COMPANY_CODE="{{ .Data.data.tokenManagementCompanyCode }}"
+            export TOKEN_MANAGEMENT_COMPANY_CODE="{{ .Data.data.tokenManagementCompanyCode }}"
             export TOKEN_MANAGEMENT_USER_NAME="{{ .Data.data.tokenManagementUserName }}"
             export SBM_COMPANY_CODE="{{ .Data.data.sbmCompanyCode }}"
           {{- end }}

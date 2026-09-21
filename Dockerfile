@@ -1,8 +1,9 @@
 FROM harbor.allianz-tr.local/alz-base/redhat/ubi9-temurin-jdk25-rootless:u9.6-j25_36
 VOLUME /tmp
+ARG JAR_FILE=target/sbm-declaration-services.jar
 WORKDIR /app
-COPY ${JAR_FILE} /app/app.jar
-WORKDIR /app
+# ENTRYPOINT bu adla calistiriyor; iki ad ayni olmali.
+COPY ${JAR_FILE} /app/sbm-declaration-services.jar
 EXPOSE 8080
 ENV TZ=Europe/Istanbul
 USER alzusr

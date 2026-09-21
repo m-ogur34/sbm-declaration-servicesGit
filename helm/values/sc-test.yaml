@@ -11,7 +11,7 @@ springboot-deployment:
           value: application-config-common.yml
       springboot:
         profile: sc-test
-        sysType: SC-TEST
+      sysType: SC-TEST
     resources:
       limits:
         cpu: '2'
@@ -28,12 +28,12 @@ springboot-deployment:
              export SPRING_DATASOURCE_PASSWORD="{{ .Data.data.password_allzwebpol }}"
              export SPRING_DATASOURCE_URL="{{ .Data.data.URL_OPUSTEST_FINANS }}"
           {{- end }}
-          {{ with secret "kv/data/TEST/apps/sbm-declaration-services" -}}           
+          {{ with secret "kv/data/TEST/apps/sbm-declaration-services" -}}
             export TOKEN_MANAGEMENT_CLIENT_NAME="{{ .Data.data.tokenManagementClientName }}"
-            export SBM_COMPANY_CODE="{{ .Data.data.tokenManagementCompanyCode }}"
+            export TOKEN_MANAGEMENT_COMPANY_CODE="{{ .Data.data.tokenManagementCompanyCode }}"
             export TOKEN_MANAGEMENT_USER_NAME="{{ .Data.data.tokenManagementUserName }}"
             export SBM_COMPANY_CODE="{{ .Data.data.sbmCompanyCode }}"
           {{- end }}
-    autoscale:
-      minReplicas: 1
-      maxReplicas: 1
+  autoscale:
+    minReplicas: 1
+    maxReplicas: 1
