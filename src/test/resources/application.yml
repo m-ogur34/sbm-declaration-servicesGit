@@ -1,6 +1,3 @@
-# Test defaults. Tests never touch a database and never open a socket: repositories are
-# mocked and the REST clients are bound to MockRestServiceServer. These values only satisfy
-# the @Validated @ConfigurationProperties beans in slice tests.
 spring:
   main:
     banner-mode: "off"
