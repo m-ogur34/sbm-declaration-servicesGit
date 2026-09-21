@@ -67,19 +67,7 @@ public class DeclarationService {
         return runBatch(filter, ProcessStatus.UPDATABLE, OperationType.PUT, true, user);
     }
 
-    /**
-     * Bir beyanname satırının tutarlarını DB'de günceller. SBM'ye <b>bu uç bir şey
-     * göndermez</b>; düzeltilen satır ardından {@code /update} (PUT) ile SBM'ye taşınır.
-     *
-     * <p>Prod DB'de manuel UPDATE yasak olduğu için düzeltmenin tek yolu budur; her
-     * değişiklik {@code ALZ_SBM_DECL_LOG}'a öncesi/sonrası değerleriyle yazılır.
-     * SBM'ye gönderilmiş bir satır güncellenirse durum {@code SENT}'e çekilir:
-     * {@code COMPLETED} artık geçerli değildir, çünkü yereldeki veri SBM'dekinden
-     * farklıdır ve yeniden gönderilip doğrulanmalıdır.</p>
-     *
-     * @throws DeclarationNotFoundException satır yoksa (HTTP 404)
-     * @throws IllegalArgumentException satır o anda SBM'ye gönderiliyorsa (HTTP 400)
-     */
+
     @Transactional
     public ProcessView updateAmounts(Long id, DeclarationAmountUpdateRequest request, String user) {
         DeclarationProcess process = declarationProcessRepository.lockByIds(List.of(id)).stream()
