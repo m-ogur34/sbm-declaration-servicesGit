@@ -1,18 +1,8 @@
-# global: hem bu chart'in hem de springboot-deployment alt chart'inin okudugu
-# ortak degerler (Helm'in yerlesik "global" mekanizmasi).
 global:
-  # Harbor/Nexus artifact adi ve ConfigMap/Secret adlarinin oneki.
   repoName: sbm-declaration-services
   bundleName: sbm-declaration-services
-  # overrides: deploy aninda -f helm/values/<ortam>.yaml ile ezilebilen kacis
-  # kapilari. Hepsi ~ (null) ise yukaridaki varsayilanlar gecerlidir.
   overrides:
-    # bundleName: ConfigMap/Secret adlarini degistirmek icin (_helpers.tpl).
     bundleName: ~
-    # esb.server: pod'a ESB_SERVER ortam degiskeni olarak gecer ve
-    # common-configs/application.yml icindeki ${ESB_SERVER:...} ifadesini ezer.
-    # Normalde bos birakilir; tum ortamlar esb.allianz.com.tr:12000 kullanir.
-    # DNS cozulmeyen bir ortam olursa ornek: http://10.70.47.135:21011 (SC-UAT OSB)
     esb:
       server: ~
     chart:
