@@ -15,8 +15,6 @@ import tr.com.allianz.ysv.services.enums.ProcessStatus;
 
 @Repository
 public interface DeclarationProcessRepository extends JpaRepository<DeclarationProcess, Long> {
-
-
     @Query("""
             select p from DeclarationProcess p
             where p.status in :statuses
@@ -30,6 +28,7 @@ public interface DeclarationProcessRepository extends JpaRepository<DeclarationP
                                             @Param("month") Integer month,
                                             @Param("cityCode") Integer cityCode);
 
+    /** Candidates pinned by explicit id. */
     @Query("""
             select p from DeclarationProcess p
             where p.id in :ids and p.status in :statuses
@@ -37,7 +36,6 @@ public interface DeclarationProcessRepository extends JpaRepository<DeclarationP
             """)
     List<DeclarationProcess> findCandidatesByIds(@Param("ids") Collection<Long> ids,
                                                  @Param("statuses") Collection<ProcessStatus> statuses);
-
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select p from DeclarationProcess p where p.id in :ids order by p.id")
@@ -47,8 +45,6 @@ public interface DeclarationProcessRepository extends JpaRepository<DeclarationP
 
     /** Excel yüklemede mükerrer dosya numarası kontrolü için. */
     boolean existsBySbmFileNo(String sbmFileNo);
-
-    /** Paged listing for the operations screen. */
     @Query("""
             select p from DeclarationProcess p
             where (:status is null or p.status = :status)
