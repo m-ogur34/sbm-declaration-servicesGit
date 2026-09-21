@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class JsonUtil {
 
+
     public static final int ERROR_DETAILS_MAX_LENGTH = 2000;
 
     private static final String UNSERIALIZABLE = "{\"error\":\"payload serialize edilemedi\"}";
