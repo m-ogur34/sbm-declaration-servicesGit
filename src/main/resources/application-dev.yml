@@ -1,18 +1,8 @@
-logging:
-  level:
-    tr.com.allianz.ysv.services: DEBUG
-    root: INFO
-    com.allianz.common.collection: INFO
-    org.springframework.web: INFO
-    org.springframework.security: DEBUG
-    org.hibernate.type.descriptor.sql.BasicBinder: INFO
-  file:
-    max-size: 100MB
-    max-history: 60
-
 spring:
   config:
     import: vault://
+  jpa:
+    show-sql: true
   cloud:
     vault:
       host: int-vault-local-test.allianz.com.tr
@@ -23,8 +13,8 @@ spring:
       kv:
         backend: kv
         enabled: true
-        default-context: DEV/apps/sbm-declaration-services
-        application-name: DEV/apps/sbm-declaration-services
+      default-context: DEV/apps/sbm-declaration-services
+      application-name: DEV/apps/sbm-declaration-services
 
 esb:
   base-url: ${ESB_SERVER:http://esb.allianz.com.tr:12000}
@@ -41,19 +31,20 @@ token-management:
   client-name: ${tokenManagementClientName}
   user-name: ${tokenManagementUserName}
   company-code: ${tokenManagementCompanyCode}
-  connect-timeout: 30s
+  connect-timeout: 5s
   read-timeout: 30s
 
 sbm:
-  company-code: ${SBM_COMPANY_CODE}
+  company-code: ${sbmCompanyCode}
+  retry:
+    max-attempts: 2
 
+logging:
+  level:
+    tr.com.allianz.ysv.services: DEBUG
 
-#token-management:
-#  base-url: https://int-sc-test-auth.allianz.com.tr
-#  path: /alz-token-management/api/v1/tokens/sbm-token-generate
-#  client-name: ysv ${tokenManagementClientName}
-#  user-name: WDA2422_16178 ${tokenManagementUserName}
-#  company-code: "045" ${tokenManagementCompanyCode}
-#  connect-timeout: 30s
-#  read-timeout: 30s
-
+  springdoc:
+    swagger-ui:
+      path: /swagger-ui.html
+    api-docs:
+      path: /v3/api-docs
