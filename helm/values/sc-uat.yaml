@@ -6,9 +6,12 @@ springboot-deployment:
     env:
       java:
         args: -Xms3g -Xmx3g -XX:+FlightRecorder
+      others:
+        - name: COMMON_CONFIG
+          value: application-config-common.yml
       springboot:
         profile: sc-uat
-      sysType: SC-UAT
+        sysType: SC-UAT
     resources:
       limits:
         cpu: '2'
@@ -28,9 +31,9 @@ springboot-deployment:
           {{ with secret "kv/data/UAT/apps/sbm-declaration-services" -}}
             export TOKEN_MANAGEMENT_CLIENT_NAME="{{ .Data.data.tokenManagementClientName }}"
             export SBM_COMPANY_CODE="{{ .Data.data.tokenManagementCompanyCode }}"
-            export TOKEN_MANAGEMENT_COMPANY_CODE="{{ .Data.data.tokenManagementCompanyCode }}"
             export TOKEN_MANAGEMENT_USER_NAME="{{ .Data.data.tokenManagementUserName }}"
+            export SBM_COMPANY_CODE="{{ .Data.data.sbmCompanyCode }}"
           {{- end }}
-  autoscale:
-    minReplicas: 1
-    maxReplicas: 1
+    autoscale:
+      minReplicas: 1
+      maxReplicas: 1
