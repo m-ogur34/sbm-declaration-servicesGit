@@ -22,20 +22,6 @@ import org.springframework.stereotype.Component;
 import tr.com.allianz.ysv.services.dto.response.ExcelRowError;
 import tr.com.allianz.ysv.services.enums.MovableType;
 
-/**
- * 1. AŞAMA — YSV beyanname Excel'ini (.xlsx) tipli satırlara çevirir.
- *
- * <p>İlk sheet okunur (ada göre değil). Satır 1 başlıktır; kolonlar <b>başlık adına</b>
- * göre eşlenir, sıraya bağlı değildir. Her satır bağımsız doğrulanır: tip/format hatası
- * olan satır {@link ExcelRowError} olarak raporlanır, diğerleri okunmaya devam eder.
- * DB seviyesindeki kontroller (mükerrer {@code ysvDosyaNo}, tek ay) {@code
- * DeclarationImportService}'te yapılır.</p>
- *
- * <p>Dönüşümler: Excel seri tarih → {@link LocalDate}; {@code menkulTipi} 1/2 veya metin →
- * {@link MovableType}; tutarlar → {@link BigDecimal} (ölçek 2, HALF_UP). {@code
- * sigortaSirketKodu} kolonu (OPUS iç kodu 2320) okunur ama <b>kullanılmaz</b>; SBM'ye
- * daima {@code 045} gider.</p>
- */
 @Slf4j
 @Component
 public class ExcelDeclarationParser {
@@ -68,12 +54,7 @@ public class ExcelDeclarationParser {
             COL_AY, COL_IL, COL_SIRKET, COL_ODEME, COL_YIL, COL_DOSYA,
             COL_ALINAN, COL_IPTAL, COL_MENKUL, COL_VERGI, COL_ORAN, COL_VERGI_PRIM);
 
-    /**
-     * @param in .xlsx akışı
-     * @return okunan tipli satırlar + satır bazlı hatalar
-     * @throws IllegalArgumentException dosya açılamazsa, sheet/başlık yoksa, zorunlu kolon
-     *         eksikse veya satır sınırı aşılırsa (tüm dosya reddedilir → HTTP 400)
-     */
+
     public ParsedSheet parse(InputStream in) {
         try (Workbook workbook = WorkbookFactory.create(in)) {
             if (workbook.getNumberOfSheets() == 0) {
