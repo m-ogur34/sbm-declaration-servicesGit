@@ -1,21 +1,44 @@
-# Sadece bu ortama ozgu ayarlar. Ortak olan her sey
-# common-configs/application.yml icindedir.
-token-management:
-  base-url: https://int-sc-test-auth.allianz.com.tr
+spring:
+  datasource:
+    opus:
+      driver-class-name: oracle.jdbc.OracleDriver
+    cognos:
+      driver-class-name: oracle.jdbc.OracleDriver
+  management:
+    endpoints:
+      web:
+        exposure:
+          include: "*"
+      loggers:
+        enabled: true
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: none
+  properties:
+    hibernate:
+      use_sql_comments: true
+      format_sql: true
+      type: trace
+  application:
+    name: sbm-declaration-services
+  jta:
+    enabled: false
 
 logging:
   level:
-    tr.com.allianz.ysv.services: DEBUG
+    root: INFO
+    com.allianz.common.collection: INFO
+    org.springframework.web: INFO
+    org.springframework.security: DEBUG
+    tr.com.allianz.ysv.services: INFO
 
-# Sadece test ortamlarinda: log seviyesini calisirken degistirebilmek ve
-# health detaylarini gorebilmek icin. PREP/PROD'da acik degil.
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info,metrics,prometheus,loggers
-  endpoint:
-    health:
-      show-details: always
-    loggers:
-      enabled: true
+
+token-management:
+ base-url: https://int-sc-test-auth.allianz.com.tr
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /v3/api-docs
