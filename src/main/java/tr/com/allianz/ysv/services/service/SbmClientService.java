@@ -28,7 +28,6 @@ import tr.com.allianz.ysv.services.enums.SbmErrorCode;
 import tr.com.allianz.ysv.services.exception.TokenException;
 import tr.com.allianz.ysv.services.util.JsonUtil;
 
-
 @Slf4j
 @Service
 public class SbmClientService {
@@ -64,6 +63,7 @@ public class SbmClientService {
     public SbmCallResult update(SbmDeclarationRequest request) {
         return callWithRetry(HttpMethod.PUT, esbProperties.beyannameUrl(), request, OperationType.PUT);
     }
+
 
     public SbmCallResult query(SbmQueryRequest request) {
         String url = UriComponentsBuilder.fromUriString(esbProperties.sorguUrl())
@@ -120,6 +120,7 @@ public class SbmClientService {
         }
     }
 
+
     private void applyAuthHeaders(HttpHeaders headers, TokenResponse token) {
         headers.setBearerAuth(token.getAccessToken());
         if (token.getClientCredentials().getClientIdentityType() != null) {
@@ -171,10 +172,7 @@ public class SbmClientService {
         return reasons.isEmpty() ? SbmErrorCode.CORE_00000.getCode() : reasons.get(0).getCode();
     }
 
-    /**
-     * SBM'nin döndürdüğü tüm sebepleri birleştirir; çağıran bunu {@code ERROR_DETAILS}'in
-     * tuttuğu 2000 karaktere kısaltır.
-     */
+
     private static String buildErrorMessage(SbmDeclarationResponse parsed, int httpStatus) {
         List<SbmErrorReason> reasons = reasons(parsed);
         if (reasons.isEmpty()) {
