@@ -4,8 +4,80 @@
   "items": [
     {
       "type": "http",
-      "name": "1 - Gonder (POST)",
+      "name": "1 - Excel yukle",
       "seq": 1,
+      "request": {
+        "url": "{{baseUrl}}/api/v1/declarations/upload",
+        "method": "POST",
+        "headers": [
+          {
+            "name": "X-User-Name",
+            "value": "pentest",
+            "enabled": true
+          }
+        ],
+        "params": [],
+        "body": {
+          "mode": "multipartForm",
+          "multipartForm": [
+            {
+              "type": "file",
+              "name": "file",
+              "value": [
+                "pentest-ornek-beyanname.xlsx"
+              ],
+              "enabled": true
+            }
+          ]
+        },
+        "auth": {
+          "mode": "none"
+        },
+        "script": {
+          "req": "",
+          "res": ""
+        },
+        "vars": {
+          "req": [],
+          "res": []
+        },
+        "assertions": [],
+        "tests": "",
+        "docs": "pentest-ornek-beyanname.xlsx dosyasini yukler (12 satir, 6 grup, donem 2026-8).\nONEMLI: Import sonrasi Bruno'da Body > File alanindan dosyayi kendi diskinizdeki\nyoldan yeniden secin; JSON icindeki yol goreceli tutuldu.\n\nBeklenen: 200, inserted=12, failed=0, errors=[].\nAyni dosya ikinci kez yuklenirse 12 satir da ALZ-EXCEL-DUPLICATE verir."
+      }
+    },
+    {
+      "type": "http",
+      "name": "2 - Kayitlari listele",
+      "seq": 2,
+      "request": {
+        "url": "{{baseUrl}}/api/v1/declarations/processes?status=NEW&year=2026&month=8&page=0&size=50&sort=id,desc",
+        "method": "GET",
+        "headers": [],
+        "params": [],
+        "body": {
+          "mode": "none"
+        },
+        "auth": {
+          "mode": "none"
+        },
+        "script": {
+          "req": "",
+          "res": ""
+        },
+        "vars": {
+          "req": [],
+          "res": []
+        },
+        "assertions": [],
+        "tests": "",
+        "docs": "Yuklenen satirlari ve ID'lerini gorur. Gonderim sonrasi status=SENT,\nsorgu sonrasi status=COMPLETED ile tekrar calistirilabilir."
+      }
+    },
+    {
+      "type": "http",
+      "name": "3 - Gonder (POST) - il 34",
+      "seq": 3,
       "request": {
         "url": "{{baseUrl}}/api/v1/declarations/send",
         "method": "POST",
@@ -17,14 +89,14 @@
           },
           {
             "name": "X-User-Name",
-            "value": "{{user}}",
+            "value": "pentest",
             "enabled": true
           }
         ],
         "params": [],
         "body": {
           "mode": "json",
-          "json": "{\n  \"year\": {{year}},\n  \"month\": {{month}},\n  \"cityCode\": {{cityCode}}\n}"
+          "json": "{\n  \"year\": 2026,\n  \"month\": 8,\n  \"cityCode\": 34\n}"
         },
         "auth": {
           "mode": "none"
@@ -39,13 +111,13 @@
         },
         "assertions": [],
         "tests": "",
-        "docs": "NEW ve ERROR durumundaki kayitlari (yil, ay, ilKodu, ilceKodu) bazinda gruplar ve her grup icin SBM'ye bir POST atar. Dar bir kume icin govdeyi {\"processIds\": [1, 2]} olarak degistirin. Yanit: { totalGroups, successCount, failCount, failures[] }. DIKKAT: gercekten SBM'ye veri gonderir."
+        "docs": "Ornek Excel'deki il 34 grubunu SBM'ye gonderir (1 grup = 2 satir:\nMENKUL + GAYRIMENKUL, ysvDosyaNo PENTEST260801, ilceKodu 0 oldugu icin\npayload'a konmaz).\n\nBeklenen: 200, totalGroups=1, successCount=1.\nTum dosyayi gondermek icin cityCode satirini silin (6 grup).\nDIKKAT: gercekten SBM'ye veri gonderir."
       }
     },
     {
       "type": "http",
-      "name": "2 - Guncelle (PUT)",
-      "seq": 2,
+      "name": "4 - Guncelle (PUT) - il 34",
+      "seq": 4,
       "request": {
         "url": "{{baseUrl}}/api/v1/declarations/update",
         "method": "PUT",
@@ -57,14 +129,14 @@
           },
           {
             "name": "X-User-Name",
-            "value": "{{user}}",
+            "value": "pentest",
             "enabled": true
           }
         ],
         "params": [],
         "body": {
           "mode": "json",
-          "json": "{\n  \"year\": {{year}},\n  \"month\": {{month}},\n  \"cityCode\": {{cityCode}}\n}"
+          "json": "{\n  \"year\": 2026,\n  \"month\": 8,\n  \"cityCode\": 34\n}"
         },
         "auth": {
           "mode": "none"
@@ -79,20 +151,20 @@
         },
         "assertions": [],
         "tests": "",
-        "docs": "SENT / COMPLETED durumundaki kayitlari SBM'de gunceller. PUT govdesinde ay/yil/ilKodu/ilceKodu yer almaz; sigortaSirketKodu + sonOdemeTarihi + ysvDosyaNo + ysvTutarList gonderilir."
+        "docs": "Ayni grubu SBM'de gunceller. Yalnizca SENT / COMPLETED kayitlari alir,\nyani once 3. istek basarili olmali.\nPUT govdesinde ay/yil/ilKodu/ilceKodu yoktur."
       }
     },
     {
       "type": "http",
-      "name": "3 - Sorgula (GET)",
-      "seq": 3,
+      "name": "5 - Sorgula (GET) - PENTEST260801",
+      "seq": 5,
       "request": {
-        "url": "{{baseUrl}}/api/v1/declarations/query/{{ysvDosyaNo}}",
+        "url": "{{baseUrl}}/api/v1/declarations/query/PENTEST260801",
         "method": "GET",
         "headers": [
           {
             "name": "X-User-Name",
-            "value": "{{user}}",
+            "value": "pentest",
             "enabled": true
           }
         ],
@@ -113,52 +185,29 @@
         },
         "assertions": [],
         "tests": "",
-        "docs": "Beyannameyi SBM'den sorgular. Basarili olursa ilgili satirlari COMPLETED yapar. Yanit zarfi: { result, data, status }."
+        "docs": "Beyannameyi SBM'den sorgular; basarili olursa ilgili satirlari COMPLETED yapar.\nYanit zarfi: { result, data, status }.\nNot: SC-UAT'ta ESB proxy'sinin GET route'u parametreleri SBM'ye tasimiyordu\n(CORE-00004) - duzeltme ESB tarafinda."
       }
     }
   ],
   "environments": [
+    {
+      "name": "local",
+      "variables": [
+        {
+          "name": "baseUrl",
+          "value": "http://localhost:8080/sbm-declaration-services",
+          "enabled": true,
+          "secret": false,
+          "type": "text"
+        }
+      ]
+    },
     {
       "name": "sc-test",
       "variables": [
         {
           "name": "baseUrl",
           "value": "https://int-sc-test-elementer.allianz.com.tr/sbm-declaration-services",
-          "enabled": true,
-          "secret": false,
-          "type": "text"
-        },
-        {
-          "name": "user",
-          "value": "pentest",
-          "enabled": true,
-          "secret": false,
-          "type": "text"
-        },
-        {
-          "name": "year",
-          "value": "2026",
-          "enabled": true,
-          "secret": false,
-          "type": "text"
-        },
-        {
-          "name": "month",
-          "value": "8",
-          "enabled": true,
-          "secret": false,
-          "type": "text"
-        },
-        {
-          "name": "cityCode",
-          "value": "34",
-          "enabled": true,
-          "secret": false,
-          "type": "text"
-        },
-        {
-          "name": "ysvDosyaNo",
-          "value": "PENTEST260801",
           "enabled": true,
           "secret": false,
           "type": "text"
@@ -174,41 +223,6 @@
           "enabled": true,
           "secret": false,
           "type": "text"
-        },
-        {
-          "name": "user",
-          "value": "pentest",
-          "enabled": true,
-          "secret": false,
-          "type": "text"
-        },
-        {
-          "name": "year",
-          "value": "2026",
-          "enabled": true,
-          "secret": false,
-          "type": "text"
-        },
-        {
-          "name": "month",
-          "value": "8",
-          "enabled": true,
-          "secret": false,
-          "type": "text"
-        },
-        {
-          "name": "cityCode",
-          "value": "34",
-          "enabled": true,
-          "secret": false,
-          "type": "text"
-        },
-        {
-          "name": "ysvDosyaNo",
-          "value": "PENTEST260801",
-          "enabled": true,
-          "secret": false,
-          "type": "text"
         }
       ]
     },
@@ -221,41 +235,6 @@
           "enabled": true,
           "secret": false,
           "type": "text"
-        },
-        {
-          "name": "user",
-          "value": "pentest",
-          "enabled": true,
-          "secret": false,
-          "type": "text"
-        },
-        {
-          "name": "year",
-          "value": "2026",
-          "enabled": true,
-          "secret": false,
-          "type": "text"
-        },
-        {
-          "name": "month",
-          "value": "8",
-          "enabled": true,
-          "secret": false,
-          "type": "text"
-        },
-        {
-          "name": "cityCode",
-          "value": "34",
-          "enabled": true,
-          "secret": false,
-          "type": "text"
-        },
-        {
-          "name": "ysvDosyaNo",
-          "value": "PENTEST260801",
-          "enabled": true,
-          "secret": false,
-          "type": "text"
         }
       ]
     },
@@ -265,41 +244,6 @@
         {
           "name": "baseUrl",
           "value": "https://int-elementer.allianz.com.tr/sbm-declaration-services",
-          "enabled": true,
-          "secret": false,
-          "type": "text"
-        },
-        {
-          "name": "user",
-          "value": "pentest",
-          "enabled": true,
-          "secret": false,
-          "type": "text"
-        },
-        {
-          "name": "year",
-          "value": "2026",
-          "enabled": true,
-          "secret": false,
-          "type": "text"
-        },
-        {
-          "name": "month",
-          "value": "8",
-          "enabled": true,
-          "secret": false,
-          "type": "text"
-        },
-        {
-          "name": "cityCode",
-          "value": "34",
-          "enabled": true,
-          "secret": false,
-          "type": "text"
-        },
-        {
-          "name": "ysvDosyaNo",
-          "value": "PENTEST260801",
           "enabled": true,
           "secret": false,
           "type": "text"
