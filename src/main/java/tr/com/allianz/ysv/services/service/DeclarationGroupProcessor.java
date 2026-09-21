@@ -55,6 +55,9 @@ public class DeclarationGroupProcessor {
                     "Kayıtların durumu bu işlem için uygun değil. Dosya no: " + fileNo));
         }
 
+        List<ProcessStatus> previousStatuses = group.stream()
+                .map(DeclarationProcess::getStatus)
+                .toList();
         markProcessing(group);
 
         try {
@@ -73,14 +76,16 @@ public class DeclarationGroupProcessor {
                 return Optional.empty();
             }
 
-            markError(group, result.getErrorMessage(), user);
+            markFailure(operationType, group, previousStatuses,
+                    result.getErrorCode(), result.getErrorMessage(), user);
             return Optional.of(new FailureDetail(fileNo, result.getErrorCode(), result.getErrorMessage()));
 
         } catch (SbmIntegrationException ex) {
             // Pre-flight validation: nothing was sent to SBM.
-            return fail(processIds, operationType, group, fileNo, ex.getErrorCode(), ex.getMessage(), user);
+            return fail(processIds, operationType, group, previousStatuses, fileNo,
+                    ex.getErrorCode(), ex.getMessage(), user);
         } catch (TokenException ex) {
-            return fail(processIds, operationType, group, fileNo,
+            return fail(processIds, operationType, group, previousStatuses, fileNo,
                     SbmErrorCode.SEC_00001.getCode(), ex.getMessage(), user);
         }
     }
@@ -113,6 +118,7 @@ public class DeclarationGroupProcessor {
     private Optional<FailureDetail> fail(List<Long> processIds,
                                          OperationType operationType,
                                          List<DeclarationProcess> group,
+                                         List<ProcessStatus> previousStatuses,
                                          String fileNo,
                                          String errorCode,
                                          String message,
@@ -120,7 +126,7 @@ public class DeclarationGroupProcessor {
         log.error("Declaration group {} failed before/while calling SBM: {} - {}",
                 fileNo, errorCode, message);
         declarationLogService.logCall(processIds, operationType, LogLevel.ERROR, message, null, null);
-        markError(group, message, user);
+        markFailure(operationType, group, previousStatuses, errorCode, message, user);
         return Optional.of(new FailureDetail(fileNo, errorCode, message));
     }
 
@@ -163,11 +169,39 @@ public class DeclarationGroupProcessor {
         declarationProcessRepository.saveAll(group);
     }
 
-    private void markError(List<DeclarationProcess> group, String message, String user) {
+    /**
+     * Hatanın satırı hangi duruma bırakacağı, kaydın SBM'de olup olmadığına bağlıdır:
+     *
+     * <ul>
+     *   <li><b>POST hatası</b> → {@code ERROR}. Kayıt SBM'ye girmemiştir, düzeltilip
+     *       yeniden gönderilebilir.</li>
+     *   <li><b>PUT hatası</b> → satır önceki durumunda ({@code SENT}/{@code COMPLETED})
+     *       kalır, yalnızca {@code ERROR_DETAILS} yazılır. {@code ERROR} yazılsaydı bir
+     *       sonraki "gönder" batch'i kaydı tekrar POST eder ve SBM'de mükerrer beyanname
+     *       riski doğardı (RISK-HAVUZU-00004).</li>
+     *   <li><b>RISK-HAVUZU-00004</b> → beyanname SBM'de <b>zaten var</b> demektir (ör.
+     *       eski SOAP entegrasyonundan). Satır {@code SENT}'e alınır ki tekrar POST
+     *       edilmeye çalışılmasın, güncelleme (PUT) ile yönetilebilsin.</li>
+     * </ul>
+     */
+    private void markFailure(OperationType operationType,
+                             List<DeclarationProcess> group,
+                             List<ProcessStatus> previousStatuses,
+                             String errorCode,
+                             String message,
+                             String user) {
         LocalDateTime now = LocalDateTime.now();
         String details = JsonUtil.truncate(message, JsonUtil.ERROR_DETAILS_MAX_LENGTH);
-        for (DeclarationProcess process : group) {
-            process.setStatus(ProcessStatus.ERROR);
+        boolean alreadyAtSbm = SbmErrorCode.RISK_HAVUZU_00004.getCode().equals(errorCode);
+        for (int i = 0; i < group.size(); i++) {
+            DeclarationProcess process = group.get(i);
+            if (alreadyAtSbm) {
+                process.setStatus(ProcessStatus.SENT);
+            } else if (operationType == OperationType.POST) {
+                process.setStatus(ProcessStatus.ERROR);
+            } else {
+                process.setStatus(previousStatuses.get(i));
+            }
             process.setErrorDetails(details);
             process.setDateUpdated(now);
             process.setUpdatedByUser(user);

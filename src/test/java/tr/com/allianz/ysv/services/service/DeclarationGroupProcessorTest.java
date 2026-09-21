@@ -129,6 +129,65 @@ class DeclarationGroupProcessorTest {
     // --- failures -----------------------------------------------------------------------
 
     @Test
+    @DisplayName("a rejected PUT keeps the group where it was: an ERROR row would be POSTed again")
+    void process_putRejected_keepsPreviousStatus() {
+        List<DeclarationProcess> group = newGroup(ProcessStatus.SENT);
+        group.get(1).setStatus(ProcessStatus.COMPLETED);
+        when(declarationProcessRepository.lockByIds(GROUP_IDS)).thenReturn(group);
+        when(sbmClientService.update(any())).thenReturn(SbmCallResult.builder()
+                .success(false)
+                .httpStatus(422)
+                .errorCode(SbmErrorCode.CORE_01004.getCode())
+                .errorMessage("ilceKodu alanının değeri 1 - 4 arasında olmalıdır.")
+                .build());
+
+        Optional<FailureDetail> failure =
+                processor.process(OperationType.PUT, false, GROUP_IDS, "WDA2422");
+
+        assertThat(failure).isPresent();
+        assertThat(group.get(0).getStatus()).isEqualTo(ProcessStatus.SENT);
+        assertThat(group.get(1).getStatus()).isEqualTo(ProcessStatus.COMPLETED);
+        assertThat(group).allSatisfy(row ->
+                assertThat(row.getErrorDetails()).contains("ilceKodu"));
+    }
+
+    @Test
+    @DisplayName("RISK-HAVUZU-00004 means SBM already holds the declaration, so the group becomes SENT")
+    void process_duplicateDeclaration_marksSent() {
+        List<DeclarationProcess> group = newGroup(ProcessStatus.NEW);
+        when(declarationProcessRepository.lockByIds(GROUP_IDS)).thenReturn(group);
+        when(sbmClientService.send(any())).thenReturn(SbmCallResult.builder()
+                .success(false)
+                .httpStatus(422)
+                .errorCode(SbmErrorCode.RISK_HAVUZU_00004.getCode())
+                .errorMessage("RISK-HAVUZU-00004: Mükerrer Beyanname mevcut")
+                .build());
+
+        Optional<FailureDetail> failure =
+                processor.process(OperationType.POST, false, GROUP_IDS, "WDA2422");
+
+        assertThat(failure).isPresent();
+        assertThat(group).allSatisfy(row -> {
+            assertThat(row.getStatus()).isEqualTo(ProcessStatus.SENT);
+            assertThat(row.getErrorDetails()).contains("RISK-HAVUZU-00004");
+        });
+    }
+
+    @Test
+    @DisplayName("a token failure on PUT also leaves the group in its previous status")
+    void process_putTokenFailure_keepsPreviousStatus() {
+        List<DeclarationProcess> group = newGroup(ProcessStatus.SENT);
+        when(declarationProcessRepository.lockByIds(GROUP_IDS)).thenReturn(group);
+        when(sbmClientService.update(any())).thenThrow(new TokenException("token alınamadı"));
+
+        Optional<FailureDetail> failure =
+                processor.process(OperationType.PUT, false, GROUP_IDS, "WDA2422");
+
+        assertThat(failure).isPresent();
+        assertThat(group).allSatisfy(row -> assertThat(row.getStatus()).isEqualTo(ProcessStatus.SENT));
+    }
+
+    @Test
     @DisplayName("a rejected call moves the group to ERROR and stores SBM's message")
     void process_rejected_marksError() {
         List<DeclarationProcess> group = newGroup(ProcessStatus.NEW);

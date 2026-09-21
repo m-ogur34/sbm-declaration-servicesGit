@@ -17,6 +17,8 @@ import static tr.com.allianz.ysv.services.testsupport.DeclarationProcessFixtures
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,16 +38,19 @@ import org.springframework.data.domain.Pageable;
 import tr.com.allianz.ysv.services.config.SbmProperties;
 import tr.com.allianz.ysv.services.dto.internal.SbmCallResult;
 import tr.com.allianz.ysv.services.dto.internal.SbmQueryResponse;
+import tr.com.allianz.ysv.services.dto.request.DeclarationAmountUpdateRequest;
 import tr.com.allianz.ysv.services.dto.request.DeclarationFilterRequest;
 import tr.com.allianz.ysv.services.dto.response.BatchOperationResponse;
 import tr.com.allianz.ysv.services.dto.response.FailureDetail;
 import tr.com.allianz.ysv.services.dto.response.PageResponse;
 import tr.com.allianz.ysv.services.dto.response.ProcessView;
 import tr.com.allianz.ysv.services.entity.DeclarationProcess;
+import tr.com.allianz.ysv.services.enums.LogLevel;
 import tr.com.allianz.ysv.services.enums.MovableType;
 import tr.com.allianz.ysv.services.enums.OperationType;
 import tr.com.allianz.ysv.services.enums.ProcessStatus;
 import tr.com.allianz.ysv.services.enums.SbmErrorCode;
+import tr.com.allianz.ysv.services.exception.DeclarationNotFoundException;
 import tr.com.allianz.ysv.services.exception.SbmIntegrationException;
 import tr.com.allianz.ysv.services.mapper.ProcessMapper;
 import tr.com.allianz.ysv.services.mapper.SbmMapper;
@@ -86,6 +91,109 @@ class DeclarationServiceTest {
 
         when(declarationGroupProcessor.process(any(), anyBoolean(), anyList(), anyString()))
                 .thenReturn(Optional.empty());
+    }
+
+    // --- tutar guncelleme (yerel duzeltme) ------------------------------------------------
+
+    private static DeclarationAmountUpdateRequest amountUpdate() {
+        return new DeclarationAmountUpdateRequest(
+                new BigDecimal("1000.00"), new BigDecimal("100.00"), new BigDecimal("90.00"),
+                new BigDecimal("900.00"), 10, new BigDecimal("-50.00"), LocalDate.of(2026, 9, 20));
+    }
+
+    @Test
+    @DisplayName("updateAmounts writes the new amounts and audits the change")
+    void updateAmounts_appliesValuesAndLogs() {
+        DeclarationProcess row = cityLevelRow(7L, MovableType.MENKUL);
+        when(declarationProcessRepository.lockByIds(List.of(7L))).thenReturn(List.of(row));
+
+        service.updateAmounts(7L, amountUpdate(), USER);
+
+        assertThat(row.getReceivedPremiumAmount()).isEqualByComparingTo("1000.00");
+        assertThat(row.getCancelledPremiumAmount()).isEqualByComparingTo("100.00");
+        assertThat(row.getTaxAmount()).isEqualByComparingTo("90.00");
+        assertThat(row.getTaxPremiumAmount()).isEqualByComparingTo("900.00");
+        assertThat(row.getTaxRatio()).isEqualTo(10);
+        assertThat(row.getPrevMonthRefundAmount()).isEqualByComparingTo("-50.00");
+        assertThat(row.getPaymentDate()).isEqualTo(LocalDate.of(2026, 9, 20));
+        assertThat(row.getUpdatedByUser()).isEqualTo(USER);
+        assertThat(row.getDateUpdated()).isNotNull();
+        verify(declarationProcessRepository).save(row);
+        verify(declarationLogService).logCall(eq(List.of(7L)), eq(OperationType.LOCAL_UPDATE),
+                eq(LogLevel.INFO), anyString(), any(), any());
+    }
+
+    @Test
+    @DisplayName("amounts are stored with the two decimals the column holds")
+    void updateAmounts_roundsToColumnScale() {
+        DeclarationProcess row = cityLevelRow(7L, MovableType.MENKUL);
+        when(declarationProcessRepository.lockByIds(List.of(7L))).thenReturn(List.of(row));
+
+        service.updateAmounts(7L, new DeclarationAmountUpdateRequest(
+                new BigDecimal("1000.005"), BigDecimal.ZERO, BigDecimal.ZERO,
+                BigDecimal.ZERO, 10, null, null), USER);
+
+        assertThat(row.getReceivedPremiumAmount()).isEqualByComparingTo("1000.01");
+    }
+
+    @Test
+    @DisplayName("optional fields left out keep their current value")
+    void updateAmounts_keepsUntouchedFields() {
+        DeclarationProcess row = cityLevelRow(7L, MovableType.MENKUL);
+        row.setPrevMonthRefundAmount(new BigDecimal("12.00"));
+        when(declarationProcessRepository.lockByIds(List.of(7L))).thenReturn(List.of(row));
+
+        service.updateAmounts(7L, new DeclarationAmountUpdateRequest(
+                BigDecimal.ONE, BigDecimal.ONE, BigDecimal.ONE, BigDecimal.ONE, 10, null, null), USER);
+
+        assertThat(row.getPrevMonthRefundAmount()).isEqualByComparingTo("12.00");
+        assertThat(row.getPaymentDate()).isEqualTo(cityLevelRow(7L, MovableType.MENKUL).getPaymentDate());
+    }
+
+    @Test
+    @DisplayName("a COMPLETED row falls back to SENT: the local data no longer matches SBM")
+    void updateAmounts_completedFallsBackToSent() {
+        DeclarationProcess row = cityLevelRow(7L, MovableType.MENKUL);
+        row.setStatus(ProcessStatus.COMPLETED);
+        when(declarationProcessRepository.lockByIds(List.of(7L))).thenReturn(List.of(row));
+
+        service.updateAmounts(7L, amountUpdate(), USER);
+
+        assertThat(row.getStatus()).isEqualTo(ProcessStatus.SENT);
+    }
+
+    @Test
+    @DisplayName("a NEW row keeps its status")
+    void updateAmounts_newRowKeepsStatus() {
+        DeclarationProcess row = cityLevelRow(7L, MovableType.MENKUL);
+        when(declarationProcessRepository.lockByIds(List.of(7L))).thenReturn(List.of(row));
+
+        service.updateAmounts(7L, amountUpdate(), USER);
+
+        assertThat(row.getStatus()).isEqualTo(ProcessStatus.NEW);
+    }
+
+    @Test
+    @DisplayName("a row that is being transferred right now cannot be edited")
+    void updateAmounts_rejectsProcessingRow() {
+        DeclarationProcess row = cityLevelRow(7L, MovableType.MENKUL);
+        row.setStatus(ProcessStatus.PROCESSING);
+        when(declarationProcessRepository.lockByIds(List.of(7L))).thenReturn(List.of(row));
+
+        assertThatThrownBy(() -> service.updateAmounts(7L, amountUpdate(), USER))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("PROCESSING");
+        verify(declarationProcessRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("an unknown id is reported as not found")
+    void updateAmounts_unknownIdIsNotFound() {
+        when(declarationProcessRepository.lockByIds(List.of(99L))).thenReturn(List.of());
+
+        assertThatThrownBy(() -> service.updateAmounts(99L, amountUpdate(), USER))
+                .isInstanceOf(DeclarationNotFoundException.class)
+                .hasMessageContaining("99");
     }
 
     // --- grouping -------------------------------------------------------------------------

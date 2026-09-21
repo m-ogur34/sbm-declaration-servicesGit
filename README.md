@@ -243,6 +243,31 @@ Hata gövdesi (tüm hatalar için tek tip):
 
 Örnek istekler: [`docs/api-examples.http`](docs/api-examples.http)
 
+### Güncelleme akışı
+
+SBM'ye gönderilmiş bir beyannamenin tutarı değişecekse iki adım vardır:
+
+1. `PUT /api/v1/declarations/{id}` — satırın tutarlarını **veritabanında** düzeltir.
+   SBM'ye bir şey göndermez. Prod DB'de manuel `UPDATE` yasak olduğu için düzeltmenin
+   tek yolu budur; her değişiklik öncesi/sonrası değerleriyle `ALZ_SBM_DECL_LOG`'a
+   (`OPERATION_TYPE = LOCAL_UPDATE`) yazılır.
+2. `PUT /api/v1/declarations/update` — düzeltilmiş satırları SBM'ye taşır.
+
+Beyannamenin kimliğini belirleyen alanlar (`yıl`, `ay`, `ilKodu`, `ilceKodu`,
+`ysvDosyaNo`, `menkulTipi`) 1. adımda **değiştirilemez**; değişirlerse SBM'deki kayıtla
+bağ kopar. Değiştirilebilenler: dört tutar, `vergiOrani`, `gecmisAyIadeTutari` ve
+`sonOdemeTarihi`.
+
+Durum kuralları:
+
+| Olay | Sonuç |
+|---|---|
+| `COMPLETED` satırın tutarı değişti | `SENT` — yereldeki veri artık SBM'dekinden farklı, yeniden gönderilip doğrulanmalı |
+| `PROCESSING` satır düzenlenmek istendi | 400 — satır o anda SBM'ye gidiyor |
+| POST (gönder) başarısız | `ERROR` — kayıt SBM'ye girmedi, düzeltilip yeniden gönderilebilir |
+| PUT (güncelle) başarısız | Satır **önceki durumunda kalır** (`SENT`/`COMPLETED`), sadece `ERROR_DETAILS` yazılır. `ERROR` yazılsaydı bir sonraki "gönder" kaydı tekrar POST eder ve SBM'de mükerrer beyanname oluşurdu |
+| POST `RISK-HAVUZU-00004` döndü | `SENT` — beyanname SBM'de zaten var (ör. eski SOAP entegrasyonundan). Artık POST denenmez, güncelleme (PUT) ile yönetilir |
+
 ---
 
 ## 5. Profiller ve konfigürasyon

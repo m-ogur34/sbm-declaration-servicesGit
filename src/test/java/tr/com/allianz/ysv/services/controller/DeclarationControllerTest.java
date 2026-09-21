@@ -28,6 +28,7 @@ import tr.com.allianz.ysv.services.dto.response.PageResponse;
 import tr.com.allianz.ysv.services.dto.response.ProcessView;
 import tr.com.allianz.ysv.services.enums.ProcessStatus;
 import tr.com.allianz.ysv.services.enums.SbmErrorCode;
+import tr.com.allianz.ysv.services.exception.DeclarationNotFoundException;
 import tr.com.allianz.ysv.services.exception.SbmIntegrationException;
 import tr.com.allianz.ysv.services.exception.TokenException;
 import tr.com.allianz.ysv.services.service.DeclarationService;
@@ -173,5 +174,44 @@ class DeclarationControllerTest {
         mockMvc.perform(get("/api/v1/declarations/query/YSV202513491"))
                 .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.code").value("ALZ-INTERNAL"));
+    }
+
+    @Test
+    @DisplayName("PUT /{id} updates the row amounts and returns the new state")
+    void updateAmounts_returnsUpdatedRow() throws Exception {
+        when(declarationService.updateAmounts(eq(7L), any(), eq("WDA2422")))
+                .thenReturn(new ProcessView(7L, 2026, 8, 34, 0, "PENTEST260801", "MENKUL",
+                        "SENT", null, null, null, null, null, 10, null, null));
+
+        mockMvc.perform(put("/api/v1/declarations/7")
+                        .header("X-User-Name", "WDA2422")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"alinanPrimTutari\":1000.00,\"iptalPrimTutari\":100.00,\"odenecekVergi\":90.00,\"vergiPrimTutari\":900.00,\"vergiOrani\":10}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(7))
+                .andExpect(jsonPath("$.status").value("SENT"));
+    }
+
+    @Test
+    @DisplayName("PUT /{id} answers 404 when the row does not exist")
+    void updateAmounts_unknownRowIsNotFound() throws Exception {
+        when(declarationService.updateAmounts(eq(99L), any(), any()))
+                .thenThrow(new DeclarationNotFoundException("Beyanname satırı bulunamadı: 99"));
+
+        mockMvc.perform(put("/api/v1/declarations/99")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"alinanPrimTutari\":1000.00,\"iptalPrimTutari\":100.00,\"odenecekVergi\":90.00,\"vergiPrimTutari\":900.00,\"vergiOrani\":10}"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("ALZ-NOT-FOUND"));
+    }
+
+    @Test
+    @DisplayName("PUT /{id} rejects a body without the mandatory amounts")
+    void updateAmounts_rejectsIncompleteBody() throws Exception {
+        mockMvc.perform(put("/api/v1/declarations/7")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"vergiOrani\":10}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("ALZ-VALIDATION"));
     }
 }

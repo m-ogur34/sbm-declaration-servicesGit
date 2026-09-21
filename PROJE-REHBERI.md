@@ -271,7 +271,12 @@ Eksikler yukarıdaki 4.3'te.
 
 ---
 
-## 5. Güncelleme akışı — neden yanlış (haklısınız)
+## 5. Güncelleme akışı — neden yanlıştı (2026-09-21'de düzeltildi)
+
+> **Durum: çözüldü.** `PUT /api/v1/declarations/{id}` ucu eklendi (tutarları DB'de
+> düzeltir, SBM'ye göndermez), PUT hatası artık satırı `ERROR`'a düşürmüyor ve
+> `RISK-HAVUZU-00004` alan satır `SENT`'e alınıyor. Ayrıntı: `README.md` §"Güncelleme
+> akışı". Aşağıdaki teşhis kayıt amaçlı duruyor.
 
 Gövde formatı doğru (SC-UAT'ta `successCount: 1` ile doğrulandı): PUT'ta
 `sigortaSirketKodu + sonOdemeTarihi + ysvDosyaNo + ysvTutarList`, `ay/yil/ilKodu/ilceKodu` yok.

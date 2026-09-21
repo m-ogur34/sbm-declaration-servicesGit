@@ -22,6 +22,7 @@ public class GlobalExceptionHandler {
 
     static final String VALIDATION_CODE = "ALZ-VALIDATION";
     static final String INTERNAL_CODE = "ALZ-INTERNAL";
+    static final String NOT_FOUND_CODE = "ALZ-NOT-FOUND";
 
     @ExceptionHandler(SbmIntegrationException.class)
     public ResponseEntity<ErrorResponse> handleSbmIntegration(SbmIntegrationException ex,
@@ -39,6 +40,15 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
                 .body(ErrorResponse.of(request.getRequestURI(), SbmErrorCode.SEC_00001.getCode(),
                         "Token alınamadığı için işlem gerçekleştirilemedi.", List.of(ex.getMessage())));
+    }
+
+    @ExceptionHandler(DeclarationNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleNotFound(DeclarationNotFoundException ex,
+                                                        HttpServletRequest request) {
+        log.warn("Declaration not found on {}: {}", request.getRequestURI(), ex.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ErrorResponse.of(request.getRequestURI(), NOT_FOUND_CODE,
+                        ex.getMessage(), List.of()));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

@@ -1,5 +1,7 @@
 package tr.com.allianz.ysv.services.service;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -17,6 +19,7 @@ import tr.com.allianz.ysv.services.dto.internal.DeclarationGroupKey;
 import tr.com.allianz.ysv.services.dto.internal.SbmCallResult;
 import tr.com.allianz.ysv.services.dto.internal.SbmQueryRequest;
 import tr.com.allianz.ysv.services.dto.internal.SbmQueryResponse;
+import tr.com.allianz.ysv.services.dto.request.DeclarationAmountUpdateRequest;
 import tr.com.allianz.ysv.services.dto.request.DeclarationFilterRequest;
 import tr.com.allianz.ysv.services.dto.response.BatchOperationResponse;
 import tr.com.allianz.ysv.services.dto.response.FailureDetail;
@@ -27,6 +30,7 @@ import tr.com.allianz.ysv.services.enums.LogLevel;
 import tr.com.allianz.ysv.services.enums.OperationType;
 import tr.com.allianz.ysv.services.enums.ProcessStatus;
 import tr.com.allianz.ysv.services.enums.SbmErrorCode;
+import tr.com.allianz.ysv.services.exception.DeclarationNotFoundException;
 import tr.com.allianz.ysv.services.exception.SbmIntegrationException;
 import tr.com.allianz.ysv.services.mapper.ProcessMapper;
 import tr.com.allianz.ysv.services.mapper.SbmMapper;
@@ -61,6 +65,66 @@ public class DeclarationService {
 
     public BatchOperationResponse cancel(DeclarationFilterRequest filter, String user) {
         return runBatch(filter, ProcessStatus.UPDATABLE, OperationType.PUT, true, user);
+    }
+
+    /**
+     * Bir beyanname satırının tutarlarını DB'de günceller. SBM'ye <b>bu uç bir şey
+     * göndermez</b>; düzeltilen satır ardından {@code /update} (PUT) ile SBM'ye taşınır.
+     *
+     * <p>Prod DB'de manuel UPDATE yasak olduğu için düzeltmenin tek yolu budur; her
+     * değişiklik {@code ALZ_SBM_DECL_LOG}'a öncesi/sonrası değerleriyle yazılır.
+     * SBM'ye gönderilmiş bir satır güncellenirse durum {@code SENT}'e çekilir:
+     * {@code COMPLETED} artık geçerli değildir, çünkü yereldeki veri SBM'dekinden
+     * farklıdır ve yeniden gönderilip doğrulanmalıdır.</p>
+     *
+     * @throws DeclarationNotFoundException satır yoksa (HTTP 404)
+     * @throws IllegalArgumentException satır o anda SBM'ye gönderiliyorsa (HTTP 400)
+     */
+    @Transactional
+    public ProcessView updateAmounts(Long id, DeclarationAmountUpdateRequest request, String user) {
+        DeclarationProcess process = declarationProcessRepository.lockByIds(List.of(id)).stream()
+                .findFirst()
+                .orElseThrow(() -> new DeclarationNotFoundException("Beyanname satırı bulunamadı: " + id));
+
+        if (process.getStatus() == ProcessStatus.PROCESSING) {
+            throw new IllegalArgumentException(
+                    "Satır şu anda SBM'ye gönderiliyor (PROCESSING), güncellenemez. Id: " + id);
+        }
+
+        String before = jsonUtil.toJson(processMapper.toView(process));
+
+        process.setReceivedPremiumAmount(scaled(request.alinanPrimTutari()));
+        process.setCancelledPremiumAmount(scaled(request.iptalPrimTutari()));
+        process.setTaxAmount(scaled(request.odenecekVergi()));
+        process.setTaxPremiumAmount(scaled(request.vergiPrimTutari()));
+        process.setTaxRatio(request.vergiOrani());
+        if (request.gecmisAyIadeTutari() != null) {
+            process.setPrevMonthRefundAmount(scaled(request.gecmisAyIadeTutari()));
+        }
+        if (request.sonOdemeTarihi() != null) {
+            process.setPaymentDate(request.sonOdemeTarihi());
+        }
+        if (process.getStatus() == ProcessStatus.COMPLETED) {
+            process.setStatus(ProcessStatus.SENT);
+        }
+        process.setDateUpdated(LocalDateTime.now());
+        process.setUpdatedByUser(user);
+        declarationProcessRepository.save(process);
+
+        ProcessView view = processMapper.toView(process);
+        declarationLogService.logCall(List.of(id), OperationType.LOCAL_UPDATE, LogLevel.INFO,
+                "Tutarlar güncellendi. Dosya no: " + process.getSbmFileNo()
+                        + ", menkul tipi: " + process.getMovableType()
+                        + ", kullanıcı: " + user,
+                before, jsonUtil.toJson(view));
+        log.info("Declaration row {} amounts updated by {} (fileNo={}, status={})",
+                id, user, process.getSbmFileNo(), process.getStatus());
+        return view;
+    }
+
+    /** DB kolonu NUMBER(15,2); gelen değer daha uzun olabilir. */
+    private static BigDecimal scaled(BigDecimal value) {
+        return value == null ? null : value.setScale(2, java.math.RoundingMode.HALF_UP);
     }
 
     public SbmQueryResponse query(String ysvDosyaNo, String user) {

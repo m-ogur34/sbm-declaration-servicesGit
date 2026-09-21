@@ -16,5 +16,8 @@ public enum OperationType {
     PUT,
 
     /** Sorgu — HTTP GET. */
-    GET
+    GET,
+
+    /** SBM'ye gitmeyen yerel düzeltme: satır tutarlarının DB'de güncellenmesi. */
+    LOCAL_UPDATE
 }

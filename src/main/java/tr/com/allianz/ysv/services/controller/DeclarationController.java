@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import tr.com.allianz.ysv.services.dto.internal.SbmQueryResponse;
+import tr.com.allianz.ysv.services.dto.request.DeclarationAmountUpdateRequest;
 import tr.com.allianz.ysv.services.dto.request.DeclarationFilterRequest;
 import tr.com.allianz.ysv.services.dto.response.BatchOperationResponse;
 import tr.com.allianz.ysv.services.dto.response.PageResponse;
@@ -50,6 +51,15 @@ public class DeclarationController {
             @Valid @RequestBody DeclarationFilterRequest request,
             @RequestHeader(value = USER_HEADER, required = false, defaultValue = DEFAULT_USER) String user) {
         return ResponseEntity.ok(declarationService.update(request, user));
+    }
+
+    @PutMapping("/{id}")
+    @Operation(summary = "Beyanname satırının tutarlarını DB'de günceller (SBM'ye göndermez)")
+    public ResponseEntity<ProcessView> updateAmounts(
+            @PathVariable Long id,
+            @Valid @RequestBody DeclarationAmountUpdateRequest request,
+            @RequestHeader(value = USER_HEADER, required = false, defaultValue = DEFAULT_USER) String user) {
+        return ResponseEntity.ok(declarationService.updateAmounts(id, request, user));
     }
 
     @PostMapping("/cancel")
