@@ -169,21 +169,6 @@ public class DeclarationGroupProcessor {
         declarationProcessRepository.saveAll(group);
     }
 
-    /**
-     * Hatanın satırı hangi duruma bırakacağı, kaydın SBM'de olup olmadığına bağlıdır:
-     *
-     * <ul>
-     *   <li><b>POST hatası</b> → {@code ERROR}. Kayıt SBM'ye girmemiştir, düzeltilip
-     *       yeniden gönderilebilir.</li>
-     *   <li><b>PUT hatası</b> → satır önceki durumunda ({@code SENT}/{@code COMPLETED})
-     *       kalır, yalnızca {@code ERROR_DETAILS} yazılır. {@code ERROR} yazılsaydı bir
-     *       sonraki "gönder" batch'i kaydı tekrar POST eder ve SBM'de mükerrer beyanname
-     *       riski doğardı (RISK-HAVUZU-00004).</li>
-     *   <li><b>RISK-HAVUZU-00004</b> → beyanname SBM'de <b>zaten var</b> demektir (ör.
-     *       eski SOAP entegrasyonundan). Satır {@code SENT}'e alınır ki tekrar POST
-     *       edilmeye çalışılmasın, güncelleme (PUT) ile yönetilebilsin.</li>
-     * </ul>
-     */
     private void markFailure(OperationType operationType,
                              List<DeclarationProcess> group,
                              List<ProcessStatus> previousStatuses,
