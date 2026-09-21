@@ -22,6 +22,7 @@ public class DeclarationLogService {
 
     private final DeclarationLogRepository declarationLogRepository;
 
+
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void logCall(Collection<Long> processIds,
                         OperationType operationType,
