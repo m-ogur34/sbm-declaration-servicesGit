@@ -6,6 +6,9 @@ springboot-deployment:
     env:
       java:
         args: -Xms4g -Xmx4g -XX:+FlightRecorder
+      others:
+        - name: COMMON_CONFIG
+          value: application-config-common.yml
       springboot:
         profile: dr
       sysType: DR
@@ -28,8 +31,8 @@ springboot-deployment:
           {{ with secret "kv/data/PROD/apps/sbm-declaration-services" -}}
             export TOKEN_MANAGEMENT_CLIENT_NAME="{{ .Data.data.tokenManagementClientName }}"
             export SBM_COMPANY_CODE="{{ .Data.data.tokenManagementCompanyCode }}"
-            export TOKEN_MANAGEMENT_COMPANY_CODE="{{ .Data.data.tokenManagementCompanyCode }}"
             export TOKEN_MANAGEMENT_USER_NAME="{{ .Data.data.tokenManagementUserName }}"
+            export SBM_COMPANY_CODE="{{ .Data.data.sbmCompanyCode }}"
           {{- end }}
   autoscale:
     minReplicas: 1
