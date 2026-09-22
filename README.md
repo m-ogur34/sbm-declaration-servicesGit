@@ -168,10 +168,10 @@ mvn spring-boot:run
 ### 2.6 Veritabanı
 
 ```sql
--- 1) Şema (verilen script, değiştirilmedi)
-@db/setup_db.sql
--- 2) Excel'den türetilmiş 50 satırlık örnek veri (25 grup)
-@db/sample_insert.sql
+-- 1) Şema (ilk kurulum; tablolar varsa önce db/rollback_db.sql)
+@"db/DB güncel.sql"
+-- Test verisi: Pen Test/test-1-yukleme.xlsx dosyası /upload ile yüklenir.
+-- Test verisini temizlemek: db/cleanup_test_data.sql
 ```
 
 ---
@@ -263,14 +263,46 @@ Tekli güncelleme gövdesi — SBM'nin PUT gövdesiyle aynı yapıda:
 
 Listede olmayan menkul tipinin tutarları değişmez. Beyannamenin kimliğini kuran alanlar
 (yıl, ay, il, ilçe, `ysvDosyaNo`) değiştirilemez; beyannamede olmayan bir menkul tipi
-eklenemez. Cevap: `{ ysvDosyaNo, sentToSbm, success, errorCode, message, rows[] }`.
+eklenemez.
 
-Toplu işlem sonucu:
+### Cevap biçimi — SBM dokümanıyla aynı
+
+Her cevap SBM'nin zarfındadır ve gövdedeki `status` HTTP koduyla aynıdır:
 
 ```json
-{ "totalGroups": 6, "successCount": 5, "failCount": 1,
-  "failures": [ { "ysvDosyaNo": "...", "errorCode": "...", "message": "..." } ] }
+{ "result": true,  "status": 201, "data":  { ... } }
+{ "result": false, "status": 422, "error": { "timestamp": "...", "reasons": [ { "field": "...", "code": "...", "message": "..." } ] } }
 ```
+
+**Tekli uçlar SBM'nin cevabını aynen, SBM'nin HTTP koduyla döner:**
+
+| Uç | Başarı | SBM reddi |
+|---|---|---|
+| `POST /{ysvDosyaNo}/send` | `201 {"result":true,"status":201,"data":{"ysvDosyaNo":"..."}}` | SBM'nin gövdesi ve kodu (ör. `422 ... RISK-HAVUZU-00004`) |
+| `PUT /{ysvDosyaNo}`, `POST /{ysvDosyaNo}/cancel` | `200 {"result":true,"status":200,"data":true}` | aynı |
+| `GET /{ysvDosyaNo}` | `200 {"result":true,"status":200,"data":{beyanname}}` | aynı |
+
+- Beyanname SBM'ye gitmeden reddedilirse SBM'nin hata biçiminde bizim kodumuz döner:
+  zaten gönderilmiş → **409** `ALZ-STATUS-CONFLICT`, dosya no yok → **404** `ALZ-NOT-FOUND`,
+  SBM kuralına aykırı (ör. 36 karakter) → **422**, token alınamadı → **503** `SEC-00001`.
+- Cevap SBM'den değil ESB'den geldiyse (hata sayfası, bağlantı hatası) → **502**
+  `CORE-00000`; ESB'nin gövdesi istemciye verilmez.
+- Tekli güncellemede beyanname henüz SBM'ye gitmemişse (`NEW`/`ERROR`) sadece DB güncellenir:
+  `200 {"result":true,"status":200,"data":{"ysvDosyaNo":"...","sentToSbm":false,"message":"..."}}`.
+
+**Toplu uçlar** aynı zarfta, beyanname başına SBM'nin cevabını döner (HTTP 200; `result` hiç
+hata yoksa `true`):
+
+```json
+{ "result": false, "status": 200,
+  "data": { "totalGroups": 2, "successCount": 1, "failCount": 1,
+            "results": [
+              { "ysvDosyaNo": "PENTEST260821", "result": true, "status": 201, "data": { "ysvDosyaNo": "PENTEST260821" } },
+              { "ysvDosyaNo": "PENTEST260822", "result": false, "status": 422,
+                "error": { "timestamp": "...", "reasons": [ { "code": "RISK-HAVUZU-00004", "message": "..." } ] } } ] } }
+```
+
+Excel yükleme ve listeleme de aynı zarftadır: `{"result":..., "status":200, "data":{...}}`.
 
 ### Excel yükleme (upsert)
 
@@ -293,6 +325,8 @@ Anahtar `ysvDosyaNo + menkulTipi`; bir dosya tek dönem içerir (değilse tüm d
 | PUT başarısız | Satır **önceki durumunda kalır**, sadece `ERROR_DETAILS` yazılır — `ERROR` olsaydı "gönder" kaydı tekrar POST ederdi |
 | `COMPLETED` satırın değeri değişti (tekli güncelleme / Excel) | `SENT` — SBM'deki veriyle artık aynı değil, yeniden doğrulanmalı |
 | `PROCESSING` satır düzenlenmek istendi | 400 |
+| İptal (tutarlar 0) SBM'de kabul edildi | DB'deki tutarlar da 0 olur; veri Excel'de durduğu için yeniden yüklenip gönderilebilir |
+| İptal SBM'de reddedildi | DB'ye dokunulmaz |
 
 ### İzlenebilirlik — `Transaction-Id`
 
@@ -307,20 +341,26 @@ PUT PENTEST260801 başarılı (HTTP 200, Transaction-Id: 3f2a…, Requester: 1/1
 TCKN/YKN maskelenir (ilk ve son iki hane), VKN olduğu gibi yazılır. Token servisi logu,
 uygulama logu, DB ve SBM destek talebi tek numarayla eşleşir.
 
-### Hata cevapları
+### Hata kodları
 
-Tüm hatalar tek biçimdedir: `{ "timestamp", "path", "code", "message", "details" }`.
+Hepsi SBM'nin hata biçimindedir; kod `error.reasons[].code`'da:
 
 | HTTP | `code` | Ne zaman |
 |---|---|---|
-| 400 | `ALZ-VALIDATION` | Alan/parametre/başlık doğrulaması (`details`'te alan bazlı mesajlar) |
+| 400 | `ALZ-VALIDATION` | Alan/parametre/başlık doğrulaması (`field` alanı hangi alan olduğunu söyler) |
 | 400/405/413/415 | `ALZ-REQUEST` | Bozuk JSON, eksik parametre, yanlış metot, dosya >10MB, içerik tipi |
 | 404 | `ALZ-NOT-FOUND` | Dosya no DB'de yok |
-| 502 | SBM kodu (ör. `CORE-01001`) | SBM isteği reddetti |
+| 409 | `ALZ-STATUS-CONFLICT` | Beyannamenin durumu işleme uygun değil (ör. zaten gönderilmiş) |
+| 422 | SBM kodu | SBM reddetti (SBM'nin gövdesi aynen) ya da SBM kuralına aykırı olduğu için gönderilmedi |
+| 502 | `CORE-00000` | SBM yerine ESB'den beklenmeyen cevap / bağlantı hatası |
 | 503 | `SEC-00001` | Token alınamadı |
-| 500 | `ALZ-INTERNAL` | Beklenmeyen hata — mesaj genel, `details` boş; ayrıntı yalnızca uygulama logunda |
+| 500 | `ALZ-INTERNAL` | Beklenmeyen hata — mesaj genel; ayrıntı yalnızca uygulama logunda |
 
-İstemciye hiçbir durumda istisna mesajı, sınıf adı ya da iç adres dönülmez.
+İstemciye hiçbir durumda istisna mesajı, sınıf adı, iç adres ya da ESB'nin hata sayfası
+dönülmez.
+
+GET çağrılarında `ALZ_SBM_DECL_LOG.REQUEST_PAYLOAD` kolonuna gerçekte giden istek yazılır:
+`GET http://.../sbmDeclarationServices?sigortaSirketKodu=045&ysvDosyaNo=...`.
 
 ---
 
@@ -501,8 +541,8 @@ src/main/java/tr/com/allianz/ysv/services/
 │                   TokenManagementService, DeclarationLogService
 └── util/           DistrictCodeResolver, DateUtil, JsonUtil, MaskUtil
 
-db/       setup_db.sql (değiştirilmedi), sample_insert.sql (50 satır)
-docs/     api-examples.http
+db/       DB güncel.sql (kurulum), rollback_db.sql, cleanup_test_data.sql, bruno-collection.json
+Pen Test/ PENTEST-REHBERI.md, örnek ve test Excel'leri
 ```
 
 ### Helm ağacı
@@ -613,12 +653,10 @@ Ortam URL deseni: `https://<önek>elementer.allianz.com.tr/sbm-declaration-servi
 
 ## 8. Açık Konular
 
-1. **Sorgu (GET) ESB proxy route'u.** Uygulama SBM sözleşmesine uygun şekilde `GET` +
-   query string (`?sigortaSirketKodu=045&ysvDosyaNo=...`) gönderiyor; gövde yok
-   (`esb.ysv.sorgu-method` property'si kaldırıldı). SC-UAT'ta OSB proxy'si GET'te bu
-   parametreleri SBM Business Service'ine taşımadığı için `CORE-00004` alınıyor →
-   **düzeltme ESB tarafında.** Not: SBM dökümanı sorgu isteğini gövdeli bir JSON örneğiyle
-   de gösteriyor; proxy düzelince hangi varyantın beklendiği netleşecek.
+1. **Sorgu (GET) ESB proxy route'u — çözüldü (2026-09-22).** Uygulama `GET` + query string
+   (`?sigortaSirketKodu=045&ysvDosyaNo=...`) gönderiyor, gövde yok. SC-UAT'ta önceden OSB
+   proxy'si parametreleri taşımadığı için `CORE-00004` alınıyordu; uçtan uca testte tekli ve
+   toplu sorgu başarılı çalıştı.
 2. **`gecmisAyIadeTutari`.** Güncel SBM dökümanında alan `ysvTutarList`'in her elemanında
    yer alıyor; kod da onu tutar kalemine (`SbmAmountItem`) koyuyor, root'a değil. DB'de
    değer varsa gönderiliyor, yoksa `@JsonInclude(NON_NULL)` ile payload'dan çıkarılıyor.

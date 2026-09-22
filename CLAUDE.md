@@ -236,6 +236,20 @@ varsa temizle.
   aynı kalır. `ALZ_SBM_DECL_LOG`'a yeni kolon **eklenmedi**; Transaction-Id ve maskeli kimlik
   `LOG_MESSAGE` içinde.
 
+### ⟲ Cevap biçimi = SBM dokümanı (2026-09-22)
+
+- Tüm cevaplar SBM zarfında: başarı `{result:true, status, data}`, hata
+  `{result:false, status, error:{timestamp, reasons:[{field, code, message}]}}`; `status` = HTTP kodu.
+- Tekli uçlar (`/{ysvDosyaNo}/send`, `PUT /{ysvDosyaNo}`, `GET /{ysvDosyaNo}`, `/{ysvDosyaNo}/cancel`)
+  SBM'nin gövdesini **aynen** ve SBM'nin HTTP koduyla döner (POST 201, reddi 422 …). SBM yerine
+  ESB hata sayfası gelirse 502 + SBM hata biçimi (HTML istemciye verilmez).
+- Toplu uçlar: `data = {totalGroups, successCount, failCount, results[]}`; `results` elemanı
+  `ysvDosyaNo` + o beyanname için SBM'nin cevabı. `result` = hiç hata yoksa `true`.
+- Kendi hatalarımız: 400 `ALZ-VALIDATION`/`ALZ-REQUEST`, 404 `ALZ-NOT-FOUND`, 409
+  `ALZ-STATUS-CONFLICT`, 422 SBM kodlu ön doğrulama, 503 `SEC-00001`, 500 `ALZ-INTERNAL`.
+- İptal SBM'de kabul edilirse DB tutarları da 0'lanır. GET log'unda `REQUEST_PAYLOAD` = gerçekte
+  giden `GET <url>?…`.
+
 ### ⟲ API (2026-09-22)
 
 - Anahtar `ysvDosyaNo`; dış API'de iç `id` / `processIds` **yoktur**.
@@ -257,8 +271,8 @@ varsa temizle.
   Host:port `ESB_SERVER` (SC-UAT = `10.70.47.135:21011`), path `esb.ysv.*-path`
   (default `/sbmDeclarationServices`, `common-configs/application.yml`).
   Sorgu: `GET` + query string `?sigortaSirketKodu=045&ysvDosyaNo=...` (SBM Postman
-  örneği; gövde yok). Proxy GET route'u parametreleri taşımadığı sürece `CORE-00004` —
-  düzeltme ESB tarafında.
+  örneği; gövde yok). ⟲ Proxy GET route'u 2026-09-22'de çalışır doğrulandı
+  (önceden `CORE-00004`).
 - ⟳ `tr.com.allianz:ysv-services-rest-client` **eklenmez** (karar sabit); ESB düz HTTP
   `RestClient` ile çağrılır.
 

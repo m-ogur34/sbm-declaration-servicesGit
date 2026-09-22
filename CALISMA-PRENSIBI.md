@@ -241,9 +241,9 @@ gider, proxy SBM'ye yönlendirir.
   `common-configs/application.yml`), host:port `ESB_SERVER` (ortam bazlı) ile verilir.
 - Sorgu, gönder ile **aynı path**tir; ayrı bir `/sorgu` eki **yoktur**.
 - Sorgu **GET + query string** ile gider: `?sigortaSirketKodu=045&ysvDosyaNo=...`
-  (SBM dökümanındaki Postman örneği; gövde yoktur). SC-UAT'ta OSB proxy'si GET'te bu
-  parametreleri SBM'ye taşımıyordu → `CORE-00004`; düzeltme **ESB tarafında** (proxy GET
-  route'u). Uygulama SBM sözleşmesine uygun; ESB proxy düzelince sorgu çalışır.
+  (SBM dökümanındaki Postman örneği; gövde yoktur). SC-UAT'ta ilk denemelerde OSB proxy'si GET'te bu
+  parametreleri SBM'ye taşımıyordu (`CORE-00004`); **2026-09-22'de düzeldiği doğrulandı**
+  (uçtan uca testte tekli ve toplu sorgu başarılı).
 - Üç işlemde de header: `Authorization: Bearer ...`, `Requester-ID-Type`,
   `Requester-ID-No`, `Content-Type: application/json`.
 
@@ -415,9 +415,8 @@ NEW ──gönder──▶ PROCESSING ──(2xx & result:true)──▶ SENT �
 - ESB proxy path'i **SC-UAT'ta doğrulandı**: `/sbmDeclarationServices` (üç işlem de),
   `common-configs/application.yml` içinde default. Ortam farkı sadece `ESB_SERVER`
   (host:port); SC-UAT = `http://10.70.47.135:21011`.
-- **Açık:** proxy'nin **sorgu (GET) route'u** `sigortaSirketKodu`/`ysvDosyaNo`'yu SBM'ye
-  taşımıyor (`CORE-00004`) — ESB tarafında düzeltilecek. POST/PUT sorunsuz. Proxy'nin
-  bu alanları gövdeden mi query string'den mi okuyacağı netleşince uygulama hizalanır.
+- ✅ Proxy'nin **sorgu (GET) route'u** 2026-09-22'de çalışır durumda doğrulandı
+  (query string ile). POST/PUT/GET üçü de SC-UAT'ta uçtan uca test edildi.
 
 ---
 
@@ -470,8 +469,8 @@ DB scriptleri (`db/`):
 
 | Dosya | Amaç |
 |---|---|
-| `setup_db.sql` | Prod şeması — sıfırdan CREATE (CUSTOMER. + synonym + grant) |
-| `rollback_db.sql` | `setup_db.sql`'in tersi — toleranslı PL/SQL, tüm ortamlara deploy edilebilir |
+| `DB güncel.sql` | Prod şeması — sıfırdan CREATE (CUSTOMER. + synonym + grant) |
+| `rollback_db.sql` | `DB güncel.sql`'in tersi — toleranslı PL/SQL, tüm ortamlara deploy edilebilir |
 | `sample_insert.sql` | 50 satır gerçekçi hacimli örnek veri (25 grup, hepsi `NEW`) |
 | `sample_data_scenarios.sql` | Küçük etiketli senaryo seti (S1–S10) — her kod yolunu tetikler; şema öneksiz |
 | `local/local_setup.sql` | Lokal Oracle şeması (öneksiz, synonym/grant yok) |
@@ -517,10 +516,7 @@ token cache yok; her çağrıda taze token; `Transaction-Id` loglanıyor;
 ## 11. VDI'da doğrulanacak açık maddeler
 
 1. **Tipli gövde:** SC-TEST'e tipli JSON ile bir POST — 422 gelmiyor mu? (Gelirse §5.2 fallback.)
-2. **ESB sorgu (GET) route'u:** proxy `/sbmDeclarationServices` GET akışı
-   `sigortaSirketKodu`+`ysvDosyaNo`'yu SBM Business Service'e aktarmıyor (`CORE-00004`).
-   ESB ekibi düzeltince: proxy gövde mi query string mi bekliyor → uygulama hizalanır.
-   (POST/PUT ve proxy path `/sbmDeclarationServices` SC-UAT'ta doğrulandı.)
+2. ✅ **ESB sorgu (GET) route'u** — kapandı (2026-09-22): query string ile çalışıyor.
 3. **`ysv-services-rest-client`** iç Nexus'ta var mı — yoksa §6 kararı zaten geçerli,
    varsa bile eklenmeyecek (bilgi amaçlı).
 4. **Token `functionName`:** token ekibi (Hüseyin Dağ / Ömer Faruk Ceylan) operasyona

@@ -53,7 +53,7 @@
         },
         "assertions": [],
         "tests": "",
-        "docs": "Pen Test/test-1-yukleme.xlsx: 12 satir, 6 beyanname (PENTEST260821-16), donem 2026-8.\nBeklenen: inserted=12, updated=0, failed=0. Import sonrasi Body > File'dan dosyayi diskinizden secin."
+        "docs": "Pen Test/test-1-yukleme.xlsx: 12 satir, 6 beyanname (PENTEST260821-16), donem 2026-8.\nBeklenen: 200 {result:true, data:{inserted:12, updated:0, failed:0}}. Import sonrasi Body > File'dan dosyayi diskinizden secin."
       }
     },
     {
@@ -245,7 +245,7 @@
         },
         "assertions": [],
         "tests": "",
-        "docs": "Tek beyanname. Zaten gonderilmisse ALZ-STATUS-CONFLICT doner; dosya no yoksa 404.\n\nKimlik: X-Requester-Id-Type / X-Requester-Id-No başlıkları kapalı gelir; kapalıyken token servisi şirket VKN'sini döner (toplu işlem). İşlemi yapanın kimliğiyle göndermek için ikisini de açıp gerçek değer yazın (tip 1/2/4; TCKN/YKN 11, VKN 10 hane)."
+        "docs": "SBM'nin cevabi aynen: 201 {result:true,status:201,data:{ysvDosyaNo}}. Zaten gonderilmisse 409 ALZ-STATUS-CONFLICT; dosya no yoksa 404.\n\nKimlik: X-Requester-Id-Type / X-Requester-Id-No başlıkları kapalı gelir; kapalıyken token servisi şirket VKN'sini döner (toplu işlem). İşlemi yapanın kimliğiyle göndermek için ikisini de açıp gerçek değer yazın (tip 1/2/4; TCKN/YKN 11, VKN 10 hane)."
       }
     },
     {
@@ -389,7 +389,7 @@
         },
         "assertions": [],
         "tests": "",
-        "docs": "SBM'nin cevabini aynen doner ({result, data, status}); dogrulanirsa satirlar COMPLETED olur.\n\nKimlik: X-Requester-Id-Type / X-Requester-Id-No başlıkları kapalı gelir; kapalıyken token servisi şirket VKN'sini döner (toplu işlem). İşlemi yapanın kimliğiyle göndermek için ikisini de açıp gerçek değer yazın (tip 1/2/4; TCKN/YKN 11, VKN 10 hane)."
+        "docs": "SBM'nin cevabini aynen doner (200 {result, status, data}); dogrulanirsa satirlar COMPLETED olur.\n\nKimlik: X-Requester-Id-Type / X-Requester-Id-No başlıkları kapalı gelir; kapalıyken token servisi şirket VKN'sini döner (toplu işlem). İşlemi yapanın kimliğiyle göndermek için ikisini de açıp gerçek değer yazın (tip 1/2/4; TCKN/YKN 11, VKN 10 hane)."
       }
     },
     {
@@ -439,7 +439,7 @@
         },
         "assertions": [],
         "tests": "",
-        "docs": "SENT/COMPLETED beyannamelerin her birini SBM'den dogrular; icerik donmez, sayim + hatalar doner.\n\nKimlik: X-Requester-Id-Type / X-Requester-Id-No başlıkları kapalı gelir; kapalıyken token servisi şirket VKN'sini döner (toplu işlem). İşlemi yapanın kimliğiyle göndermek için ikisini de açıp gerçek değer yazın (tip 1/2/4; TCKN/YKN 11, VKN 10 hane)."
+        "docs": "SENT/COMPLETED beyannamelerin her birini SBM'den dogrular; data.results[] icinde her beyanname icin SBM'nin cevabi.\n\nKimlik: X-Requester-Id-Type / X-Requester-Id-No başlıkları kapalı gelir; kapalıyken token servisi şirket VKN'sini döner (toplu işlem). İşlemi yapanın kimliğiyle göndermek için ikisini de açıp gerçek değer yazın (tip 1/2/4; TCKN/YKN 11, VKN 10 hane)."
       }
     },
     {
@@ -483,7 +483,7 @@
         },
         "assertions": [],
         "tests": "",
-        "docs": "SBM'de silme yok: tum tutarlar 0 ile PUT edilir. DIKKAT: geri almak icin 05 ile tutarlari tekrar gonderin.\n\nKimlik: X-Requester-Id-Type / X-Requester-Id-No başlıkları kapalı gelir; kapalıyken token servisi şirket VKN'sini döner (toplu işlem). İşlemi yapanın kimliğiyle göndermek için ikisini de açıp gerçek değer yazın (tip 1/2/4; TCKN/YKN 11, VKN 10 hane)."
+        "docs": "SBM'de silme yok: tum tutarlar 0 ile PUT edilir; SBM kabul ederse DB'deki tutarlar da 0 olur. DIKKAT: geri almak icin 05 ile tutarlari tekrar gonderin.\n\nKimlik: X-Requester-Id-Type / X-Requester-Id-No başlıkları kapalı gelir; kapalıyken token servisi şirket VKN'sini döner (toplu işlem). İşlemi yapanın kimliğiyle göndermek için ikisini de açıp gerçek değer yazın (tip 1/2/4; TCKN/YKN 11, VKN 10 hane)."
       }
     },
     {
