@@ -1,11 +1,15 @@
+{{- $files := .Files.Glob "configs/*" }}
+{{- $filesNotExists := include "isArrayEmpty" (dict "list" $files) }}
+{{- if eq "false" $filesNotExists }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ include "allianz.bundlename" . }}-config
+  name:  {{ include "allianz.bundlename" . }}-config
   labels:
     app: {{ include "allianz.bundlename" . }}
 data:
 {{- range $path, $_ := .Files.Glob "configs/*" }}
 {{ $path | trimPrefix "configs/" | indent 2 }}: |
 {{ $.Files.Get $path | indent 4 }}
+{{- end }}
 {{- end }}
