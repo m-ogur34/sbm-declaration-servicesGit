@@ -1,6 +1,7 @@
 package tr.com.allianz.ysv.services.util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -45,6 +46,22 @@ public class JsonUtil {
         }
     }
 
+
+    /** @return JSON ağacı; değer boş ya da JSON değilse {@code null} */
+    public JsonNode readTree(String json) {
+        if (json == null || json.isBlank()) {
+            return null;
+        }
+        try {
+            return objectMapper.readTree(json);
+        } catch (JsonProcessingException ex) {
+            return null;
+        }
+    }
+
+    public JsonNode toTree(Object value) {
+        return objectMapper.valueToTree(value);
+    }
 
     public static String truncate(String value, int maxLength) {
         if (value == null || value.length() <= maxLength) {

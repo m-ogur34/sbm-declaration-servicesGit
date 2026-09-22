@@ -23,7 +23,6 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import java.util.List;
-import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -35,7 +34,7 @@ import org.mockito.quality.Strictness;
 import tr.com.allianz.ysv.services.config.SbmProperties;
 import tr.com.allianz.ysv.services.dto.internal.SbmCallResult;
 import tr.com.allianz.ysv.services.dto.internal.SbmDeclarationRequest;
-import tr.com.allianz.ysv.services.dto.response.FailureDetail;
+import tr.com.allianz.ysv.services.dto.internal.GroupOutcome;
 import tr.com.allianz.ysv.services.entity.DeclarationProcess;
 import tr.com.allianz.ysv.services.enums.LogLevel;
 import tr.com.allianz.ysv.services.enums.MovableType;
@@ -93,10 +92,10 @@ class DeclarationGroupProcessorTest {
         when(declarationProcessRepository.lockByIds(GROUP_IDS)).thenReturn(group);
         when(sbmClientService.send(any(), any())).thenReturn(successResult());
 
-        Optional<FailureDetail> failure =
+        GroupOutcome failure =
                 processor.process(OperationType.POST, false, GROUP_IDS, CTX);
 
-        assertThat(failure).isEmpty();
+        assertThat(failure.success()).isTrue();
         assertThat(group).allSatisfy(row -> {
             assertThat(row.getStatus()).isEqualTo(ProcessStatus.SENT);
             assertThat(row.getDateSent()).isNotNull();
@@ -115,10 +114,10 @@ class DeclarationGroupProcessorTest {
         when(declarationProcessRepository.lockByIds(GROUP_IDS)).thenReturn(group);
         when(sbmClientService.update(any(), any())).thenReturn(successResult());
 
-        Optional<FailureDetail> failure =
+        GroupOutcome failure =
                 processor.process(OperationType.PUT, false, GROUP_IDS, CTX);
 
-        assertThat(failure).isEmpty();
+        assertThat(failure.success()).isTrue();
         assertThat(group).allSatisfy(row -> {
             assertThat(row.getStatus()).isEqualTo(ProcessStatus.SENT);
             assertThat(row.getDateUpdated()).isNotNull();
@@ -130,15 +129,56 @@ class DeclarationGroupProcessorTest {
     }
 
     @Test
-    @DisplayName("cancel maps the group with zeroed amounts")
-    void process_cancel_usesZeroedAmounts() {
+    @DisplayName("an accepted cancel zeroes the amounts in the database too")
+    void process_cancel_zeroesTheDatabaseAmounts() {
         List<DeclarationProcess> group = newGroup(ProcessStatus.SENT);
+        group.get(0).setPrevMonthRefundAmount(new java.math.BigDecimal("12.00"));
         when(declarationProcessRepository.lockByIds(GROUP_IDS)).thenReturn(group);
         when(sbmClientService.update(any(), any())).thenReturn(successResult());
 
         processor.process(OperationType.PUT, true, GROUP_IDS, CTX);
 
         verify(sbmMapper).toUpdateRequest(group, "045", true);
+        assertThat(group).allSatisfy(row -> {
+            assertThat(row.getReceivedPremiumAmount()).isZero();
+            assertThat(row.getCancelledPremiumAmount()).isZero();
+            assertThat(row.getTaxAmount()).isZero();
+            assertThat(row.getTaxPremiumAmount()).isZero();
+            assertThat(row.getTaxRatio()).isEqualTo(10);
+            assertThat(row.getStatus()).isEqualTo(ProcessStatus.SENT);
+        });
+        assertThat(group.get(0).getPrevMonthRefundAmount()).isZero();
+        assertThat(group.get(1).getPrevMonthRefundAmount()).isNull();
+    }
+
+    @Test
+    @DisplayName("a rejected cancel leaves the database amounts untouched")
+    void process_rejectedCancel_keepsTheAmounts() {
+        List<DeclarationProcess> group = newGroup(ProcessStatus.SENT);
+        when(declarationProcessRepository.lockByIds(GROUP_IDS)).thenReturn(group);
+        when(sbmClientService.update(any(), any())).thenReturn(SbmCallResult.builder()
+                .success(false).sbmAnswered(true).httpStatus(422).errorCode("CORE-01004").errorMessage("red").build());
+
+        GroupOutcome outcome = processor.process(OperationType.PUT, true, GROUP_IDS, CTX);
+
+        assertThat(outcome.success()).isFalse();
+        assertThat(outcome.httpStatus()).isEqualTo(422);
+        assertThat(group).allSatisfy(row -> assertThat(row.getReceivedPremiumAmount()).isEqualByComparingTo("7453723.22"));
+    }
+
+    @Test
+    @DisplayName("a non-SBM answer (e.g. ESB error page) is reported as 502 without the raw body")
+    void process_nonSbmAnswer_isBadGateway() {
+        List<DeclarationProcess> group = newGroup(ProcessStatus.NEW);
+        when(declarationProcessRepository.lockByIds(GROUP_IDS)).thenReturn(group);
+        when(sbmClientService.send(any(), any())).thenReturn(SbmCallResult.builder()
+                .success(false).sbmAnswered(false).httpStatus(404).errorCode("CORE-00000")
+                .responsePayload("<HTML>Error 404--Not Found</HTML>").build());
+
+        GroupOutcome outcome = processor.process(OperationType.POST, false, GROUP_IDS, CTX);
+
+        assertThat(outcome.httpStatus()).isEqualTo(502);
+        assertThat(outcome.sbmResponse()).isNull();
     }
 
 
@@ -283,10 +323,10 @@ class DeclarationGroupProcessorTest {
                 .errorMessage("ilceKodu alanının değeri 1 - 4 arasında olmalıdır.")
                 .build());
 
-        Optional<FailureDetail> failure =
+        GroupOutcome failure =
                 processor.process(OperationType.PUT, false, GROUP_IDS, CTX);
 
-        assertThat(failure).isPresent();
+        assertThat(failure.success()).isFalse();
         assertThat(group.get(0).getStatus()).isEqualTo(ProcessStatus.SENT);
         assertThat(group.get(1).getStatus()).isEqualTo(ProcessStatus.COMPLETED);
         assertThat(group).allSatisfy(row ->
@@ -305,10 +345,10 @@ class DeclarationGroupProcessorTest {
                 .errorMessage("RISK-HAVUZU-00004: Mükerrer Beyanname mevcut")
                 .build());
 
-        Optional<FailureDetail> failure =
+        GroupOutcome failure =
                 processor.process(OperationType.POST, false, GROUP_IDS, CTX);
 
-        assertThat(failure).isPresent();
+        assertThat(failure.success()).isFalse();
         assertThat(group).allSatisfy(row -> {
             assertThat(row.getStatus()).isEqualTo(ProcessStatus.SENT);
             assertThat(row.getErrorDetails()).contains("RISK-HAVUZU-00004");
@@ -322,10 +362,10 @@ class DeclarationGroupProcessorTest {
         when(declarationProcessRepository.lockByIds(GROUP_IDS)).thenReturn(group);
         when(sbmClientService.update(any(), any())).thenThrow(new TokenException("token alınamadı"));
 
-        Optional<FailureDetail> failure =
+        GroupOutcome failure =
                 processor.process(OperationType.PUT, false, GROUP_IDS, CTX);
 
-        assertThat(failure).isPresent();
+        assertThat(failure.success()).isFalse();
         assertThat(group).allSatisfy(row -> assertThat(row.getStatus()).isEqualTo(ProcessStatus.SENT));
     }
 
@@ -343,12 +383,12 @@ class DeclarationGroupProcessorTest {
                 .responsePayload("{}")
                 .build());
 
-        Optional<FailureDetail> failure =
+        GroupOutcome failure =
                 processor.process(OperationType.POST, false, GROUP_IDS, CTX);
 
-        assertThat(failure).isPresent();
-        assertThat(failure.get().errorCode()).isEqualTo("CORE-01004");
-        assertThat(failure.get().ysvDosyaNo()).isEqualTo("YSV202513491");
+        assertThat(failure.success()).isFalse();
+        assertThat(failure.errorCode()).isEqualTo("CORE-01004");
+        assertThat(failure.ysvDosyaNo()).isEqualTo("YSV202513491");
         assertThat(group).allSatisfy(row -> {
             assertThat(row.getStatus()).isEqualTo(ProcessStatus.ERROR);
             assertThat(row.getErrorDetails()).contains("CORE-01004");
@@ -384,11 +424,11 @@ class DeclarationGroupProcessorTest {
                 new SbmIntegrationException(SbmErrorCode.RISK_HAVUZU_00005.getCode(),
                         "Aynı beyannamede mükerrer menkul tipi var: MENKUL"));
 
-        Optional<FailureDetail> failure =
+        GroupOutcome failure =
                 processor.process(OperationType.POST, false, GROUP_IDS, CTX);
 
-        assertThat(failure).isPresent();
-        assertThat(failure.get().errorCode()).isEqualTo(SbmErrorCode.RISK_HAVUZU_00005.getCode());
+        assertThat(failure.success()).isFalse();
+        assertThat(failure.errorCode()).isEqualTo(SbmErrorCode.RISK_HAVUZU_00005.getCode());
         assertThat(group.get(0).getStatus()).isEqualTo(ProcessStatus.ERROR);
         verify(sbmClientService, never()).send(any(), any());
         verify(declarationLogService).logCall(eq(GROUP_IDS), eq(OperationType.POST), eq(LogLevel.ERROR),
@@ -407,11 +447,11 @@ class DeclarationGroupProcessorTest {
         group.forEach(row -> row.setStatus(ProcessStatus.NEW));
         when(declarationProcessRepository.lockByIds(GROUP_IDS)).thenReturn(group);
 
-        Optional<FailureDetail> failure =
+        GroupOutcome failure =
                 withRealMapper.process(OperationType.POST, false, GROUP_IDS, CTX);
 
-        assertThat(failure).isPresent();
-        assertThat(failure.get().errorCode()).isEqualTo(SbmErrorCode.RISK_HAVUZU_00005.getCode());
+        assertThat(failure.success()).isFalse();
+        assertThat(failure.errorCode()).isEqualTo(SbmErrorCode.RISK_HAVUZU_00005.getCode());
         assertThat(group).allSatisfy(row -> {
             assertThat(row.getStatus()).isEqualTo(ProcessStatus.ERROR);
             assertThat(row.getErrorDetails()).contains("mükerrer menkul tipi");
@@ -434,11 +474,12 @@ class DeclarationGroupProcessorTest {
         when(declarationProcessRepository.lockByIds(List.of(1L)))
                 .thenReturn(new java.util.ArrayList<>(List.of(row)));
 
-        Optional<FailureDetail> failure =
+        GroupOutcome failure =
                 withRealMapper.process(OperationType.POST, false, List.of(1L), CTX);
 
-        assertThat(failure).isPresent();
-        assertThat(failure.get().errorCode()).isEqualTo(SbmErrorCode.CORE_01008.getCode());
+        assertThat(failure.success()).isFalse();
+        assertThat(failure.errorCode()).isEqualTo(SbmErrorCode.CORE_01008.getCode());
+        assertThat(failure.httpStatus()).isEqualTo(422);
         assertThat(row.getStatus()).isEqualTo(ProcessStatus.ERROR);
         assertThat(row.getErrorDetails()).contains("en fazla 36 karakter");
         verify(sbmClientService, never()).send(any(), any());
@@ -455,11 +496,12 @@ class DeclarationGroupProcessorTest {
         List<DeclarationProcess> group = newGroup(ProcessStatus.NEW);
         when(declarationProcessRepository.lockByIds(GROUP_IDS)).thenReturn(group);
 
-        Optional<FailureDetail> failure =
+        GroupOutcome failure =
                 withRealMapper.process(OperationType.POST, false, GROUP_IDS, CTX);
 
-        assertThat(failure).isPresent();
-        assertThat(failure.get().errorCode()).isEqualTo(SbmErrorCode.CORE_01008.getCode());
+        assertThat(failure.success()).isFalse();
+        assertThat(failure.errorCode()).isEqualTo(SbmErrorCode.CORE_01008.getCode());
+        assertThat(failure.httpStatus()).isEqualTo(422);
         assertThat(group).allSatisfy(row -> {
             assertThat(row.getStatus()).isEqualTo(ProcessStatus.ERROR);
             assertThat(row.getErrorDetails()).contains("en fazla 3 karakter");
@@ -482,10 +524,10 @@ class DeclarationGroupProcessorTest {
                 .thenReturn(new java.util.ArrayList<>(List.of(row)));
         when(sbmClientService.send(any(), any())).thenReturn(successResult());
 
-        Optional<FailureDetail> failure =
+        GroupOutcome failure =
                 withRealMapper.process(OperationType.POST, false, List.of(1L), CTX);
 
-        assertThat(failure).isEmpty();
+        assertThat(failure.success()).isTrue();
         assertThat(row.getStatus()).isEqualTo(ProcessStatus.SENT);
         verify(sbmClientService).send(any(), any());
     }
@@ -496,11 +538,12 @@ class DeclarationGroupProcessorTest {
         when(declarationProcessRepository.lockByIds(GROUP_IDS)).thenReturn(group);
         when(sbmClientService.send(any(), any())).thenThrow(new TokenException("Token servisine erişilemedi"));
 
-        Optional<FailureDetail> failure =
+        GroupOutcome failure =
                 processor.process(OperationType.POST, false, GROUP_IDS, CTX);
 
-        assertThat(failure).isPresent();
-        assertThat(failure.get().errorCode()).isEqualTo(SbmErrorCode.SEC_00001.getCode());
+        assertThat(failure.success()).isFalse();
+        assertThat(failure.errorCode()).isEqualTo(SbmErrorCode.SEC_00001.getCode());
+        assertThat(failure.httpStatus()).isEqualTo(503);
         assertThat(group.get(0).getStatus()).isEqualTo(ProcessStatus.ERROR);
     }
 
@@ -508,12 +551,13 @@ class DeclarationGroupProcessorTest {
     void process_missingRows_isReported() {
         when(declarationProcessRepository.lockByIds(GROUP_IDS)).thenReturn(List.of());
 
-        Optional<FailureDetail> failure =
+        GroupOutcome failure =
                 processor.process(OperationType.POST, false, GROUP_IDS, CTX);
 
-        assertThat(failure).isPresent();
-        assertThat(failure.get().errorCode()).isEqualTo(SbmErrorCode.CORE_01001.getCode());
-        assertThat(failure.get().ysvDosyaNo()).isNull();
+        assertThat(failure.success()).isFalse();
+        assertThat(failure.errorCode()).isEqualTo(SbmErrorCode.CORE_01001.getCode());
+        assertThat(failure.ysvDosyaNo()).isNull();
+        assertThat(failure.httpStatus()).isEqualTo(404);
     }
 
     // --- status guard ---------------------------------------------------------------------
@@ -524,11 +568,12 @@ class DeclarationGroupProcessorTest {
         List<DeclarationProcess> group = newGroup(ProcessStatus.SENT);
         when(declarationProcessRepository.lockByIds(GROUP_IDS)).thenReturn(group);
 
-        Optional<FailureDetail> failure =
+        GroupOutcome failure =
                 processor.process(OperationType.POST, false, GROUP_IDS, CTX);
 
-        assertThat(failure).isPresent();
-        assertThat(failure.get().errorCode()).isEqualTo(DeclarationGroupProcessor.STATUS_CONFLICT_CODE);
+        assertThat(failure.success()).isFalse();
+        assertThat(failure.errorCode()).isEqualTo(DeclarationGroupProcessor.STATUS_CONFLICT_CODE);
+        assertThat(failure.httpStatus()).isEqualTo(409);
         assertThat(group.get(0).getStatus()).isEqualTo(ProcessStatus.SENT);
         verify(sbmClientService, never()).send(any(), any());
     }
@@ -538,11 +583,12 @@ class DeclarationGroupProcessorTest {
         List<DeclarationProcess> group = newGroup(ProcessStatus.NEW);
         when(declarationProcessRepository.lockByIds(GROUP_IDS)).thenReturn(group);
 
-        Optional<FailureDetail> failure =
+        GroupOutcome failure =
                 processor.process(OperationType.PUT, false, GROUP_IDS, CTX);
 
-        assertThat(failure).isPresent();
-        assertThat(failure.get().errorCode()).isEqualTo(DeclarationGroupProcessor.STATUS_CONFLICT_CODE);
+        assertThat(failure.success()).isFalse();
+        assertThat(failure.errorCode()).isEqualTo(DeclarationGroupProcessor.STATUS_CONFLICT_CODE);
+        assertThat(failure.httpStatus()).isEqualTo(409);
         verify(sbmClientService, never()).update(any(), any());
     }
 
@@ -552,11 +598,12 @@ class DeclarationGroupProcessorTest {
         group.get(1).setStatus(null);
         when(declarationProcessRepository.lockByIds(GROUP_IDS)).thenReturn(group);
 
-        Optional<FailureDetail> failure =
+        GroupOutcome failure =
                 processor.process(OperationType.POST, false, GROUP_IDS, CTX);
 
-        assertThat(failure).isPresent();
-        assertThat(failure.get().errorCode()).isEqualTo(DeclarationGroupProcessor.STATUS_CONFLICT_CODE);
+        assertThat(failure.success()).isFalse();
+        assertThat(failure.errorCode()).isEqualTo(DeclarationGroupProcessor.STATUS_CONFLICT_CODE);
+        assertThat(failure.httpStatus()).isEqualTo(409);
     }
 
     @Test
@@ -566,7 +613,7 @@ class DeclarationGroupProcessorTest {
         group.get(1).setStatus(ProcessStatus.COMPLETED);
         when(declarationProcessRepository.lockByIds(GROUP_IDS)).thenReturn(group);
 
-        assertThat(processor.process(OperationType.POST, false, GROUP_IDS, CTX)).isPresent();
+        assertThat(processor.process(OperationType.POST, false, GROUP_IDS, CTX).success()).isFalse();
     }
 
     // --- COMPLETED promotion ---------------------------------------------------------------
@@ -600,6 +647,7 @@ class DeclarationGroupProcessorTest {
     private static SbmCallResult successResult() {
         return SbmCallResult.builder()
                 .success(true)
+                .sbmAnswered(true)
                 .httpStatus(200)
                 .transactionId("tx-1")
                 .requestPayload("{}")

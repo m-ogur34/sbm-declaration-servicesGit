@@ -184,7 +184,11 @@ class SbmClientServiceTest {
         SbmCallResult result = service.query(queryRequest(), CTX);
 
         assertThat(result.isSuccess()).isTrue();
+        assertThat(result.isSbmAnswered()).isTrue();
         assertThat(result.getTransactionId()).isEqualTo(TRANSACTION_ID);
+        // log'a gercekte giden yazilir: govdesiz GET + query string
+        assertThat(result.getRequestPayload())
+                .isEqualTo("GET " + SORGU_URL + "?sigortaSirketKodu=045&ysvDosyaNo=YSV202513491");
         server.verify();
         verify(tokenManagementService).generateToken(eq(OperationType.GET), eq(CTX), anyString());
     }
@@ -393,6 +397,32 @@ class SbmClientServiceTest {
 
         assertThat(result.getRequesterIdType()).isEqualTo("1");
         assertThat(result.getRequesterIdNo()).isEqualTo("86*******10");
+    }
+
+    @Test
+    @DisplayName("an ESB error page is not taken for an SBM answer")
+    void send_htmlAnswer_isNotSbmAnswered() {
+        server.expect(requestTo(BEYANNAME_URL))
+                .andRespond(withStatus(HttpStatus.NOT_FOUND).contentType(MediaType.TEXT_HTML)
+                        .body("<HTML><TITLE>Error 404--Not Found</TITLE></HTML>"));
+
+        SbmCallResult result = service.send(declarationRequest(), CTX);
+
+        assertThat(result.isSuccess()).isFalse();
+        assertThat(result.isSbmAnswered()).isFalse();
+        assertThat(result.getHttpStatus()).isEqualTo(404);
+    }
+
+    @Test
+    void send_sbmRejection_isSbmAnswered() {
+        server.expect(requestTo(BEYANNAME_URL))
+                .andRespond(withStatus(HttpStatus.UNPROCESSABLE_ENTITY).contentType(MediaType.APPLICATION_JSON)
+                        .body("{\"result\":false,\"status\":422,\"error\":{\"reasons\":[{\"code\":\"RISK-HAVUZU-00004\"}]}}"));
+
+        SbmCallResult result = service.send(declarationRequest(), CTX);
+
+        assertThat(result.isSbmAnswered()).isTrue();
+        assertThat(result.getErrorCode()).isEqualTo("RISK-HAVUZU-00004");
     }
 
     // --- retry decision ------------------------------------------------------------------

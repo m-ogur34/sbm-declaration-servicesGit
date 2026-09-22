@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import tr.com.allianz.ysv.services.dto.request.RequestContext;
+import tr.com.allianz.ysv.services.dto.response.ApiResponse;
 import tr.com.allianz.ysv.services.dto.response.ImportResultResponse;
 import tr.com.allianz.ysv.services.service.DeclarationImportService;
 
@@ -25,7 +26,7 @@ public class DeclarationImportController {
 
     @PostMapping(path = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "YSV beyanname Excel'ini (.xlsx) yükler; geçerli satırları NEW olarak yazar")
-    public ResponseEntity<ImportResultResponse> upload(
+    public ResponseEntity<ApiResponse<ImportResultResponse>> upload(
             @RequestParam("file") MultipartFile file,
             RequestContext context) {
 
@@ -36,6 +37,7 @@ public class DeclarationImportController {
         if (name == null || !name.toLowerCase(Locale.ROOT).endsWith(".xlsx")) {
             throw new IllegalArgumentException("Sadece .xlsx dosyası yüklenebilir. Gelen: " + name);
         }
-        return ResponseEntity.ok(declarationImportService.importFile(file, context.userName()));
+        ImportResultResponse result = declarationImportService.importFile(file, context.userName());
+        return ResponseEntity.ok(ApiResponse.of(result.failed() == 0, 200, result));
     }
 }

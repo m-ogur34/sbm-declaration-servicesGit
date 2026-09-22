@@ -108,7 +108,10 @@ public class SbmClientService {
 
     private SbmCallResult call(HttpMethod method, String url, Object body, OperationType operationType,
                                RequestContext context, String transactionId) {
-        String requestPayload = body == null ? null : jsonUtil.toJson(body);
+        // Log'a gerçekte giden yazılır: GET gövdesizdir, parametreler URL'dedir.
+        String requestPayload = method == HttpMethod.GET
+                ? "GET " + url
+                : body == null ? null : jsonUtil.toJson(body);
         TokenResponse token = tokenManagementService.generateToken(operationType, context, transactionId);
         ClientCredentials credentials = token.getClientCredentials();
         String requesterIdType = credentials.getClientIdentityType();
@@ -184,6 +187,7 @@ public class SbmClientService {
 
         return SbmCallResult.builder()
                 .success(success)
+                .sbmAnswered(parsed != null && parsed.getResult() != null)
                 .httpStatus(httpStatus)
                 .transactionId(transactionId)
                 .requesterIdType(requesterIdType)

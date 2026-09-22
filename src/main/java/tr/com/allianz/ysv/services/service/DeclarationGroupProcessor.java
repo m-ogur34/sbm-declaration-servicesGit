@@ -7,17 +7,16 @@ import java.util.Collection;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tr.com.allianz.ysv.services.config.SbmProperties;
+import tr.com.allianz.ysv.services.dto.internal.GroupOutcome;
 import tr.com.allianz.ysv.services.dto.internal.SbmCallResult;
 import tr.com.allianz.ysv.services.dto.internal.SbmDeclarationRequest;
 import tr.com.allianz.ysv.services.dto.request.DeclarationUpdateRequest;
 import tr.com.allianz.ysv.services.dto.request.RequestContext;
-import tr.com.allianz.ysv.services.dto.response.FailureDetail;
 import tr.com.allianz.ysv.services.entity.DeclarationProcess;
 import tr.com.allianz.ysv.services.enums.LogLevel;
 import tr.com.allianz.ysv.services.enums.MovableType;
@@ -48,6 +47,10 @@ public class DeclarationGroupProcessor {
     static final String STATUS_CONFLICT_CODE = "ALZ-STATUS-CONFLICT";
 
     private static final int AMOUNT_SCALE = 2;
+    private static final int NOT_FOUND = 404;
+    private static final int CONFLICT = 409;
+    private static final int UNPROCESSABLE = 422;
+    private static final int SERVICE_UNAVAILABLE = 503;
 
     private final DeclarationProcessRepository declarationProcessRepository;
     private final DeclarationLogService declarationLogService;
@@ -57,22 +60,25 @@ public class DeclarationGroupProcessor {
     private final ProcessMapper processMapper;
     private final JsonUtil jsonUtil;
 
+    /**
+     * @return beyannamenin sonucu; SBM çağrıldıysa SBM'nin cevabı ve HTTP kodu içindedir
+     */
     @Transactional
-    public Optional<FailureDetail> process(OperationType operationType,
+    public GroupOutcome process(OperationType operationType,
                                            boolean zeroAmounts,
                                            List<Long> processIds,
                                            RequestContext context) {
         List<DeclarationProcess> group = declarationProcessRepository.lockByIds(processIds);
         if (group.isEmpty()) {
-            return Optional.of(new FailureDetail(null, SbmErrorCode.CORE_01001.getCode(),
-                    "Beyanname satırları bulunamadı."));
+            return GroupOutcome.rejected(null, NOT_FOUND, SbmErrorCode.CORE_01001.getCode(),
+                    "Beyanname satırları bulunamadı.");
         }
 
         String fileNo = group.get(0).getSbmFileNo();
         if (!statusAllows(operationType, group)) {
             log.warn("Declaration group {} skipped: status is not eligible for {}", fileNo, operationType);
-            return Optional.of(new FailureDetail(fileNo, STATUS_CONFLICT_CODE,
-                    "Kayıtların durumu bu işlem için uygun değil. Dosya no: " + fileNo));
+            return GroupOutcome.rejected(fileNo, CONFLICT, STATUS_CONFLICT_CODE,
+                    "Beyannamenin durumu (" + group.get(0).getStatus() + ") bu işlem için uygun değil.");
         }
 
         List<ProcessStatus> previousStatuses = group.stream()
@@ -93,21 +99,20 @@ public class DeclarationGroupProcessor {
                     result.getRequestPayload(), result.getResponsePayload());
 
             if (result.isSuccess()) {
-                markSent(group, operationType, user);
-                return Optional.empty();
+                markSent(group, operationType, zeroAmounts, user);
+            } else {
+                markFailure(operationType, group, previousStatuses,
+                        result.getErrorCode(), result.getErrorMessage(), user);
             }
-
-            markFailure(operationType, group, previousStatuses,
-                    result.getErrorCode(), result.getErrorMessage(), user);
-            return Optional.of(new FailureDetail(fileNo, result.getErrorCode(), result.getErrorMessage()));
+            return GroupOutcome.fromCall(fileNo, result);
 
         } catch (SbmIntegrationException ex) {
             // Pre-flight validation: nothing was sent to SBM.
             return fail(processIds, operationType, group, previousStatuses, fileNo,
-                    ex.getErrorCode(), ex.getMessage(), user);
+                    UNPROCESSABLE, ex.getErrorCode(), ex.getMessage(), user);
         } catch (TokenException ex) {
             return fail(processIds, operationType, group, previousStatuses, fileNo,
-                    SbmErrorCode.SEC_00001.getCode(), ex.getMessage(), user);
+                    SERVICE_UNAVAILABLE, SbmErrorCode.SEC_00001.getCode(), ex.getMessage(), user);
         }
     }
 
@@ -208,19 +213,20 @@ public class DeclarationGroupProcessor {
         return sbmMapper.toUpdateRequest(group, companyCode, zeroAmounts);
     }
 
-    private Optional<FailureDetail> fail(List<Long> processIds,
-                                         OperationType operationType,
-                                         List<DeclarationProcess> group,
-                                         List<ProcessStatus> previousStatuses,
-                                         String fileNo,
-                                         String errorCode,
-                                         String message,
-                                         String user) {
+    private GroupOutcome fail(List<Long> processIds,
+                              OperationType operationType,
+                              List<DeclarationProcess> group,
+                              List<ProcessStatus> previousStatuses,
+                              String fileNo,
+                              int httpStatus,
+                              String errorCode,
+                              String message,
+                              String user) {
         log.error("Declaration group {} failed before/while calling SBM: {} - {}",
                 fileNo, errorCode, message);
         declarationLogService.logCall(processIds, operationType, LogLevel.ERROR, message, null, null);
         markFailure(operationType, group, previousStatuses, errorCode, message, user);
-        return Optional.of(new FailureDetail(fileNo, errorCode, message));
+        return GroupOutcome.rejected(fileNo, httpStatus, errorCode, message);
     }
 
     private boolean statusAllows(OperationType operationType, List<DeclarationProcess> group) {
@@ -246,11 +252,26 @@ public class DeclarationGroupProcessor {
         declarationProcessRepository.saveAll(group);
     }
 
-    private void markSent(List<DeclarationProcess> group, OperationType operationType, String user) {
+    /**
+     * İptal (tutarlar 0 ile PUT) SBM'de kabul edildiyse DB'deki tutarlar da 0'a çekilir; DB ile
+     * SBM aynı kalır. Veri kaynak Excel'de durduğu için gerekirse yeniden yüklenip gönderilebilir.
+     */
+    private void markSent(List<DeclarationProcess> group, OperationType operationType,
+                          boolean zeroAmounts, String user) {
         LocalDateTime now = LocalDateTime.now();
         for (DeclarationProcess process : group) {
             process.setStatus(ProcessStatus.SENT);
             process.setErrorDetails(null);
+            if (zeroAmounts) {
+                BigDecimal zero = BigDecimal.ZERO.setScale(AMOUNT_SCALE);
+                process.setReceivedPremiumAmount(zero);
+                process.setCancelledPremiumAmount(zero);
+                process.setTaxAmount(zero);
+                process.setTaxPremiumAmount(zero);
+                if (process.getPrevMonthRefundAmount() != null) {
+                    process.setPrevMonthRefundAmount(zero);
+                }
+            }
             if (operationType == OperationType.POST) {
                 process.setDateSent(now);
                 process.setSentByUser(user);

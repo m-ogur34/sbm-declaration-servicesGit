@@ -2,7 +2,6 @@ package tr.com.allianz.ysv.services.exception;
 
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
-import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.MessageSourceResolvable;
 import org.springframework.http.HttpHeaders;
@@ -18,15 +17,17 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+import tr.com.allianz.ysv.services.dto.response.ApiResponse;
+import tr.com.allianz.ysv.services.dto.response.ApiResponse.ApiErrorReason;
 import tr.com.allianz.ysv.services.enums.SbmErrorCode;
 
 /**
- * Tüm hataları tek {@link ErrorResponse} biçiminde döner.
+ * Tüm hataları SBM dokümanındaki hata biçiminde döner:
+ * {@code {"result":false,"status":<http>,"error":{"timestamp":...,"reasons":[{field,code,message}]}}}.
  *
  * <p>{@link ResponseEntityExceptionHandler}'dan türer: bozuk JSON, eksik parametre, yanlış
- * HTTP metodu, desteklenmeyen içerik tipi, dosya boyutu aşımı gibi istemci hataları doğru
- * 4xx koduyla döner (catch-all'a düşüp 500 olmaz). İstemciye iç ayrıntı (istisna mesajı,
- * sınıf adı, adres) <b>verilmez</b>; ayrıntı yalnızca uygulama loguna yazılır.</p>
+ * metot, içerik tipi, dosya boyutu gibi istemci hataları doğru 4xx koduyla döner. İstemciye iç
+ * ayrıntı (istisna mesajı, sınıf adı, adres, reddedilen değer) verilmez; ayrıntı loga yazılır.</p>
  */
 @Slf4j
 @RestControllerAdvice
@@ -37,58 +38,49 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     static final String INTERNAL_CODE = "ALZ-INTERNAL";
     static final String NOT_FOUND_CODE = "ALZ-NOT-FOUND";
 
+    /** SBM'ye gitmeden, SBM kodlu ön doğrulama (ör. ysvDosyaNo 36 karakteri aşıyor). */
     @ExceptionHandler(SbmIntegrationException.class)
-    public ResponseEntity<ErrorResponse> handleSbmIntegration(SbmIntegrationException ex,
-                                                              HttpServletRequest request) {
-        log.error("SBM integration failure on {}: {} - {}",
+    public ResponseEntity<ApiResponse<Void>> handleSbmIntegration(SbmIntegrationException ex,
+                                                                  HttpServletRequest request) {
+        log.warn("SBM pre-flight validation failed on {}: {} - {}",
                 request.getRequestURI(), ex.getErrorCode(), ex.getMessage());
-        return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
-                .body(ErrorResponse.of(request.getRequestURI(), ex.getErrorCode(), ex.getMessage(),
-                        List.of(SbmErrorCode.describe(ex.getErrorCode()))));
+        return respond(HttpStatus.UNPROCESSABLE_ENTITY, ex.getErrorCode(), ex.getMessage());
     }
 
     @ExceptionHandler(TokenException.class)
-    public ResponseEntity<ErrorResponse> handleToken(TokenException ex, HttpServletRequest request) {
+    public ResponseEntity<ApiResponse<Void>> handleToken(TokenException ex, HttpServletRequest request) {
         log.error("Token acquisition failure on {}: {}", request.getRequestURI(), ex.getMessage(), ex);
-        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
-                .body(ErrorResponse.of(request.getRequestURI(), SbmErrorCode.SEC_00001.getCode(),
-                        "Token alınamadığı için işlem gerçekleştirilemedi.", List.of(ex.getMessage())));
+        return respond(HttpStatus.SERVICE_UNAVAILABLE, SbmErrorCode.SEC_00001.getCode(), ex.getMessage());
     }
 
     @ExceptionHandler(DeclarationNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleNotFound(DeclarationNotFoundException ex,
-                                                        HttpServletRequest request) {
+    public ResponseEntity<ApiResponse<Void>> handleNotFound(DeclarationNotFoundException ex,
+                                                            HttpServletRequest request) {
         log.warn("Declaration not found on {}: {}", request.getRequestURI(), ex.getMessage());
-        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(ErrorResponse.of(request.getRequestURI(), NOT_FOUND_CODE, ex.getMessage(), List.of()));
+        return respond(HttpStatus.NOT_FOUND, NOT_FOUND_CODE, ex.getMessage());
     }
 
     /** Uygulamanın kendi doğrulama mesajları (Türkçe, iç ayrıntı içermez). */
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ErrorResponse> handleIllegalArgument(IllegalArgumentException ex,
-                                                               HttpServletRequest request) {
+    public ResponseEntity<ApiResponse<Void>> handleIllegalArgument(IllegalArgumentException ex,
+                                                                   HttpServletRequest request) {
         log.warn("Bad request on {}: {}", request.getRequestURI(), ex.getMessage());
-        return ResponseEntity.badRequest()
-                .body(ErrorResponse.of(request.getRequestURI(), VALIDATION_CODE,
-                        "İstek parametreleri geçersiz.", List.of(String.valueOf(ex.getMessage()))));
+        return respond(HttpStatus.BAD_REQUEST, VALIDATION_CODE, String.valueOf(ex.getMessage()));
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
-    public ResponseEntity<ErrorResponse> handleTypeMismatch(MethodArgumentTypeMismatchException ex,
-                                                            HttpServletRequest request) {
+    public ResponseEntity<ApiResponse<Void>> handleTypeMismatch(MethodArgumentTypeMismatchException ex,
+                                                                HttpServletRequest request) {
         log.warn("Type mismatch on {}: {}", request.getRequestURI(), ex.getMessage());
-        return ResponseEntity.badRequest()
-                .body(ErrorResponse.of(request.getRequestURI(), VALIDATION_CODE,
-                        "İstek parametreleri geçersiz.", List.of(ex.getName() + ": geçersiz değer")));
+        return ResponseEntity.badRequest().body(ApiResponse.failure(400,
+                List.of(ApiErrorReason.ofField(ex.getName(), VALIDATION_CODE, "Geçersiz değer."))));
     }
 
     /** Beklenmeyen hata: istemciye yalnızca genel mesaj; ayrıntı loga. */
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleUnexpected(Exception ex, HttpServletRequest request) {
+    public ResponseEntity<ApiResponse<Void>> handleUnexpected(Exception ex, HttpServletRequest request) {
         log.error("Unexpected failure on {}", request.getRequestURI(), ex);
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ErrorResponse.of(request.getRequestURI(), INTERNAL_CODE,
-                        "Beklenmeyen bir hata oluştu.", List.of()));
+        return respond(HttpStatus.INTERNAL_SERVER_ERROR, INTERNAL_CODE, "Beklenmeyen bir hata oluştu.");
     }
 
     // --- Spring MVC'nin standart istisnaları ----------------------------------------------
@@ -98,12 +90,11 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                                                                   HttpHeaders headers,
                                                                   HttpStatusCode status,
                                                                   WebRequest request) {
-        List<String> details = ex.getBindingResult().getFieldErrors().stream()
-                .map(GlobalExceptionHandler::describeFieldError)
+        List<ApiErrorReason> reasons = ex.getBindingResult().getFieldErrors().stream()
+                .map(GlobalExceptionHandler::reason)
                 .toList();
-        log.warn("Invalid request on {}: {}", path(request), details);
-        return ResponseEntity.badRequest()
-                .body(ErrorResponse.of(path(request), VALIDATION_CODE, "İstek alanları geçersiz.", details));
+        log.warn("Invalid request on {}: {}", path(request), reasons);
+        return ResponseEntity.badRequest().body(ApiResponse.failure(400, reasons));
     }
 
     @Override
@@ -111,19 +102,18 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                                                                             HttpHeaders headers,
                                                                             HttpStatusCode status,
                                                                             WebRequest request) {
-        List<String> details = ex.getAllErrors().stream()
-                .map(MessageSourceResolvable::getDefaultMessage)
-                .filter(Objects::nonNull)
+        List<ApiErrorReason> reasons = ex.getParameterValidationResults().stream()
+                .flatMap(result -> result.getResolvableErrors().stream()
+                        .map(error -> ApiErrorReason.ofField(result.getMethodParameter().getParameterName(),
+                                VALIDATION_CODE, messageOf(error))))
                 .toList();
-        log.warn("Invalid request on {}: {}", path(request), details);
-        return ResponseEntity.badRequest()
-                .body(ErrorResponse.of(path(request), VALIDATION_CODE, "İstek alanları geçersiz.", details));
+        log.warn("Invalid request on {}: {}", path(request), reasons);
+        return ResponseEntity.badRequest().body(ApiResponse.failure(400, reasons));
     }
 
     /**
-     * Diğer tüm standart MVC hataları (bozuk JSON 400, eksik parametre 400, yanlış metot 405,
-     * içerik tipi 415, dosya boyutu 413, ...): kod korunur, gövde bizim biçimimize çevrilir,
-     * istisna mesajı istemciye verilmez.
+     * Diğer standart MVC hataları (bozuk JSON 400, eksik parametre 400, yanlış metot 405,
+     * içerik tipi 415, dosya boyutu 413, ...): kod korunur, gövde SBM hata biçimine çevrilir.
      */
     @Override
     protected ResponseEntity<Object> handleExceptionInternal(Exception ex,
@@ -133,7 +123,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                                                              WebRequest request) {
         log.warn("Request rejected on {} with HTTP {}: {}", path(request), statusCode.value(), ex.getMessage());
         return ResponseEntity.status(statusCode).headers(headers)
-                .body(ErrorResponse.of(path(request), REQUEST_CODE, messageFor(statusCode), List.of()));
+                .body(ApiResponse.failure(statusCode.value(), REQUEST_CODE, messageFor(statusCode)));
     }
 
     static String messageFor(HttpStatusCode status) {
@@ -148,11 +138,19 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         };
     }
 
-    private static String path(WebRequest request) {
-        return request instanceof ServletWebRequest servlet ? servlet.getRequest().getRequestURI() : null;
+    private static ResponseEntity<ApiResponse<Void>> respond(HttpStatus status, String code, String message) {
+        return ResponseEntity.status(status).body(ApiResponse.failure(status.value(), code, message));
     }
 
-    private static String describeFieldError(FieldError error) {
-        return error.getField() + ": " + error.getDefaultMessage();
+    private static ApiErrorReason reason(FieldError error) {
+        return ApiErrorReason.ofField(error.getField(), VALIDATION_CODE, error.getDefaultMessage());
+    }
+
+    private static String messageOf(MessageSourceResolvable error) {
+        return error.getDefaultMessage() == null ? "Geçersiz değer." : error.getDefaultMessage();
+    }
+
+    private static String path(WebRequest request) {
+        return request instanceof ServletWebRequest servlet ? servlet.getRequest().getRequestURI() : null;
     }
 }

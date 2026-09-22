@@ -20,7 +20,6 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -36,14 +35,14 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import tr.com.allianz.ysv.services.config.SbmProperties;
+import tr.com.allianz.ysv.services.dto.internal.GroupOutcome;
 import tr.com.allianz.ysv.services.dto.internal.SbmCallResult;
-import tr.com.allianz.ysv.services.dto.internal.SbmQueryResponse;
+import tr.com.allianz.ysv.services.dto.internal.SbmReply;
+import tr.com.allianz.ysv.services.dto.response.ApiResponse;
+import tr.com.allianz.ysv.services.dto.response.BatchResult;
 import tr.com.allianz.ysv.services.dto.request.DeclarationFilterRequest;
 import tr.com.allianz.ysv.services.dto.request.DeclarationUpdateRequest;
 import tr.com.allianz.ysv.services.dto.request.RequestContext;
-import tr.com.allianz.ysv.services.dto.response.DeclarationUpdateResponse;
-import tr.com.allianz.ysv.services.dto.response.BatchOperationResponse;
-import tr.com.allianz.ysv.services.dto.response.FailureDetail;
 import tr.com.allianz.ysv.services.dto.response.PageResponse;
 import tr.com.allianz.ysv.services.dto.response.ProcessView;
 import tr.com.allianz.ysv.services.entity.DeclarationProcess;
@@ -93,7 +92,18 @@ class DeclarationServiceTest {
                 sbmProperties, jsonUtil);
 
         when(declarationGroupProcessor.process(any(), anyBoolean(), anyList(), any(RequestContext.class)))
-                .thenReturn(Optional.empty());
+                .thenReturn(accepted("YSV202513491", 201, "{\"ysvDosyaNo\":\"YSV202513491\"}"));
+    }
+
+    private static GroupOutcome accepted(String fileNo, int status, String data) {
+        return new GroupOutcome(fileNo, true, status, null, null,
+                "{\"result\":true,\"status\":" + status + ",\"data\":" + data + "}");
+    }
+
+    private static SbmCallResult sbmAnswer(boolean success, int status, String body) {
+        return SbmCallResult.builder().success(success).sbmAnswered(true).httpStatus(status)
+                .requestPayload("GET x").responsePayload(body)
+                .errorCode(success ? null : "CORE-01001").errorMessage(success ? null : "Kayıt bulunamadı.").build();
     }
 
     // --- grouping -------------------------------------------------------------------------
@@ -108,13 +118,13 @@ class DeclarationServiceTest {
         when(declarationProcessRepository.findCandidates(any(), any(), any(), any()))
                 .thenReturn(List.of(adanaMenkul, adanaGayri, adiyamanMenkul));
 
-        BatchOperationResponse response =
+        ApiResponse<BatchResult> response =
                 service.send(new DeclarationFilterRequest(2026, 1, null, null), CTX);
 
-        assertThat(response.totalGroups()).isEqualTo(2);
-        assertThat(response.successCount()).isEqualTo(2);
-        assertThat(response.failCount()).isZero();
-        assertThat(response.failures()).isEmpty();
+        assertThat(response.data().totalGroups()).isEqualTo(2);
+        assertThat(response.data().successCount()).isEqualTo(2);
+        assertThat(response.data().failCount()).isZero();
+        assertThat(response.result()).isTrue();
 
         verify(declarationGroupProcessor, org.mockito.Mockito.times(2))
                 .process(eq(OperationType.POST), eq(false), groupIdsCaptor.capture(), eq(CTX));
@@ -130,9 +140,9 @@ class DeclarationServiceTest {
         when(declarationProcessRepository.findCandidates(any(), any(), any(), any()))
                 .thenReturn(List.of(menkul, gayrimenkul));
 
-        BatchOperationResponse response = service.send(null, CTX);
+        ApiResponse<BatchResult> response = service.send(null, CTX);
 
-        assertThat(response.totalGroups()).isEqualTo(1);
+        assertThat(response.data().totalGroups()).isEqualTo(1);
         verify(declarationGroupProcessor).process(OperationType.POST, false, List.of(1L, 2L), CTX);
     }
 
@@ -146,9 +156,9 @@ class DeclarationServiceTest {
         when(declarationProcessRepository.findCandidates(any(), any(), any(), any()))
                 .thenReturn(List.of(zeroDistrict, nullDistrict));
 
-        BatchOperationResponse response = service.send(null, CTX);
+        ApiResponse<BatchResult> response = service.send(null, CTX);
 
-        assertThat(response.totalGroups()).isEqualTo(1);
+        assertThat(response.data().totalGroups()).isEqualTo(1);
         verify(declarationGroupProcessor).process(OperationType.POST, false, List.of(1L, 2L), CTX);
     }
 
@@ -161,7 +171,7 @@ class DeclarationServiceTest {
         when(declarationProcessRepository.findCandidates(any(), any(), any(), any()))
                 .thenReturn(List.of(cityLevel, withDistrict));
 
-        assertThat(service.send(null, CTX).totalGroups()).isEqualTo(2);
+        assertThat(service.send(null, CTX).data().totalGroups()).isEqualTo(2);
     }
 
     @Test
@@ -173,7 +183,7 @@ class DeclarationServiceTest {
         when(declarationProcessRepository.findCandidates(any(), any(), any(), any()))
                 .thenReturn(List.of(first, second));
 
-        assertThat(service.send(null, CTX).totalGroups()).isEqualTo(2);
+        assertThat(service.send(null, CTX).data().totalGroups()).isEqualTo(2);
     }
 
     @Test
@@ -238,15 +248,20 @@ class DeclarationServiceTest {
         when(declarationProcessRepository.findCandidates(any(), any(), any(), any()))
                 .thenReturn(List.of(cityLevelRow(1L, MovableType.MENKUL)));
         when(declarationGroupProcessor.process(any(), anyBoolean(), anyList(), any(RequestContext.class)))
-                .thenReturn(Optional.of(new FailureDetail("YSV202513491", "CORE-01004", "hata")));
+                .thenReturn(GroupOutcome.rejected("YSV202513491", 422, "CORE-01004", "hata"));
 
-        BatchOperationResponse response = service.send(null, CTX);
+        ApiResponse<BatchResult> response = service.send(null, CTX);
 
-        assertThat(response.totalGroups()).isEqualTo(1);
-        assertThat(response.successCount()).isZero();
-        assertThat(response.failCount()).isEqualTo(1);
-        assertThat(response.failures()).singleElement()
-                .satisfies(failure -> assertThat(failure.errorCode()).isEqualTo("CORE-01004"));
+        assertThat(response.data().totalGroups()).isEqualTo(1);
+        assertThat(response.data().successCount()).isZero();
+        assertThat(response.data().failCount()).isEqualTo(1);
+        assertThat(response.result()).isFalse();
+        assertThat(response.data().results()).singleElement().satisfies(item -> {
+            assertThat(item.get("ysvDosyaNo").asText()).isEqualTo("YSV202513491");
+            assertThat(item.get("result").asBoolean()).isFalse();
+            assertThat(item.get("status").asInt()).isEqualTo(422);
+            assertThat(item.at("/error/reasons/0/code").asText()).isEqualTo("CORE-01004");
+        });
     }
 
     @Test
@@ -254,14 +269,14 @@ class DeclarationServiceTest {
         when(declarationProcessRepository.findCandidates(any(), any(), any(), any()))
                 .thenReturn(List.of());
 
-        BatchOperationResponse response = service.send(null, CTX);
+        ApiResponse<BatchResult> response = service.send(null, CTX);
 
-        assertThat(response.totalGroups()).isZero();
-        assertThat(response.failures()).isEmpty();
+        assertThat(response.data().totalGroups()).isZero();
+        assertThat(response.result()).isTrue();
         verify(declarationGroupProcessor, never()).process(any(), anyBoolean(), anyList(), any(RequestContext.class));
     }
 
-    // --- tekli islemler ---------------------------------------------------------------------
+    // --- tekli islemler: SBM'nin cevabi aynen, SBM'nin HTTP koduyla ---------------------------
 
     @Test
     @DisplayName("single send of an unknown file number is 404, nothing is sent")
@@ -275,34 +290,55 @@ class DeclarationServiceTest {
     }
 
     @Test
-    @DisplayName("single send of an already sent declaration reports a status conflict")
-    void sendOne_notSendable_reportsConflict() {
+    @DisplayName("single send of an already sent declaration is a 409 in SBM's error shape")
+    void sendOne_notSendable_isConflict() {
         DeclarationProcess sent = cityLevelRow(1L, MovableType.MENKUL);
         sent.setStatus(ProcessStatus.SENT);
         when(declarationProcessRepository.findBySbmFileNo("YSV202513491")).thenReturn(List.of(sent));
         when(declarationProcessRepository.findCandidatesByFileNos(any(), any())).thenReturn(List.of());
 
-        BatchOperationResponse response = service.sendOne("YSV202513491", CTX);
+        SbmReply reply = service.sendOne("YSV202513491", CTX);
 
-        assertThat(response.failCount()).isEqualTo(1);
-        assertThat(response.failures()).singleElement().satisfies(f -> {
-            assertThat(f.errorCode()).isEqualTo("ALZ-STATUS-CONFLICT");
-            assertThat(f.message()).contains("SENT");
-        });
+        assertThat(reply.httpStatus()).isEqualTo(409);
+        assertThat(reply.body().get("result").asBoolean()).isFalse();
+        assertThat(reply.body().get("status").asInt()).isEqualTo(409);
+        assertThat(reply.body().at("/error/reasons/0/code").asText()).isEqualTo("ALZ-STATUS-CONFLICT");
+        assertThat(reply.body().at("/error/reasons/0/message").asText()).contains("SENT");
+        assertThat(reply.body().at("/error/timestamp").isMissingNode()).isFalse();
+        verify(declarationGroupProcessor, never()).process(any(), anyBoolean(), anyList(), any(RequestContext.class));
     }
 
     @Test
-    @DisplayName("single send selects the declaration by file number and POSTs it")
-    void sendOne_postsTheDeclaration() {
+    @DisplayName("single send returns SBM's own answer and status code as-is")
+    void sendOne_returnsSbmAnswerAsIs() {
         DeclarationProcess row = cityLevelRow(1L, MovableType.MENKUL);
         when(declarationProcessRepository.findBySbmFileNo("YSV202513491")).thenReturn(List.of(row));
         when(declarationProcessRepository.findCandidatesByFileNos(List.of("YSV202513491"), ProcessStatus.SENDABLE))
                 .thenReturn(List.of(row));
 
-        BatchOperationResponse response = service.sendOne("YSV202513491", CTX);
+        SbmReply reply = service.sendOne("YSV202513491", CTX);
 
-        assertThat(response.successCount()).isEqualTo(1);
+        assertThat(reply.httpStatus()).isEqualTo(201);
+        assertThat(reply.body().toString())
+                .isEqualTo("{\"result\":true,\"status\":201,\"data\":{\"ysvDosyaNo\":\"YSV202513491\"}}");
         verify(declarationGroupProcessor).process(OperationType.POST, false, List.of(1L), CTX);
+    }
+
+    @Test
+    @DisplayName("an SBM rejection is passed through with SBM's status and error body")
+    void sendOne_sbmRejection_isPassedThrough() {
+        DeclarationProcess row = cityLevelRow(1L, MovableType.MENKUL);
+        when(declarationProcessRepository.findBySbmFileNo("YSV202513491")).thenReturn(List.of(row));
+        when(declarationProcessRepository.findCandidatesByFileNos(any(), any())).thenReturn(List.of(row));
+        String sbmError = "{\"result\":false,\"status\":422,\"error\":{\"timestamp\":\"2026-02-02T21:45:38.783\","
+                + "\"reasons\":[{\"field\":\"ilceKodu\",\"code\":\"CORE-01004\",\"message\":\"aralik\",\"rejectedValue\":\"21\"}]}}";
+        when(declarationGroupProcessor.process(any(), anyBoolean(), anyList(), any(RequestContext.class)))
+                .thenReturn(new GroupOutcome("YSV202513491", false, 422, "CORE-01004", "aralik", sbmError));
+
+        SbmReply reply = service.sendOne("YSV202513491", CTX);
+
+        assertThat(reply.httpStatus()).isEqualTo(422);
+        assertThat(reply.body().at("/error/reasons/0/rejectedValue").asText()).isEqualTo("21");
     }
 
     @Test
@@ -331,61 +367,114 @@ class DeclarationServiceTest {
         DeclarationProcess row = cityLevelRow(1L, MovableType.MENKUL);
         when(declarationGroupProcessor.applyUpdate(eq("YSV202513491"), any(), eq(USER))).thenReturn(List.of(row));
 
-        DeclarationUpdateResponse response = service.updateOne("YSV202513491", updateBody(), CTX);
+        SbmReply reply = service.updateOne("YSV202513491", updateBody(), CTX);
 
-        assertThat(response.sentToSbm()).isFalse();
-        assertThat(response.success()).isTrue();
-        assertThat(response.message()).contains("gönder");
+        assertThat(reply.httpStatus()).isEqualTo(200);
+        assertThat(reply.body().get("result").asBoolean()).isTrue();
+        assertThat(reply.body().at("/data/sentToSbm").asBoolean()).isFalse();
+        assertThat(reply.body().at("/data/message").asText()).contains("gönder");
         verify(declarationGroupProcessor, never()).process(any(), anyBoolean(), anyList(), any(RequestContext.class));
     }
 
     @Test
-    @DisplayName("updating a declaration already at SBM also PUTs it in the same call")
-    void updateOne_atSbm_putsToSbm() {
+    @DisplayName("updating a declaration already at SBM PUTs it and returns SBM's answer")
+    void updateOne_atSbm_returnsSbmAnswer() {
         DeclarationProcess row = cityLevelRow(1L, MovableType.MENKUL);
         row.setStatus(ProcessStatus.SENT);
         when(declarationGroupProcessor.applyUpdate(eq("YSV202513491"), any(), eq(USER))).thenReturn(List.of(row));
+        when(declarationGroupProcessor.process(any(), anyBoolean(), anyList(), any(RequestContext.class)))
+                .thenReturn(accepted("YSV202513491", 200, "true"));
 
-        DeclarationUpdateResponse response = service.updateOne("YSV202513491", updateBody(), CTX);
+        SbmReply reply = service.updateOne("YSV202513491", updateBody(), CTX);
 
-        assertThat(response.sentToSbm()).isTrue();
-        assertThat(response.success()).isTrue();
-        assertThat(response.errorCode()).isNull();
+        assertThat(reply.httpStatus()).isEqualTo(200);
+        assertThat(reply.body().toString()).isEqualTo("{\"result\":true,\"status\":200,\"data\":true}");
         verify(declarationGroupProcessor).process(OperationType.PUT, false, List.of(1L), CTX);
     }
 
+    // --- sorgu ---------------------------------------------------------------------------------
+
     @Test
-    @DisplayName("an SBM rejection of the PUT is reported, the database keeps the new values")
-    void updateOne_sbmRejects_reportsFailure() {
-        DeclarationProcess row = cityLevelRow(1L, MovableType.MENKUL);
-        row.setStatus(ProcessStatus.COMPLETED);
-        when(declarationGroupProcessor.applyUpdate(eq("YSV202513491"), any(), eq(USER))).thenReturn(List.of(row));
-        when(declarationGroupProcessor.process(any(), anyBoolean(), anyList(), any(RequestContext.class)))
-                .thenReturn(Optional.of(new FailureDetail("YSV202513491", "CORE-01004", "red")));
+    @DisplayName("a query returns SBM's answer as-is and promotes the rows to COMPLETED")
+    void query_success_returnsSbmAnswerAndPromotes() {
+        when(declarationProcessRepository.findBySbmFileNo("YSV202513491"))
+                .thenReturn(List.of(cityLevelRow(1L, MovableType.MENKUL)));
+        String body = "{\"result\":true,\"status\":200,\"data\":{\"ysvDosyaNo\":\"YSV202513491\",\"ilceKodu\":null,\"unvan\":\"X\"}}";
+        when(sbmClientService.query(any(), any())).thenReturn(sbmAnswer(true, 200, body));
 
-        DeclarationUpdateResponse response = service.updateOne("YSV202513491", updateBody(), CTX);
+        SbmReply reply = service.query("YSV202513491", CTX);
 
-        assertThat(response.sentToSbm()).isTrue();
-        assertThat(response.success()).isFalse();
-        assertThat(response.errorCode()).isEqualTo("CORE-01004");
+        assertThat(reply.httpStatus()).isEqualTo(200);
+        assertThat(reply.body().toString()).isEqualTo(body);
+        verify(declarationGroupProcessor).markCompleted(List.of(1L), USER);
     }
 
-    // --- toplu sorgu ------------------------------------------------------------------------
+    @Test
+    @DisplayName("an SBM rejection of the query is returned with SBM's status, nothing is promoted")
+    void query_rejected_isPassedThrough() {
+        when(declarationProcessRepository.findBySbmFileNo(anyString())).thenReturn(List.of(cityLevelRow(1L, MovableType.MENKUL)));
+        when(sbmClientService.query(any(), any())).thenReturn(sbmAnswer(false, 422,
+                "{\"result\":false,\"status\":422,\"error\":{\"reasons\":[{\"code\":\"CORE-01001\"}]}}"));
+
+        SbmReply reply = service.query("YSV202513491", CTX);
+
+        assertThat(reply.httpStatus()).isEqualTo(422);
+        assertThat(reply.body().at("/error/reasons/0/code").asText()).isEqualTo("CORE-01001");
+        verify(declarationGroupProcessor, never()).markCompleted(anyCollection(), anyString());
+    }
 
     @Test
-    @DisplayName("bulk query asks SBM once per file number and promotes the confirmed ones")
-    void queryBatch_queriesEachFileNoOnce() {
-        DeclarationProcess menkul = cityLevelRow(1L, MovableType.MENKUL);
-        DeclarationProcess gayri = cityLevelRow(2L, MovableType.GAYRIMENKUL);
-        when(declarationProcessRepository.findCandidates(eq(ProcessStatus.QUERYABLE), any(), any(), any()))
-                .thenReturn(List.of(menkul, gayri));
+    @DisplayName("a non-SBM answer (ESB error page) becomes a 502 in SBM's error shape, the HTML is not echoed")
+    void query_nonSbmAnswer_isBadGateway() {
+        when(declarationProcessRepository.findBySbmFileNo(anyString())).thenReturn(List.of());
         when(sbmClientService.query(any(), any())).thenReturn(SbmCallResult.builder()
-                .success(true).responsePayload("{\"result\":true,\"status\":200}").build());
+                .success(false).sbmAnswered(false).httpStatus(404).errorCode("CORE-00000")
+                .errorMessage("SBM isteği reddetti (HTTP 404).").responsePayload("<HTML>404</HTML>").build());
 
-        BatchOperationResponse response = service.queryBatch(new DeclarationFilterRequest(2026, 1, null, null), CTX);
+        SbmReply reply = service.query("YSV202513491", CTX);
 
-        assertThat(response.totalGroups()).isEqualTo(1);
-        assertThat(response.successCount()).isEqualTo(1);
+        assertThat(reply.httpStatus()).isEqualTo(502);
+        assertThat(reply.body().get("status").asInt()).isEqualTo(502);
+        assertThat(reply.body().toString()).doesNotContain("HTML");
+    }
+
+    @Test
+    void query_alwaysWritesAnAuditRow() {
+        when(declarationProcessRepository.findBySbmFileNo(anyString())).thenReturn(List.of());
+        when(sbmClientService.query(any(), any())).thenReturn(sbmAnswer(true, 200, "{\"result\":true}"));
+
+        service.query("YSV202513491", CTX);
+
+        verify(declarationLogService).logCall(eq(List.of()), eq(OperationType.GET), any(),
+                anyString(), eq("GET x"), anyString());
+    }
+
+    @Test
+    void query_withoutFileNo_isRejectedBeforeAnyCall() {
+        assertThatThrownBy(() -> service.query("  ", CTX))
+                .isInstanceOf(SbmIntegrationException.class);
+        verify(sbmClientService, never()).query(any(), any());
+    }
+
+    // --- toplu sorgu -----------------------------------------------------------------------------
+
+    @Test
+    @DisplayName("bulk query asks SBM once per file number and returns each answer with its file number")
+    void queryBatch_queriesEachFileNoOnce() {
+        when(declarationProcessRepository.findCandidates(eq(ProcessStatus.QUERYABLE), any(), any(), any()))
+                .thenReturn(List.of(cityLevelRow(1L, MovableType.MENKUL), cityLevelRow(2L, MovableType.GAYRIMENKUL)));
+        when(sbmClientService.query(any(), any())).thenReturn(sbmAnswer(true, 200,
+                "{\"result\":true,\"status\":200,\"data\":{\"ay\":1}}"));
+
+        ApiResponse<BatchResult> response = service.queryBatch(new DeclarationFilterRequest(2026, 1, null, null), CTX);
+
+        assertThat(response.result()).isTrue();
+        assertThat(response.status()).isEqualTo(200);
+        assertThat(response.data().totalGroups()).isEqualTo(1);
+        assertThat(response.data().results()).singleElement().satisfies(item -> {
+            assertThat(item.get("ysvDosyaNo").asText()).isEqualTo("YSV202513491");
+            assertThat(item.at("/data/ay").asInt()).isEqualTo(1);
+        });
         verify(sbmClientService, org.mockito.Mockito.times(1)).query(any(), eq(CTX));
         verify(declarationGroupProcessor).markCompleted(List.of(1L, 2L), USER);
     }
@@ -393,112 +482,30 @@ class DeclarationServiceTest {
     @Test
     @DisplayName("a rejected file number in a bulk query is reported and the batch continues")
     void queryBatch_collectsFailures() {
-        DeclarationProcess row = cityLevelRow(1L, MovableType.MENKUL);
-        when(declarationProcessRepository.findCandidatesByFileNos(any(), any())).thenReturn(List.of(row));
-        when(sbmClientService.query(any(), any())).thenReturn(SbmCallResult.builder()
-                .success(false).httpStatus(422).errorCode("CORE-01001").errorMessage("Kayıt bulunamadı.").build());
+        when(declarationProcessRepository.findCandidatesByFileNos(any(), any()))
+                .thenReturn(List.of(cityLevelRow(1L, MovableType.MENKUL)));
+        when(sbmClientService.query(any(), any())).thenReturn(sbmAnswer(false, 422,
+                "{\"result\":false,\"status\":422,\"error\":{\"reasons\":[{\"code\":\"CORE-01001\"}]}}"));
 
-        BatchOperationResponse response =
+        ApiResponse<BatchResult> response =
                 service.queryBatch(new DeclarationFilterRequest(null, null, null, List.of("YSV202513491")), CTX);
 
-        assertThat(response.failCount()).isEqualTo(1);
-        assertThat(response.failures()).singleElement()
-                .satisfies(f -> assertThat(f.errorCode()).isEqualTo("CORE-01001"));
+        assertThat(response.result()).isFalse();
+        assertThat(response.data().failCount()).isEqualTo(1);
         verify(declarationGroupProcessor, never()).markCompleted(anyCollection(), anyString());
     }
 
     @Test
-    void queryBatch_withoutFilter_usesQueryableStatuses() {
-        when(declarationProcessRepository.findCandidates(any(), any(), any(), any())).thenReturn(List.of());
+    @DisplayName("a file number SBM would refuse is reported without a call and the batch continues")
+    void queryBatch_invalidFileNo_isReportedWithoutCall() {
+        DeclarationProcess tooLong = cityLevelRow(1L, MovableType.MENKUL);
+        tooLong.setSbmFileNo("Y".repeat(37));
+        when(declarationProcessRepository.findCandidates(any(), any(), any(), any())).thenReturn(List.of(tooLong));
 
-        assertThat(service.queryBatch(null, CTX).totalGroups()).isZero();
+        ApiResponse<BatchResult> response = service.queryBatch(null, CTX);
 
-        verify(declarationProcessRepository).findCandidates(ProcessStatus.QUERYABLE, null, null, null);
-    }
-
-    // --- query -----------------------------------------------------------------------------
-
-    @Test
-    @DisplayName("a confirmed declaration is promoted from SENT to COMPLETED")
-    void query_success_promotesRowsToCompleted() {
-        when(declarationProcessRepository.findBySbmFileNo("YSV202513491"))
-                .thenReturn(List.of(cityLevelRow(1L, MovableType.MENKUL)));
-        when(sbmClientService.query(any(), any())).thenReturn(SbmCallResult.builder()
-                .success(true)
-                .httpStatus(200)
-                .requestPayload("{}")
-                .responsePayload("{\"result\":true,\"status\":200,\"data\":{"
-                        + "\"ysvDosyaNo\":\"YSV202513491\",\"sonOdemeTarihi\":\"2026-01-20\","
-                        + "\"ysvTutarList\":[]}}")
-                .build());
-
-        SbmQueryResponse response = service.query("YSV202513491", CTX);
-
-        assertThat(response.getResult()).isTrue();
-        assertThat(response.getData().getYsvDosyaNo()).isEqualTo("YSV202513491");
-        verify(declarationGroupProcessor).markCompleted(List.of(1L), USER);
-    }
-
-    @Test
-    void query_withoutLocalRows_doesNotPromoteAnything() {
-        when(declarationProcessRepository.findBySbmFileNo(anyString())).thenReturn(List.of());
-        when(sbmClientService.query(any(), any())).thenReturn(SbmCallResult.builder()
-                .success(true)
-                .responsePayload("{\"result\":true,\"status\":200}")
-                .build());
-
-        assertThat(service.query("YSV202513491", CTX)).isNotNull();
-
-        verify(declarationGroupProcessor, never()).markCompleted(anyCollection(), anyString());
-    }
-
-    @Test
-    void query_rejectedBySbm_throws() {
-        when(declarationProcessRepository.findBySbmFileNo(anyString())).thenReturn(List.of());
-        when(sbmClientService.query(any(), any())).thenReturn(SbmCallResult.builder()
-                .success(false)
-                .httpStatus(422)
-                .errorCode(SbmErrorCode.CORE_01001.getCode())
-                .errorMessage("Kayıt bulunamadı.")
-                .build());
-
-        assertThatThrownBy(() -> service.query("YSV202513491", CTX))
-                .isInstanceOf(SbmIntegrationException.class)
-                .hasMessageContaining("Kayıt bulunamadı");
-    }
-
-    @Test
-    void query_withUnparsableBody_throws() {
-        when(declarationProcessRepository.findBySbmFileNo(anyString())).thenReturn(List.of());
-        when(sbmClientService.query(any(), any())).thenReturn(SbmCallResult.builder()
-                .success(true)
-                .httpStatus(200)
-                .responsePayload("not-json")
-                .build());
-
-        assertThatThrownBy(() -> service.query("YSV202513491", CTX))
-                .isInstanceOf(SbmIntegrationException.class)
-                .hasMessageContaining("çözümlenemedi");
-    }
-
-    @Test
-    void query_alwaysWritesAnAuditRow() {
-        when(declarationProcessRepository.findBySbmFileNo(anyString())).thenReturn(List.of());
-        when(sbmClientService.query(any(), any())).thenReturn(SbmCallResult.builder()
-                .success(true)
-                .responsePayload("{\"result\":true}")
-                .build());
-
-        service.query("YSV202513491", CTX);
-
-        verify(declarationLogService).logCall(eq(List.of()), eq(OperationType.GET), any(),
-                anyString(), isNull(), anyString());
-    }
-
-    @Test
-    void query_withoutFileNo_isRejectedBeforeAnyCall() {
-        assertThatThrownBy(() -> service.query("  ", CTX))
-                .isInstanceOf(SbmIntegrationException.class);
+        assertThat(response.data().failCount()).isEqualTo(1);
+        assertThat(response.data().results().get(0).get("status").asInt()).isEqualTo(422);
         verify(sbmClientService, never()).query(any(), any());
     }
 

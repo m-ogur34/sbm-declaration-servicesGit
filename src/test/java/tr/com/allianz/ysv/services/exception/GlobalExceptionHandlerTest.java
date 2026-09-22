@@ -12,8 +12,8 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.web.context.request.ServletWebRequest;
-import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import tr.com.allianz.ysv.services.dto.response.ApiResponse;
 import tr.com.allianz.ysv.services.enums.SbmErrorCode;
 
 class GlobalExceptionHandlerTest {
@@ -28,90 +28,85 @@ class GlobalExceptionHandlerTest {
         request.setRequestURI("/api/v1/declarations/send");
     }
 
-    @Test
-    @DisplayName("an SBM failure keeps SBM's code and adds its Turkish description")
-    void handleSbmIntegration_returns502WithSbmCode() {
-        ResponseEntity<ErrorResponse> response = handler.handleSbmIntegration(
-                new SbmIntegrationException(SbmErrorCode.RISK_HAVUZU_00007.getCode(),
-                        "Büyükşehirde ilçe gönderilemez."), request);
+    private static void assertSbmShape(ApiResponse<?> body, int status, String code) {
+        assertThat(body.result()).isFalse();
+        assertThat(body.status()).isEqualTo(status);
+        assertThat(body.data()).isNull();
+        assertThat(body.error().timestamp()).isNotNull();
+        assertThat(body.error().reasons()).first().satisfies(r -> assertThat(r.code()).isEqualTo(code));
+    }
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_GATEWAY);
-        assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().code()).isEqualTo("RISK-HAVUZU-00007");
-        assertThat(response.getBody().path()).isEqualTo("/api/v1/declarations/send");
-        assertThat(response.getBody().timestamp()).isNotNull();
-        assertThat(response.getBody().details())
-                .containsExactly(SbmErrorCode.RISK_HAVUZU_00007.getDescription());
+    @Test
+    @DisplayName("a pre-flight SBM rule violation is a 422 carrying SBM's code")
+    void handleSbmIntegration_returns422() {
+        ResponseEntity<ApiResponse<Void>> response = handler.handleSbmIntegration(
+                new SbmIntegrationException(SbmErrorCode.CORE_01008.getCode(), "en fazla 36 karakter"), request);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
+        assertSbmShape(response.getBody(), 422, "CORE-01008");
+        assertThat(response.getBody().error().reasons().get(0).message()).isEqualTo("en fazla 36 karakter");
     }
 
     @Test
     void handleToken_returns503() {
-        ResponseEntity<ErrorResponse> response =
+        ResponseEntity<ApiResponse<Void>> response =
                 handler.handleToken(new TokenException("Token servisine erişilemedi (transactionId=t)."), request);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.SERVICE_UNAVAILABLE);
-        assertThat(response.getBody().code()).isEqualTo(SbmErrorCode.SEC_00001.getCode());
-        assertThat(response.getBody().details()).containsExactly("Token servisine erişilemedi (transactionId=t).");
+        assertSbmShape(response.getBody(), 503, SbmErrorCode.SEC_00001.getCode());
     }
 
     @Test
     void handleNotFound_returns404() {
-        ResponseEntity<ErrorResponse> response =
+        ResponseEntity<ApiResponse<Void>> response =
                 handler.handleNotFound(new DeclarationNotFoundException("Beyanname bulunamadı: X"), request);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
-        assertThat(response.getBody().code()).isEqualTo(GlobalExceptionHandler.NOT_FOUND_CODE);
-        assertThat(response.getBody().message()).isEqualTo("Beyanname bulunamadı: X");
+        assertSbmShape(response.getBody(), 404, GlobalExceptionHandler.NOT_FOUND_CODE);
     }
 
     @Test
     void handleIllegalArgument_returns400WithOurMessage() {
-        ResponseEntity<ErrorResponse> response =
+        ResponseEntity<ApiResponse<Void>> response =
                 handler.handleIllegalArgument(new IllegalArgumentException("ay 1-12 aralığında olmalı"), request);
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-        assertThat(response.getBody().code()).isEqualTo(GlobalExceptionHandler.VALIDATION_CODE);
-        assertThat(response.getBody().details()).containsExactly("ay 1-12 aralığında olmalı");
+        assertSbmShape(response.getBody(), 400, GlobalExceptionHandler.VALIDATION_CODE);
+        assertThat(response.getBody().error().reasons().get(0).message()).isEqualTo("ay 1-12 aralığında olmalı");
     }
 
     @Test
-    @DisplayName("a type mismatch names the parameter but never echoes the rejected value")
-    void handleTypeMismatch_namesOnlyTheParameter() throws Exception {
+    @DisplayName("a type mismatch names the field but never echoes the rejected value")
+    void handleTypeMismatch_namesOnlyTheField() throws Exception {
         MethodParameter parameter = new MethodParameter(Object.class.getMethod("equals", Object.class), 0);
-        ResponseEntity<ErrorResponse> response = handler.handleTypeMismatch(
+        ResponseEntity<ApiResponse<Void>> response = handler.handleTypeMismatch(
                 new MethodArgumentTypeMismatchException("<script>", Integer.class, "year", parameter, null), request);
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-        assertThat(response.getBody().details()).containsExactly("year: geçersiz değer");
+        assertSbmShape(response.getBody(), 400, GlobalExceptionHandler.VALIDATION_CODE);
+        assertThat(response.getBody().error().reasons().get(0).field()).isEqualTo("year");
+        assertThat(response.getBody().error().reasons().get(0).rejectedValue()).isNull();
     }
 
     @Test
     @DisplayName("an unexpected failure never exposes the exception message")
     void handleUnexpected_hidesTheDetail() {
-        ResponseEntity<ErrorResponse> response =
+        ResponseEntity<ApiResponse<Void>> response =
                 handler.handleUnexpected(new IllegalStateException("ORA-00942 table does not exist"), request);
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
-        assertThat(response.getBody().code()).isEqualTo(GlobalExceptionHandler.INTERNAL_CODE);
-        assertThat(response.getBody().message()).isEqualTo("Beklenmeyen bir hata oluştu.");
-        assertThat(response.getBody().details()).isEmpty();
+        assertSbmShape(response.getBody(), 500, GlobalExceptionHandler.INTERNAL_CODE);
+        assertThat(response.getBody().error().reasons().get(0).message()).isEqualTo("Beklenmeyen bir hata oluştu.");
     }
 
     @Test
-    @DisplayName("standard MVC failures keep their status, get our body and no internal message")
+    @DisplayName("standard MVC failures keep their status and get SBM's error shape without the internal message")
     void handleExceptionInternal_wrapsStandardFailures() {
-        WebRequest webRequest = new ServletWebRequest(request);
-
         ResponseEntity<Object> response = handler.handleExceptionInternal(
                 new IllegalStateException("Jackson: Unexpected end-of-input"), null, new HttpHeaders(),
-                HttpStatus.METHOD_NOT_ALLOWED, webRequest);
+                HttpStatus.METHOD_NOT_ALLOWED, new ServletWebRequest(request));
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.METHOD_NOT_ALLOWED);
-        ErrorResponse body = (ErrorResponse) response.getBody();
-        assertThat(body.code()).isEqualTo(GlobalExceptionHandler.REQUEST_CODE);
-        assertThat(body.path()).isEqualTo("/api/v1/declarations/send");
-        assertThat(body.message()).doesNotContain("Jackson");
-        assertThat(body.details()).isEmpty();
+        ApiResponse<?> body = (ApiResponse<?>) response.getBody();
+        assertSbmShape(body, 405, GlobalExceptionHandler.REQUEST_CODE);
+        assertThat(body.error().reasons().get(0).message()).doesNotContain("Jackson");
     }
 
     @Test

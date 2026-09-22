@@ -43,8 +43,9 @@ class DeclarationImportControllerTest {
                         .file(xlsx("b.xlsx"))
                         .header("X-User-Name", "WDA2422"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.inserted").value(2))
-                .andExpect(jsonPath("$.totalRows").value(3));
+                .andExpect(jsonPath("$.result").value(true))
+                .andExpect(jsonPath("$.data.inserted").value(2))
+                .andExpect(jsonPath("$.data.totalRows").value(3));
 
         verify(declarationImportService).importFile(any(), eq("WDA2422"));
     }
@@ -64,7 +65,7 @@ class DeclarationImportControllerTest {
     void upload_nonXlsx_returns400() throws Exception {
         mockMvc.perform(multipart("/api/v1/declarations/upload").file(xlsx("beyanname.csv")))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value("ALZ-VALIDATION"));
+                .andExpect(jsonPath("$.error.reasons[0].code").value("ALZ-VALIDATION"));
     }
 
     @Test
@@ -83,7 +84,7 @@ class DeclarationImportControllerTest {
 
         mockMvc.perform(multipart("/api/v1/declarations/upload").file(noName))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value("ALZ-VALIDATION"));
+                .andExpect(jsonPath("$.error.reasons[0].code").value("ALZ-VALIDATION"));
     }
 
     @Test
@@ -98,6 +99,6 @@ class DeclarationImportControllerTest {
         mockMvc.perform(multipart("/api/v1/declarations/upload").file(xlsx("b.xlsx"))
                         .header("X-User-Name", "x".repeat(101)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value("ALZ-VALIDATION"));
+                .andExpect(jsonPath("$.error.reasons[0].code").value("ALZ-VALIDATION"));
     }
 }

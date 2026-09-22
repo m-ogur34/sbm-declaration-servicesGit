@@ -16,6 +16,12 @@ public class SbmCallResult {
     /** HTTP 2xx and {@code result:true}. */
     private boolean success;
 
+    /**
+     * Cevap SBM'nin zarfıyla ({@code result} alanı olan JSON) geldi. {@code false} ise cevap
+     * SBM'den değil (ESB hata sayfası, bağlantı hatası) ve istemciye aynen verilmez.
+     */
+    private boolean sbmAnswered;
+
     /** HTTP status, or 0 when the call never produced a response. */
     private int httpStatus;
 
