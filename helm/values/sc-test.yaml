@@ -20,12 +20,10 @@ springboot-deployment:
       vault:
         secret: kv/data/TEST
         template: |
-          {{ with secret "kv/data/TEST/data-source/opusAgencyDataSource" -}}
-             export SPRING_DATASOURCE_USERNAME="{{ .Data.data.username_allzwebpol }}"
-             export SPRING_DATASOURCE_PASSWORD="{{ .Data.data.password_allzwebpol }}"
-             export SPRING_DATASOURCE_URL="{{ .Data.data.URL_OPUSTEST_FINANS }}"
-          {{- end }}
           {{ with secret "kv/data/TEST/apps/sbm-declaration-services" -}}
+            export SPRING_DATASOURCE_USERNAME="{{ index .Data.data "spring.datasource.username" }}"
+            export SPRING_DATASOURCE_PASSWORD="{{ index .Data.data "spring.datasource.password" }}"
+            export SPRING_DATASOURCE_URL="{{ index .Data.data "spring.datasource.url" }}"
             export TOKEN_MANAGEMENT_CLIENT_NAME="{{ .Data.data.tokenManagementClientName }}"
             export TOKEN_MANAGEMENT_COMPANY_CODE="{{ .Data.data.tokenManagementCompanyCode }}"
             export SBM_COMPANY_CODE="{{ .Data.data.sbmCompanyCode }}"

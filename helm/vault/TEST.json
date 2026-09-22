@@ -1,0 +1,8 @@
+{
+  "sbmCompanyCode": "045",
+  "spring.datasource.password": "<ORTA KATMAN DOLDURUR>",
+  "spring.datasource.url": "<ORTA KATMAN DOLDURUR: TEST OPUS DB jdbc url>",
+  "spring.datasource.username": "<ORTA KATMAN DOLDURUR>",
+  "tokenManagementClientName": "ysv",
+  "tokenManagementCompanyCode": "045"
+}
