@@ -356,6 +356,35 @@ class DeclarationGroupProcessorTest {
     }
 
     @Test
+    @DisplayName("RISK-HAVUZU-00004 naming another file no means the slot is taken by a different declaration: ERROR")
+    void process_duplicateOfOtherDeclaration_marksError() {
+        List<DeclarationProcess> group = newGroup(ProcessStatus.NEW);
+        when(declarationProcessRepository.lockByIds(GROUP_IDS)).thenReturn(group);
+        when(sbmClientService.send(any(), any())).thenReturn(SbmCallResult.builder()
+                .success(false)
+                .httpStatus(422)
+                .errorCode(SbmErrorCode.RISK_HAVUZU_00004.getCode())
+                .errorMessage("RISK-HAVUZU-00004: Mükerrer beyanname kaydı mevcuttur. Dosya no: PENTEST260811")
+                .build());
+
+        processor.process(OperationType.POST, false, GROUP_IDS, CTX);
+
+        assertThat(group).allSatisfy(row -> {
+            assertThat(row.getStatus()).isEqualTo(ProcessStatus.ERROR);
+            assertThat(row.getErrorDetails()).contains("PENTEST260811");
+        });
+    }
+
+    @Test
+    @DisplayName("isSameDeclaration: own file no or no file no in message -> true, other file no -> false")
+    void isSameDeclaration_comparesFileNoInMessage() {
+        assertThat(DeclarationGroupProcessor.isSameDeclaration("YSV1", "Mükerrer ... Dosya no: YSV1")).isTrue();
+        assertThat(DeclarationGroupProcessor.isSameDeclaration("YSV1", "Mükerrer ... Dosya no: YSV2")).isFalse();
+        assertThat(DeclarationGroupProcessor.isSameDeclaration("YSV1", "Mükerrer beyanname mevcut")).isTrue();
+        assertThat(DeclarationGroupProcessor.isSameDeclaration("YSV1", null)).isTrue();
+    }
+
+    @Test
     @DisplayName("a token failure on PUT also leaves the group in its previous status")
     void process_putTokenFailure_keepsPreviousStatus() {
         List<DeclarationProcess> group = newGroup(ProcessStatus.SENT);

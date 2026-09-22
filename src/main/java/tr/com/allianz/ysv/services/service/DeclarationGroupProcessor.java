@@ -7,6 +7,8 @@ import java.util.Collection;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -51,6 +53,8 @@ public class DeclarationGroupProcessor {
     private static final int CONFLICT = 409;
     private static final int UNPROCESSABLE = 422;
     private static final int SERVICE_UNAVAILABLE = 503;
+    /** SBM mükerrer mesajındaki mevcut beyanname: "... Dosya no: YSV2027776". */
+    private static final Pattern EXISTING_FILE_NO = Pattern.compile("Dosya no:\\s*(\\S+)");
 
     private final DeclarationProcessRepository declarationProcessRepository;
     private final DeclarationLogService declarationLogService;
@@ -287,7 +291,9 @@ public class DeclarationGroupProcessor {
      * POST hatası → {@code ERROR} (kayıt SBM'ye girmedi). PUT hatası → satır önceki durumunda
      * kalır; {@code ERROR} yazılsaydı sonraki "gönder" kaydı tekrar POST eder, SBM'de mükerrer
      * beyanname riski doğardı. {@code RISK-HAVUZU-00004} → beyanname SBM'de zaten var, satır
-     * {@code SENT}'e alınır ki güncelleme ile yönetilebilsin.
+     * {@code SENT}'e alınır ki güncelleme ile yönetilebilsin. Ancak SBM mesajında adı geçen mevcut
+     * dosya no bizimkinden farklıysa il-ilçe-dönem başka bir beyannameyle dolu demektir; bizim
+     * beyannamemiz SBM'de yoktur ve satır {@code ERROR} olur.
      */
     private void markFailure(OperationType operationType,
                              List<DeclarationProcess> group,
@@ -297,7 +303,8 @@ public class DeclarationGroupProcessor {
                              String user) {
         LocalDateTime now = LocalDateTime.now();
         String details = JsonUtil.truncate(message, JsonUtil.ERROR_DETAILS_MAX_LENGTH);
-        boolean alreadyAtSbm = SbmErrorCode.RISK_HAVUZU_00004.getCode().equals(errorCode);
+        boolean alreadyAtSbm = SbmErrorCode.RISK_HAVUZU_00004.getCode().equals(errorCode)
+                && isSameDeclaration(group.get(0).getSbmFileNo(), message);
         for (int i = 0; i < group.size(); i++) {
             DeclarationProcess process = group.get(i);
             if (alreadyAtSbm) {
@@ -312,6 +319,12 @@ public class DeclarationGroupProcessor {
             process.setUpdatedByUser(user);
         }
         declarationProcessRepository.saveAll(group);
+    }
+
+    /** Mesajda mevcut dosya no yoksa (eski mesaj biçimi) beyannamenin bizimki olduğu varsayılır. */
+    static boolean isSameDeclaration(String ysvDosyaNo, String message) {
+        Matcher matcher = message == null ? null : EXISTING_FILE_NO.matcher(message);
+        return matcher == null || !matcher.find() || matcher.group(1).equals(ysvDosyaNo);
     }
 
     /**
