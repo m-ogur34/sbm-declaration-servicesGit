@@ -1,0 +1,4153 @@
+{
+  "result": false,
+  "status": 200,
+  "data": {
+    "totalGroups": 298,
+    "successCount": 5,
+    "failCount": 293,
+    "results": [
+      {
+        "ysvDosyaNo": "YSV2027776",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:41:41.451",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: PENTEST260811"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027777",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:41:41.788",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: PENTEST260804"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027778",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:41:42.083",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: PENTEST260824"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027780",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:41:42.368",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: PENTEST260814"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027782",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:41:42.666",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027782"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027779",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:41:42.977",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: PENTEST260815"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027781",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:41:43.265",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027781"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027783",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:41:43.549",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: PENTEST260805"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027789",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:41:43.837",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: PENTEST260826"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027793",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:41:44.114",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027793"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027791",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:41:44.394",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027791"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027788",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:41:44.674",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: PENTEST260816"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027785",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:41:44.960",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: PENTEST260806"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027787",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:41:45.262",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027787"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027790",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:41:45.536",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027790"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027784",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:41:45.829",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027784"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027786",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:41:46.102",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027786"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027797",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:41:46.384",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027797"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027792",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:41:46.666",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027792"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027796",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:41:46.982",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027796"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027795",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:41:47.264",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027795"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027794",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:41:47.563",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027794"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027798",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:41:47.840",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027798"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027799",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:41:48.145",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027799"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027800",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:41:48.434",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027800"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027806",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:41:48.729",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027806"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027811",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:41:49.011",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027811"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027809",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:41:49.293",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027809"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027807",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:41:49.581",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027807"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027810",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:41:49.889",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027810"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027808",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:41:50.177",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027808"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027812",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:41:50.468",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: PENTEST260803"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027813",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:41:50.748",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: PENTEST260812"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027820",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:41:51.030",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027820"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027816",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:41:51.312",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027816"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027817",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:41:51.593",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027817"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027818",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:41:51.866",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027818"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027821",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:41:52.168",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027821"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027819",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:41:52.490",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027819"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027822",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:41:52.766",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: PENTEST260821"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027823",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:41:53.053",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: PENTEST260822"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027831",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:41:53.346",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027831"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027830",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:41:53.656",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027830"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027832",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:41:53.953",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027832"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027833",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:41:54.263",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027833"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027834",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:41:54.547",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027834"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027835",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:41:54.826",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027835"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027838",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:41:55.106",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027838"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027837",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:41:55.378",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027837"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027836",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:41:55.656",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027836"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027839",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:41:55.931",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027839"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027843",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:41:56.207",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027843"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027844",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:41:56.509",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027844"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027841",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:41:56.787",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027841"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027842",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:41:57.095",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027842"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027846",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:41:57.369",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027846"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027840",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:41:57.641",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027840"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027845",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:41:57.921",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027845"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027853",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:41:58.246",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027853"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027847",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:41:58.548",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027847"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027848",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:41:58.830",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027848"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027850",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:41:59.121",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027850"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027851",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:41:59.406",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027851"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027852",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:41:59.704",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027852"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027849",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:00.005",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027849"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027854",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:00.982",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: PENTEST260813"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027858",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:01.289",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027858"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027865",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:01.594",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027865"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027860",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:01.936",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027860"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027861",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:02.215",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027861"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027864",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:02.500",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027864"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027855",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:02.801",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027855"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027859",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:03.102",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027859"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027857",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:04.998",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027857"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027856",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:05.284",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027856"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027862",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:07.250",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027862"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027863",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:07.552",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027863"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027866",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:11.505",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027866"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027869",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:11.818",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027869"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027867",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:12.870",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027867"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027871",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:13.167",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027871"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027868",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:13.483",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027868"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027870",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:13.769",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027870"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027872",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:14.044",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027872"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027877",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:14.331",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027877"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027873",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:14.641",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027873"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027874",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:14.926",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027874"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027876",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:15.212",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027876"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027875",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:15.502",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027875"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027878",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:15.777",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: PENTEST260823"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027879",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:16.079",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027879"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027888",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:16.367",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027888"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027889",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:16.662",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027889"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027891",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:16.977",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027891"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027890",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:17.274",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027890"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027892",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:17.554",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027892"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027896",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:17.855",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027896"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027893",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:18.182",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027893"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027895",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:18.466",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027895"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027898",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:18.744",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027898"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027897",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:19.050",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027897"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027894",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:19.345",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027894"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027899",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:19.635",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027899"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027902",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:19.906",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027902"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027900",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:20.196",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027900"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027901",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:20.493",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027901"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027903",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:20.784",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027903"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027904",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:21.074",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027904"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027905",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:21.348",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027905"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027909",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:21.617",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027909"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027916",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:21.917",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027916"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027907",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:22.288",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027907"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027912",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:22.587",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027912"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027906",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:22.877",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027906"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027910",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:23.163",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027910"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027911",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:23.450",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027911"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027913",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:23.737",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027913"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027908",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:24.029",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027908"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027915",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:24.314",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027915"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027914",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:24.596",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027914"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027917",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:24.884",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027917"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027918",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:25.179",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027918"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027919",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:25.455",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027919"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027921",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:25.764",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027921"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027920",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:26.042",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027920"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027922",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:26.342",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027922"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027934",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:26.627",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027934"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027925",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:26.920",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027925"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027930",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:27.212",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027930"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027924",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:27.502",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027924"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027929",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:27.780",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027929"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027933",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:28.107",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027933"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027927",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:28.391",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027927"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027932",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:28.705",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027932"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027926",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:28.988",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027926"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027928",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:29.281",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027928"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027931",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:29.586",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027931"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027991",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:29.876",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027991"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027935",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:30.156",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: PENTEST260801"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027936",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:30.435",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: PENTEST260802"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027948",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:30.719",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027948"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027947",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:30.999",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027947"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027949",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:31.288",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027949"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027957",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:31.569",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027957"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027961",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:31.879",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027961"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027953",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:32.171",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027953"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027952",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:32.444",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027952"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027954",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:32.725",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027954"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027955",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:33.018",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027955"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027956",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:33.307",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027956"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027950",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:33.595",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027950"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027960",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:33.876",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027960"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027958",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:34.152",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027958"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027951",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:34.447",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027951"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027959",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:34.751",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027959"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027962",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:35.072",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027962"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027971",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:35.378",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027971"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027970",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:35.668",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027970"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027967",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:35.969",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027967"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027969",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:36.284",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027969"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027968",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:36.558",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027968"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027975",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:36.844",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027975"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027973",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:37.179",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027973"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027972",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:37.450",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027972"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027976",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:37.735",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027976"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027974",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:38.058",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027974"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027978",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:38.367",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027978"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027979",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:38.654",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027979"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027984",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:38.929",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027984"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027986",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:39.212",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027986"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027980",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:39.570",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027980"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027981",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:39.929",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027981"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027983",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:40.277",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027983"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027982",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:40.599",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027982"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027985",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:40.894",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027985"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027987",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:41.196",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027987"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027988",
+        "result": true,
+        "status": 201,
+        "data": {
+          "ysvDosyaNo": "YSV2027988"
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027989",
+        "result": true,
+        "status": 201,
+        "data": {
+          "ysvDosyaNo": "YSV2027989"
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027937",
+        "result": true,
+        "status": 201,
+        "data": {
+          "ysvDosyaNo": "YSV2027937"
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027990",
+        "result": true,
+        "status": 201,
+        "data": {
+          "ysvDosyaNo": "YSV2027990"
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027992",
+        "result": true,
+        "status": 201,
+        "data": {
+          "ysvDosyaNo": "YSV2027992"
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027993",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:43.293",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027993"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027995",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:43.596",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027995"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027998",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:43.886",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027998"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027997",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:44.162",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027997"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027994",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:44.446",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027994"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027996",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:44.740",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027996"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2028000",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:45.013",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2028000"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2028001",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:45.294",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2028001"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027999",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:45.574",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027999"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2028002",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:45.843",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2028002"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2028003",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:46.120",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2028003"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2028009",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:46.391",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2028009"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2028011",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:46.664",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2028011"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2028013",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:46.944",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2028013"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2028012",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:47.215",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2028012"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2028014",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:47.495",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2028014"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2028010",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:47.778",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2028010"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2028016",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:48.060",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2028016"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2028017",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:48.340",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2028017"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2028015",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:48.635",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2028015"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2028018",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:48.908",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2028018"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2028019",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:49.176",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2028019"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2028021",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:49.447",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2028021"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2028020",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:49.721",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2028020"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2028027",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:49.990",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2028027"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2028026",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:50.265",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2028026"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2028025",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:50.533",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2028025"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2028022",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:50.816",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2028022"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2028024",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:51.103",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2028024"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2028023",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:51.398",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2028023"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2028034",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:51.673",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2028034"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2028035",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:51.971",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2028035"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2028031",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:52.255",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2028031"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2028028",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:52.534",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2028028"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2028029",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:52.819",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2028029"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2028030",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:53.099",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2028030"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2028033",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:53.381",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2028033"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2028032",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:53.654",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2028032"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2028038",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:53.934",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2028038"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2028044",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:54.210",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2028044"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2028040",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:54.506",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2028040"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2028041",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:54.776",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2028041"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2028042",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:55.046",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2028042"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2028039",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:55.374",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2028039"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2028045",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:55.642",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2028045"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2028043",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:55.925",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2028043"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2028046",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:56.210",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2028046"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2028047",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:56.487",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2028047"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2028048",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:56.782",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2028048"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2028036",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:57.056",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2028036"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2028050",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:57.405",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2028050"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2028053",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:57.687",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2028053"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2028051",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:57.959",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2028051"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2028052",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:58.255",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2028052"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2028054",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:58.527",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2028054"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2028049",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:58.835",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2028049"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2028055",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:59.115",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2028055"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2028062",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:59.401",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2028062"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2028063",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:59.673",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2028063"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2028065",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:42:59.956",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2028065"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2028061",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:43:00.232",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2028061"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2028060",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:43:01.128",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2028060"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2028064",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:43:01.426",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2028064"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2028068",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:43:01.696",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2028068"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2028071",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:43:01.967",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2028071"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2028066",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:43:02.239",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2028066"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2028067",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:43:02.533",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2028067"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2028069",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:43:02.803",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2028069"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2028073",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:43:03.077",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2028073"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2028070",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:43:03.346",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2028070"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2028072",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:43:03.618",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2028072"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027801",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:43:03.888",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027801"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027803",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:43:04.164",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027803"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027804",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:43:04.437",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027804"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027802",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:43:04.714",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027802"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027805",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:43:04.990",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027805"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027829",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:43:05.294",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027829"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027944",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:43:05.564",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027944"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027945",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:43:05.833",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027945"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027946",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:43:06.104",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027946"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027966",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:43:06.377",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027966"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027963",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:43:06.647",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027963"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027965",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:43:06.919",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027965"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027964",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:43:07.193",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027964"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027827",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:43:07.472",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027827"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027828",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:43:07.829",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027828"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2028037",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:43:08.100",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2028037"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027824",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:43:08.373",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027824"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027826",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:43:08.643",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027826"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027825",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:43:08.909",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027825"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027814",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:43:09.173",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027814"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027815",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:43:09.445",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027815"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027923",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:43:09.713",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027923"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2028056",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:43:09.983",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2028056"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2028059",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:43:10.254",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2028059"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2028057",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:43:10.545",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2028057"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2028058",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:43:10.818",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2028058"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027940",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:43:11.087",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027940"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027942",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:43:12.432",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027942"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027938",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:43:12.746",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027938"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027941",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:43:14.580",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027941"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027939",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:43:14.866",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027939"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027943",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:43:16.822",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027943"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027977",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:43:17.130",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027977"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2028008",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:43:18.956",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2028008"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2028006",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:43:19.253",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2028006"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2028004",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:43:20.859",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2028004"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2028005",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:43:21.151",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2028005"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2028007",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:43:21.428",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2028007"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027881",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:43:21.708",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027881"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027880",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:43:21.988",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027880"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027887",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:43:22.293",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027887"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027883",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:43:22.616",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027883"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027886",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:43:22.897",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027886"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027884",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:43:23.182",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027884"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027885",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:43:23.674",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027885"
+            }
+          ]
+        }
+      },
+      {
+        "ysvDosyaNo": "YSV2027882",
+        "result": false,
+        "status": 422,
+        "error": {
+          "timestamp": "2026-09-22T16:43:23.940",
+          "reasons": [
+            {
+              "code": "RISK-HAVUZU-00004",
+              "message": "Mükerrer beyanname kaydı mevcuttur. Dosya no: YSV2027882"
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
