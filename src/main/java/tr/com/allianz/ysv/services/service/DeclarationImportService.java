@@ -58,6 +58,9 @@ public class DeclarationImportService {
      *   <li>Beyannamenin kimliği (il/ilçe) değiştirilemez; gönderimdeki satır güncellenemez;
      *       başka dönemde kayıtlı dosya no ve SBM'ye gitmiş beyannameye yeni menkul tipi
      *       eklenemez — bunlar satır hatası olarak raporlanır.</li>
+     *   <li>Aynı il/ilçe/dönemde DB'de ya da dosyada başka bir dosya no varsa yeni beyanname
+     *       eklenmez (SBM yuva başına tek beyanname kabul eder; aynı gruba düşen iki beyannamenin
+     *       satırları tek isteğe karışırdı).</li>
      * </ul>
      */
     @Transactional
@@ -79,8 +82,11 @@ public class DeclarationImportService {
         }
 
         Map<String, List<DeclarationProcess>> existingByFileNo = new HashMap<>();
+        // SBM il-ilçe-dönem başına tek beyanname kabul eder (RISK-HAVUZU-00004): yuva -> dosya no
+        Map<String, String> slotOwners = new HashMap<>();
         for (DeclarationProcess existing : repository.lockByPeriod(rows.get(0).yil(), rows.get(0).ay())) {
             existingByFileNo.computeIfAbsent(existing.getSbmFileNo(), k -> new ArrayList<>()).add(existing);
+            slotOwners.putIfAbsent(slotKey(existing.getCityCode(), existing.getDistrictCode()), existing.getSbmFileNo());
         }
 
         Set<String> seenKeys = new HashSet<>();
@@ -115,10 +121,17 @@ public class DeclarationImportService {
             }
 
             String problem = insertProblem(sameFileNo, row);
+            String slot = slotKey(row.ilKodu(), row.ilceKodu());
+            String owner = slotOwners.get(slot);
+            if (problem == null && owner != null && !owner.equals(row.ysvDosyaNo())) {
+                problem = "Bu il/ilçe/dönem için başka bir beyanname kayıtlı (Dosya no: " + owner
+                        + "); il-ilçe-dönem başına tek beyanname olabilir.";
+            }
             if (problem != null) {
                 errors.add(error(row, CONFLICT_CODE, problem));
                 continue;
             }
+            slotOwners.putIfAbsent(slot, row.ysvDosyaNo());
             toInsert.add(toEntity(row, fileName, user));
         }
 
@@ -203,6 +216,10 @@ public class DeclarationImportService {
     }
 
     /** OPUS büyükşehiri 0 ile verir; DB'de null da olabilir — ikisi aynı anlamdadır. */
+    private static String slotKey(Integer cityCode, Integer districtCode) {
+        return cityCode + "/" + normalizeDistrict(districtCode);
+    }
+
     private static Integer normalizeDistrict(Integer districtCode) {
         return districtCode == null ? Integer.valueOf(0) : districtCode;
     }

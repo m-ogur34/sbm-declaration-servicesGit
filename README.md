@@ -313,7 +313,7 @@ Anahtar `ysvDosyaNo + menkulTipi`; bir dosya tek dönem içerir (değilse tüm d
 | Satır DB'de yok | `NEW` olarak eklenir |
 | Satır DB'de var, değerler farklı | Güncellenir, öncesi/sonrası `ALZ_SBM_DECL_LOG`'a (`LOCAL_UPDATE`); `COMPLETED` → `SENT`. Dosya no cevaptaki `updatedFileNos`'a girer → SBM'ye taşımak için `PUT /update` gövdesinde `ysvDosyaNoList` olarak verilir |
 | Satır DB'de var, değerler aynı | Dokunulmaz |
-| İl/ilçe farklı, satır `PROCESSING`, dosya no başka dönemde, SBM'deki beyannameye yeni menkul tipi | Satır hatası (`ALZ-EXCEL-CONFLICT` / `ALZ-EXCEL-BUSY`) |
+| İl/ilçe farklı, satır `PROCESSING`, dosya no başka dönemde, SBM'deki beyannameye yeni menkul tipi, aynı il/ilçe/dönemde başka dosya no (DB'de veya dosyada) | Satır hatası (`ALZ-EXCEL-CONFLICT` / `ALZ-EXCEL-BUSY`) |
 | Dosyada aynı anahtar iki kez | `ALZ-EXCEL-DUPLICATE` |
 
 ### Durum kuralları

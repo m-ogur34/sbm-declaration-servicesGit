@@ -138,6 +138,52 @@ class DeclarationImportServiceTest {
     }
 
     @Test
+    @DisplayName("a new declaration for a city/district/period already held by another file number is refused")
+    void slotHeldByOtherFileNoInDb_isConflict() {
+        when(repository.lockByPeriod(any(), any()))
+                .thenReturn(List.of(existing(1L, "PENTEST260801", MovableType.MENKUL, ProcessStatus.SENT)));
+        sheet(row(2, "YSV-1", MovableType.MENKUL));
+
+        ImportResultResponse result = service.importFile(file(), USER);
+
+        assertThat(result.inserted()).isZero();
+        assertThat(result.errors()).singleElement().satisfies(e -> {
+            assertThat(e.code()).isEqualTo(DeclarationImportService.CONFLICT_CODE);
+            assertThat(e.message()).contains("PENTEST260801");
+        });
+    }
+
+    @Test
+    @DisplayName("two file numbers for the same city/district in one file: the first wins, the second is refused")
+    void slotHeldByOtherFileNoInSameFile_isConflict() {
+        sheet(row(2, "YSV-1", MovableType.MENKUL), row(3, "YSV-1", MovableType.GAYRIMENKUL),
+                row(4, "YSV-2", MovableType.MENKUL));
+
+        ImportResultResponse result = service.importFile(file(), USER);
+
+        assertThat(result.inserted()).isEqualTo(2);
+        assertThat(result.errors()).singleElement().satisfies(e -> {
+            assertThat(e.code()).isEqualTo(DeclarationImportService.CONFLICT_CODE);
+            assertThat(e.message()).contains("YSV-1");
+        });
+    }
+
+    @Test
+    @DisplayName("a different district in the same city is a different slot")
+    void otherDistrict_isNotASlotConflict() {
+        when(repository.lockByPeriod(any(), any()))
+                .thenReturn(List.of(existing(1L, "YSV-1", MovableType.MENKUL, ProcessStatus.SENT)));
+        BigDecimal one = new BigDecimal("1.00");
+        sheet(new ParsedRow(2, 8, 34, 1234, 2026, "YSV-2", PAYMENT, MovableType.MENKUL,
+                one, one, one, 10, one, null));
+
+        ImportResultResponse result = service.importFile(file(), USER);
+
+        assertThat(result.inserted()).isEqualTo(1);
+        assertThat(result.failed()).isZero();
+    }
+
+    @Test
     @DisplayName("the same ysvDosyaNo + menkulTipi twice in one file is reported once")
     void duplicateKeyInFile_isReported() {
         sheet(row(2, "YSV-1", MovableType.MENKUL), row(3, "YSV-1", MovableType.MENKUL));
