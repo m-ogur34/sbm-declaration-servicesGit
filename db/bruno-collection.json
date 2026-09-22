@@ -53,7 +53,7 @@
         },
         "assertions": [],
         "tests": "",
-        "docs": "Pen Test/test-1-yukleme.xlsx: 12 satir, 6 beyanname (PENTEST260811-16), donem 2026-8.\nBeklenen: inserted=12, updated=0, failed=0. Import sonrasi Body > File'dan dosyayi diskinizden secin."
+        "docs": "Pen Test/test-1-yukleme.xlsx: 12 satir, 6 beyanname (PENTEST260821-16), donem 2026-8.\nBeklenen: inserted=12, updated=0, failed=0. Import sonrasi Body > File'dan dosyayi diskinizden secin."
       }
     },
     {
@@ -107,7 +107,7 @@
         },
         "assertions": [],
         "tests": "",
-        "docs": "Ayni 12 satir; PENTEST260812 ve PENTEST260814'un tutarlari %20 artirilmis.\nBeklenen: inserted=0, updated=4, updatedFileNos=[PENTEST260812, PENTEST260814]. Sonra 06 ile SBM'ye tasiyin."
+        "docs": "Ayni 12 satir; PENTEST260822 ve PENTEST260824'un tutarlari %20 artirilmis.\nBeklenen: inserted=0, updated=4, updatedFileNos=[PENTEST260822, PENTEST260824]. Sonra 06 ile SBM'ye tasiyin."
       }
     },
     {
@@ -206,10 +206,10 @@
     },
     {
       "type": "http",
-      "name": "04 - Tekli gonder (PENTEST260811)",
+      "name": "04 - Tekli gonder (PENTEST260821)",
       "seq": 5,
       "request": {
-        "url": "{{baseUrl}}/api/v1/declarations/PENTEST260811/send",
+        "url": "{{baseUrl}}/api/v1/declarations/PENTEST260821/send",
         "method": "POST",
         "headers": [
           {
@@ -250,10 +250,10 @@
     },
     {
       "type": "http",
-      "name": "05 - Tekli guncelle (PENTEST260811)",
+      "name": "05 - Tekli guncelle (PENTEST260821)",
       "seq": 6,
       "request": {
-        "url": "{{baseUrl}}/api/v1/declarations/PENTEST260811",
+        "url": "{{baseUrl}}/api/v1/declarations/PENTEST260821",
         "method": "PUT",
         "headers": [
           {
@@ -280,7 +280,7 @@
         "params": [],
         "body": {
           "mode": "json",
-          "json": "{\n  \"sonOdemeTarihi\": \"2026-09-20\",\n  \"ysvTutarList\": [\n    {\n      \"menkulTipi\": \"MENKUL\",\n      \"alinanPrimTutari\": 900000.0,\n      \"iptalPrimTutari\": 20000.0,\n      \"odenecekVergi\": 88000.0,\n      \"vergiOrani\": 10,\n      \"vergiPrimTutari\": 880000.0\n    },\n    {\n      \"menkulTipi\": \"GAYRIMENKUL\",\n      \"alinanPrimTutari\": 450000.0,\n      \"iptalPrimTutari\": 10000.0,\n      \"odenecekVergi\": 44000.0,\n      \"vergiOrani\": 10,\n      \"vergiPrimTutari\": 440000.0\n    }\n  ]\n}"
+          "json": "{\n  \"sonOdemeTarihi\": \"2026-09-20\",\n  \"ysvTutarList\": [\n    {\n      \"menkulTipi\": \"MENKUL\",\n      \"alinanPrimTutari\": 800000.0,\n      \"iptalPrimTutari\": 18000.0,\n      \"odenecekVergi\": 78200.0,\n      \"vergiOrani\": 10,\n      \"vergiPrimTutari\": 782000.0\n    },\n    {\n      \"menkulTipi\": \"GAYRIMENKUL\",\n      \"alinanPrimTutari\": 400000.0,\n      \"iptalPrimTutari\": 9000.0,\n      \"odenecekVergi\": 39100.0,\n      \"vergiOrani\": 10,\n      \"vergiPrimTutari\": 391000.0\n    }\n  ]\n}"
         },
         "auth": {
           "mode": "none"
@@ -330,7 +330,7 @@
         "params": [],
         "body": {
           "mode": "json",
-          "json": "{\n  \"ysvDosyaNoList\": [\n    \"PENTEST260812\",\n    \"PENTEST260814\"\n  ]\n}"
+          "json": "{\n  \"ysvDosyaNoList\": [\n    \"PENTEST260822\",\n    \"PENTEST260824\"\n  ]\n}"
         },
         "auth": {
           "mode": "none"
@@ -350,10 +350,10 @@
     },
     {
       "type": "http",
-      "name": "07 - Tekli sorgula (PENTEST260811)",
+      "name": "07 - Tekli sorgula (PENTEST260821)",
       "seq": 8,
       "request": {
-        "url": "{{baseUrl}}/api/v1/declarations/PENTEST260811",
+        "url": "{{baseUrl}}/api/v1/declarations/PENTEST260821",
         "method": "GET",
         "headers": [
           {
@@ -444,10 +444,10 @@
     },
     {
       "type": "http",
-      "name": "09 - Tekli iptal (PENTEST260811)",
+      "name": "09 - Tekli iptal (PENTEST260821)",
       "seq": 10,
       "request": {
-        "url": "{{baseUrl}}/api/v1/declarations/PENTEST260811/cancel",
+        "url": "{{baseUrl}}/api/v1/declarations/PENTEST260821/cancel",
         "method": "POST",
         "headers": [
           {
@@ -491,7 +491,7 @@
       "name": "07b - Tekli sorgula, kimlikle (VKN)",
       "seq": 11,
       "request": {
-        "url": "{{baseUrl}}/api/v1/declarations/PENTEST260811",
+        "url": "{{baseUrl}}/api/v1/declarations/PENTEST260821",
         "method": "GET",
         "headers": [
           {
@@ -535,7 +535,7 @@
       "name": "12 - Negatif: hatali kimlik basligi",
       "seq": 12,
       "request": {
-        "url": "{{baseUrl}}/api/v1/declarations/PENTEST260811/send",
+        "url": "{{baseUrl}}/api/v1/declarations/PENTEST260821/send",
         "method": "POST",
         "headers": [
           {
