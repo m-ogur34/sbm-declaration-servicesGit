@@ -4,7 +4,7 @@
   "items": [
     {
       "type": "http",
-      "name": "01 - Excel yukle (upsert)",
+      "name": "01 - Excel yukle (test-1-yukleme)",
       "seq": 1,
       "request": {
         "url": "{{baseUrl}}/api/v1/declarations/upload",
@@ -34,7 +34,7 @@
               "type": "file",
               "name": "file",
               "value": [
-                "pentest-ornek-beyanname.xlsx"
+                "test-1-yukleme.xlsx"
               ],
               "enabled": true
             }
@@ -53,13 +53,67 @@
         },
         "assertions": [],
         "tests": "",
-        "docs": "pentest-ornek-beyanname.xlsx (12 satir, 6 beyanname, donem 2026-8). Import sonrasi Body > File alanindan dosyayi diskinizden yeniden secin.\n\nIlk yukleme: inserted=12. Ayni dosya tekrar: degisen yoksa inserted=0, updated=0. Tutar degistirip yuklerseniz updated>0 ve updatedFileNos doner -> 06 numarali istekle SBM'ye tasiyin."
+        "docs": "Pen Test/test-1-yukleme.xlsx: 12 satir, 6 beyanname (PENTEST260811-16), donem 2026-8.\nBeklenen: inserted=12, updated=0, failed=0. Import sonrasi Body > File'dan dosyayi diskinizden secin."
+      }
+    },
+    {
+      "type": "http",
+      "name": "01b - Excel yukle (test-2-duzeltme, upsert)",
+      "seq": 2,
+      "request": {
+        "url": "{{baseUrl}}/api/v1/declarations/upload",
+        "method": "POST",
+        "headers": [
+          {
+            "name": "X-User-Name",
+            "value": "pentest",
+            "enabled": true
+          },
+          {
+            "name": "X-Requester-Id-Type",
+            "value": "1",
+            "enabled": false
+          },
+          {
+            "name": "X-Requester-Id-No",
+            "value": "12345678901",
+            "enabled": false
+          }
+        ],
+        "params": [],
+        "body": {
+          "mode": "multipartForm",
+          "multipartForm": [
+            {
+              "type": "file",
+              "name": "file",
+              "value": [
+                "test-2-duzeltme.xlsx"
+              ],
+              "enabled": true
+            }
+          ]
+        },
+        "auth": {
+          "mode": "none"
+        },
+        "script": {
+          "req": "",
+          "res": ""
+        },
+        "vars": {
+          "req": [],
+          "res": []
+        },
+        "assertions": [],
+        "tests": "",
+        "docs": "Ayni 12 satir; PENTEST260812 ve PENTEST260814'un tutarlari %20 artirilmis.\nBeklenen: inserted=0, updated=4, updatedFileNos=[PENTEST260812, PENTEST260814]. Sonra 06 ile SBM'ye tasiyin."
       }
     },
     {
       "type": "http",
       "name": "02 - Kayitlari listele",
-      "seq": 2,
+      "seq": 3,
       "request": {
         "url": "{{baseUrl}}/api/v1/declarations/processes?year=2026&month=8&size=50&sort=id,desc",
         "method": "GET",
@@ -103,7 +157,7 @@
     {
       "type": "http",
       "name": "03 - Toplu gonder (donem 2026-8)",
-      "seq": 3,
+      "seq": 4,
       "request": {
         "url": "{{baseUrl}}/api/v1/declarations/send",
         "method": "POST",
@@ -152,10 +206,10 @@
     },
     {
       "type": "http",
-      "name": "04 - Tekli gonder (PENTEST260801)",
-      "seq": 4,
+      "name": "04 - Tekli gonder (PENTEST260811)",
+      "seq": 5,
       "request": {
-        "url": "{{baseUrl}}/api/v1/declarations/PENTEST260801/send",
+        "url": "{{baseUrl}}/api/v1/declarations/PENTEST260811/send",
         "method": "POST",
         "headers": [
           {
@@ -196,10 +250,10 @@
     },
     {
       "type": "http",
-      "name": "05 - Tekli guncelle (PENTEST260801)",
-      "seq": 5,
+      "name": "05 - Tekli guncelle (PENTEST260811)",
+      "seq": 6,
       "request": {
-        "url": "{{baseUrl}}/api/v1/declarations/PENTEST260801",
+        "url": "{{baseUrl}}/api/v1/declarations/PENTEST260811",
         "method": "PUT",
         "headers": [
           {
@@ -226,7 +280,7 @@
         "params": [],
         "body": {
           "mode": "json",
-          "json": "{\n  \"sonOdemeTarihi\": \"2026-09-20\",\n  \"ysvTutarList\": [\n    {\n      \"menkulTipi\": \"MENKUL\",\n      \"alinanPrimTutari\": 2000000.0,\n      \"iptalPrimTutari\": 50000.0,\n      \"odenecekVergi\": 195000.0,\n      \"vergiOrani\": 10,\n      \"vergiPrimTutari\": 1950000.0\n    },\n    {\n      \"menkulTipi\": \"GAYRIMENKUL\",\n      \"alinanPrimTutari\": 1000000.0,\n      \"iptalPrimTutari\": 25000.0,\n      \"odenecekVergi\": 97500.0,\n      \"vergiOrani\": 10,\n      \"vergiPrimTutari\": 975000.0\n    }\n  ]\n}"
+          "json": "{\n  \"sonOdemeTarihi\": \"2026-09-20\",\n  \"ysvTutarList\": [\n    {\n      \"menkulTipi\": \"MENKUL\",\n      \"alinanPrimTutari\": 900000.0,\n      \"iptalPrimTutari\": 20000.0,\n      \"odenecekVergi\": 88000.0,\n      \"vergiOrani\": 10,\n      \"vergiPrimTutari\": 880000.0\n    },\n    {\n      \"menkulTipi\": \"GAYRIMENKUL\",\n      \"alinanPrimTutari\": 450000.0,\n      \"iptalPrimTutari\": 10000.0,\n      \"odenecekVergi\": 44000.0,\n      \"vergiOrani\": 10,\n      \"vergiPrimTutari\": 440000.0\n    }\n  ]\n}"
         },
         "auth": {
           "mode": "none"
@@ -247,7 +301,7 @@
     {
       "type": "http",
       "name": "06 - Toplu guncelle (dosya listesiyle)",
-      "seq": 6,
+      "seq": 7,
       "request": {
         "url": "{{baseUrl}}/api/v1/declarations/update",
         "method": "PUT",
@@ -276,7 +330,7 @@
         "params": [],
         "body": {
           "mode": "json",
-          "json": "{\n  \"ysvDosyaNoList\": [\n    \"PENTEST260801\",\n    \"PENTEST260802\"\n  ]\n}"
+          "json": "{\n  \"ysvDosyaNoList\": [\n    \"PENTEST260812\",\n    \"PENTEST260814\"\n  ]\n}"
         },
         "auth": {
           "mode": "none"
@@ -296,10 +350,10 @@
     },
     {
       "type": "http",
-      "name": "07 - Tekli sorgula (PENTEST260801)",
-      "seq": 7,
+      "name": "07 - Tekli sorgula (PENTEST260811)",
+      "seq": 8,
       "request": {
-        "url": "{{baseUrl}}/api/v1/declarations/PENTEST260801",
+        "url": "{{baseUrl}}/api/v1/declarations/PENTEST260811",
         "method": "GET",
         "headers": [
           {
@@ -341,7 +395,7 @@
     {
       "type": "http",
       "name": "08 - Toplu sorgula (donem 2026-8)",
-      "seq": 8,
+      "seq": 9,
       "request": {
         "url": "{{baseUrl}}/api/v1/declarations/query",
         "method": "POST",
@@ -390,10 +444,10 @@
     },
     {
       "type": "http",
-      "name": "09 - Tekli iptal (PENTEST260801)",
-      "seq": 9,
+      "name": "09 - Tekli iptal (PENTEST260811)",
+      "seq": 10,
       "request": {
-        "url": "{{baseUrl}}/api/v1/declarations/PENTEST260801/cancel",
+        "url": "{{baseUrl}}/api/v1/declarations/PENTEST260811/cancel",
         "method": "POST",
         "headers": [
           {
@@ -430,6 +484,94 @@
         "assertions": [],
         "tests": "",
         "docs": "SBM'de silme yok: tum tutarlar 0 ile PUT edilir. DIKKAT: geri almak icin 05 ile tutarlari tekrar gonderin.\n\nKimlik: X-Requester-Id-Type / X-Requester-Id-No başlıkları kapalı gelir; kapalıyken token servisi şirket VKN'sini döner (toplu işlem). İşlemi yapanın kimliğiyle göndermek için ikisini de açıp gerçek değer yazın (tip 1/2/4; TCKN/YKN 11, VKN 10 hane)."
+      }
+    },
+    {
+      "type": "http",
+      "name": "07b - Tekli sorgula, kimlikle (VKN)",
+      "seq": 11,
+      "request": {
+        "url": "{{baseUrl}}/api/v1/declarations/PENTEST260811",
+        "method": "GET",
+        "headers": [
+          {
+            "name": "X-User-Name",
+            "value": "pentest",
+            "enabled": true
+          },
+          {
+            "name": "X-Requester-Id-Type",
+            "value": "2",
+            "enabled": true
+          },
+          {
+            "name": "X-Requester-Id-No",
+            "value": "8000013270",
+            "enabled": true
+          }
+        ],
+        "params": [],
+        "body": {
+          "mode": "none"
+        },
+        "auth": {
+          "mode": "none"
+        },
+        "script": {
+          "req": "",
+          "res": ""
+        },
+        "vars": {
+          "req": [],
+          "res": []
+        },
+        "assertions": [],
+        "tests": "",
+        "docs": "Islemi yapan olarak Allianz VKN'si ile. Uygulama logunda 'requester=2/8000013270' ve ALZ_SBM_DECL_LOG.LOG_MESSAGE'da 'Requester: 2/8000013270' gorulmeli."
+      }
+    },
+    {
+      "type": "http",
+      "name": "12 - Negatif: hatali kimlik basligi",
+      "seq": 12,
+      "request": {
+        "url": "{{baseUrl}}/api/v1/declarations/PENTEST260811/send",
+        "method": "POST",
+        "headers": [
+          {
+            "name": "X-User-Name",
+            "value": "pentest",
+            "enabled": true
+          },
+          {
+            "name": "X-Requester-Id-Type",
+            "value": "3",
+            "enabled": true
+          },
+          {
+            "name": "X-Requester-Id-No",
+            "value": "12345678901",
+            "enabled": true
+          }
+        ],
+        "params": [],
+        "body": {
+          "mode": "none"
+        },
+        "auth": {
+          "mode": "none"
+        },
+        "script": {
+          "req": "",
+          "res": ""
+        },
+        "vars": {
+          "req": [],
+          "res": []
+        },
+        "assertions": [],
+        "tests": "",
+        "docs": "Beklenen: 400 ALZ-VALIDATION; token servisine ve SBM'ye istek gitmez."
       }
     }
   ],
