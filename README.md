@@ -209,64 +209,118 @@ Testler DB gerektirmez: repository'ler Mockito ile, REST çağrıları
 
 ## 4. REST API
 
-Base path: `/api/v1/declarations`
-Tetikleyen kullanıcı `X-User-Name` header'ından okunur (yoksa `SYSTEM`).
+Base path: `/api/v1/declarations`. Anahtar **`ysvDosyaNo`**'dur (Excel'de ve SBM'de olan
+numara); iç `id` dış API'de kullanılmaz.
 
-| Metot | Path | Açıklama |
+### İsteği başlatanın bilgileri (header)
+
+| Header | Zorunlu | Anlamı |
 |---|---|---|
-| `POST` | `/send` | Filtreye uyan `NEW`/`ERROR` kayıtları SBM'ye POST eder |
-| `PUT` | `/update` | Filtreye uyan `SENT`/`COMPLETED` kayıtları SBM'de günceller |
-| `POST` | `/cancel` | Tutarları 0'layarak PUT eder (SBM'de silme yoktur) |
-| `GET` | `/query/{ysvDosyaNo}` | SBM'den sorgular, onaylanırsa `COMPLETED` yapar |
-| `GET` | `/processes` | Sayfalı liste (status, yıl, ay, il filtreli) |
+| `X-User-Name` | Hayır | DB'deki `CREATED_BY_USER` / `SENT_BY_USER` / `UPDATED_BY_USER`. Yoksa `SYSTEM`. En fazla 100 karakter, kontrol karakteri içeremez |
+| `X-Requester-Id-Type` | Hayır | İşlemi yapanın kimlik tipi: `1` T.C. Kimlik No, `2` VKN, `4` Yabancı Kimlik No |
+| `X-Requester-Id-No` | Hayır | Kimlik numarası: TCKN/YKN 11, VKN 10 hane |
 
-İstek gövdesi (send / update / cancel):
+Kimlik ikilisi ya birlikte gelir ya hiç gelmez (aksi 400). **Geldiyse** token isteğine
+`clientIdentityType` / `clientIdentityNo` olarak gider, token servisi aynen geri döner ve
+SBM'ye `Requester-ID-Type` / `Requester-ID-No` başlığı olarak iletilir. **Gelmediyse** token
+isteğine kimlik konmaz, token servisi `companyCode`'a göre **Allianz VKN'sini** döner — SBM
+Entegrasyon Dokümanı §5.1'in toplu işlemler için tarif ettiği yol. Üçü de tek bir
+`RequestContext` nesnesinde toplanır (`RequestContextArgumentResolver`).
+
+> Uygulamada kimlik doğrulama yoktur; bu başlıkların güvenilir bir kaynaktan (gateway /
+> UI backend) gelmesi beklenir. Uygulama yalnızca biçimi doğrular.
+
+### Uçlar
+
+| İşlem | Toplu (filtre gövdesi) | Tekli |
+|---|---|---|
+| Excel yükle (upsert) | `POST /upload` (multipart, `file`) | — |
+| Gönder | `POST /send` | `POST /{ysvDosyaNo}/send` |
+| Güncelle | `PUT /update` — DB'deki değerleri SBM'ye PUT eder | `PUT /{ysvDosyaNo}` — yeni tutarları DB'ye yazar, beyanname SBM'deyse aynı çağrıda PUT eder |
+| Sorgula | `POST /query` — SBM'den doğrular, `COMPLETED` yapar | `GET /{ysvDosyaNo}` — SBM cevabını döner |
+| İptal (tutarlar 0) | `POST /cancel` | `POST /{ysvDosyaNo}/cancel` |
+| Listele | `GET /processes?status=&year=&month=&cityCode=&page=&size=&sort=` | — |
+
+Filtre gövdesi (toplu uçlar):
 
 ```json
-{ "year": 2026, "month": 1, "cityCode": null, "processIds": [] }
+{ "year": 2026, "month": 8, "cityCode": 34, "ysvDosyaNoList": ["PENTEST260801"] }
 ```
 
-`processIds` doluysa diğer filtreler dikkate alınmaz.
+`ysvDosyaNoList` doluysa diğer alanlar dikkate alınmaz (en fazla 1000 — Oracle `IN` sınırı).
+
+Tekli güncelleme gövdesi — SBM'nin PUT gövdesiyle aynı yapıda:
+
+```json
+{
+  "sonOdemeTarihi": "2026-09-20",
+  "ysvTutarList": [
+    { "menkulTipi": "MENKUL", "alinanPrimTutari": 2000000.00, "iptalPrimTutari": 50000.00,
+      "odenecekVergi": 195000.00, "vergiOrani": 10, "vergiPrimTutari": 1950000.00 }
+  ]
+}
+```
+
+Listede olmayan menkul tipinin tutarları değişmez. Beyannamenin kimliğini kuran alanlar
+(yıl, ay, il, ilçe, `ysvDosyaNo`) değiştirilemez; beyannamede olmayan bir menkul tipi
+eklenemez. Cevap: `{ ysvDosyaNo, sentToSbm, success, errorCode, message, rows[] }`.
 
 Toplu işlem sonucu:
 
 ```json
-{ "totalGroups": 120, "successCount": 118, "failCount": 2,
+{ "totalGroups": 6, "successCount": 5, "failCount": 1,
   "failures": [ { "ysvDosyaNo": "...", "errorCode": "...", "message": "..." } ] }
 ```
 
-Hata gövdesi (tüm hatalar için tek tip):
+### Excel yükleme (upsert)
 
-```json
-{ "timestamp": "...", "path": "...", "code": "...", "message": "...", "details": [] }
-```
+Anahtar `ysvDosyaNo + menkulTipi`; bir dosya tek dönem içerir (değilse tüm dosya 400).
 
-Örnek istekler: [`docs/api-examples.http`](docs/api-examples.http)
+| Durum | Sonuç |
+|---|---|
+| Satır DB'de yok | `NEW` olarak eklenir |
+| Satır DB'de var, değerler farklı | Güncellenir, öncesi/sonrası `ALZ_SBM_DECL_LOG`'a (`LOCAL_UPDATE`); `COMPLETED` → `SENT`. Dosya no cevaptaki `updatedFileNos`'a girer → SBM'ye taşımak için `PUT /update` gövdesinde `ysvDosyaNoList` olarak verilir |
+| Satır DB'de var, değerler aynı | Dokunulmaz |
+| İl/ilçe farklı, satır `PROCESSING`, dosya no başka dönemde, SBM'deki beyannameye yeni menkul tipi | Satır hatası (`ALZ-EXCEL-CONFLICT` / `ALZ-EXCEL-BUSY`) |
+| Dosyada aynı anahtar iki kez | `ALZ-EXCEL-DUPLICATE` |
 
-### Güncelleme akışı
-
-SBM'ye gönderilmiş bir beyannamenin tutarı değişecekse iki adım vardır:
-
-1. `PUT /api/v1/declarations/{id}` — satırın tutarlarını **veritabanında** düzeltir.
-   SBM'ye bir şey göndermez. Prod DB'de manuel `UPDATE` yasak olduğu için düzeltmenin
-   tek yolu budur; her değişiklik öncesi/sonrası değerleriyle `ALZ_SBM_DECL_LOG`'a
-   (`OPERATION_TYPE = LOCAL_UPDATE`) yazılır.
-2. `PUT /api/v1/declarations/update` — düzeltilmiş satırları SBM'ye taşır.
-
-Beyannamenin kimliğini belirleyen alanlar (`yıl`, `ay`, `ilKodu`, `ilceKodu`,
-`ysvDosyaNo`, `menkulTipi`) 1. adımda **değiştirilemez**; değişirlerse SBM'deki kayıtla
-bağ kopar. Değiştirilebilenler: dört tutar, `vergiOrani`, `gecmisAyIadeTutari` ve
-`sonOdemeTarihi`.
-
-Durum kuralları:
+### Durum kuralları
 
 | Olay | Sonuç |
 |---|---|
-| `COMPLETED` satırın tutarı değişti | `SENT` — yereldeki veri artık SBM'dekinden farklı, yeniden gönderilip doğrulanmalı |
-| `PROCESSING` satır düzenlenmek istendi | 400 — satır o anda SBM'ye gidiyor |
-| POST (gönder) başarısız | `ERROR` — kayıt SBM'ye girmedi, düzeltilip yeniden gönderilebilir |
-| PUT (güncelle) başarısız | Satır **önceki durumunda kalır** (`SENT`/`COMPLETED`), sadece `ERROR_DETAILS` yazılır. `ERROR` yazılsaydı bir sonraki "gönder" kaydı tekrar POST eder ve SBM'de mükerrer beyanname oluşurdu |
-| POST `RISK-HAVUZU-00004` döndü | `SENT` — beyanname SBM'de zaten var (ör. eski SOAP entegrasyonundan). Artık POST denenmez, güncelleme (PUT) ile yönetilir |
+| POST başarısız | `ERROR` — kayıt SBM'ye girmedi, yeniden gönderilebilir |
+| POST `RISK-HAVUZU-00004` (mükerrer) | `SENT` — beyanname SBM'de zaten var (ör. eski SOAP'tan); PUT ile yönetilir |
+| PUT başarısız | Satır **önceki durumunda kalır**, sadece `ERROR_DETAILS` yazılır — `ERROR` olsaydı "gönder" kaydı tekrar POST ederdi |
+| `COMPLETED` satırın değeri değişti (tekli güncelleme / Excel) | `SENT` — SBM'deki veriyle artık aynı değil, yeniden doğrulanmalı |
+| `PROCESSING` satır düzenlenmek istendi | 400 |
+
+### İzlenebilirlik — `Transaction-Id`
+
+Her SBM çağrısı için tek bir UUID üretilir; hem token isteğinin `transactionId`'si hem SBM'nin
+`Transaction-Id` başlığı olarak gider (SBM Entegrasyon Dokümanı §5.2), tekrar denemelerde de
+aynı kalır. SBM aynı değeri cevapta geri döner. `ALZ_SBM_DECL_LOG.LOG_MESSAGE` şunu içerir:
+
+```
+PUT PENTEST260801 başarılı (HTTP 200, Transaction-Id: 3f2a…, Requester: 1/12*******01, kullanıcı: muhammed.ogur)
+```
+
+TCKN/YKN maskelenir (ilk ve son iki hane), VKN olduğu gibi yazılır. Token servisi logu,
+uygulama logu, DB ve SBM destek talebi tek numarayla eşleşir.
+
+### Hata cevapları
+
+Tüm hatalar tek biçimdedir: `{ "timestamp", "path", "code", "message", "details" }`.
+
+| HTTP | `code` | Ne zaman |
+|---|---|---|
+| 400 | `ALZ-VALIDATION` | Alan/parametre/başlık doğrulaması (`details`'te alan bazlı mesajlar) |
+| 400/405/413/415 | `ALZ-REQUEST` | Bozuk JSON, eksik parametre, yanlış metot, dosya >10MB, içerik tipi |
+| 404 | `ALZ-NOT-FOUND` | Dosya no DB'de yok |
+| 502 | SBM kodu (ör. `CORE-01001`) | SBM isteği reddetti |
+| 503 | `SEC-00001` | Token alınamadı |
+| 500 | `ALZ-INTERNAL` | Beklenmeyen hata — mesaj genel, `details` boş; ayrıntı yalnızca uygulama logunda |
+
+İstemciye hiçbir durumda istisna mesajı, sınıf adı ya da iç adres dönülmez.
 
 ---
 

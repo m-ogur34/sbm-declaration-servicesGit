@@ -181,6 +181,12 @@ Content-Type: application/json
   (Hüseyin Dağ / Ömer Faruk Ceylan) netleşince ortam config'inden değiştirilir.
 - `transactionId`: her istekte yeni UUID; loglarda izlenebilir olmalı.
 
+> ⟲ **2026-09-22 güncellemesi:** İstekte `userName` artık gönderilmez. İşlemi yapanın kimliği
+> istek başlıklarından (`X-Requester-Id-Type/No`) gelirse `clientIdentityType/No` olarak
+> gönderilir; gelmezse kimlik gönderilmez ve token servisi şirket VKN'sini döner (SBM Entegrasyon
+> Dokümanı §5.1, token dokümanı "kaynak önceliği"). `transactionId` = SBM'ye giden
+> `Transaction-Id`. Ayrıntı README §4.
+
 ### 4.2 Yanıt
 
 ```json

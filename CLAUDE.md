@@ -186,7 +186,7 @@ YSV'nin kendi token servisi **yoktur ve olmayacaktır**. Merkezi servis kullanı
 - Request alanları: `clientName` (= `ysv`), `transactionId` (her istekte yeni UUID),
   `functionName`, `userName`, `companyCode` (= `045`)
 - ⟳ `functionName` **ortam bazlı config**: `token-management.function-name` (default
-  `test`). Operasyona göre değişmez; kod bunu `OperationType`'tan türetmez.
+  `test`). ⟲ `userName` artık gönderilmez (bkz. §6 üstü, kimlik kararı). Operasyona göre değişmez; kod bunu `OperationType`'tan türetmez.
 - Response: `accessToken` + `clientCredentials`
   - `clientIdentityType` → SBM header `Requester-ID-Type`
   - `clientIdNumber` → SBM header `Requester-ID-No`
@@ -220,6 +220,28 @@ anahtarından beslenseler de birleştirilmez.
 varsa temizle.
 
 ---
+
+### ⟲ İşlemi yapanın kimliği ve Transaction-Id (2026-09-22)
+
+- İstek başlıkları: `X-User-Name` (DB'deki *_BY_USER), `X-Requester-Id-Type` + `X-Requester-Id-No`
+  (işlemi yapanın kimliği). Üçü tek `RequestContext` nesnesinde; controller'larda başlık sabiti
+  **tutulmaz** (`RequestContextArgumentResolver`).
+- Kimlik geldiyse token isteğine `clientIdentityType` / `clientIdentityNo` olarak gider; token
+  servisi aynen döner, SBM'ye `Requester-ID-*` olarak iletilir. **Gelmediyse token isteğine kimlik
+  ve `userName` konmaz → token servisi şirket VKN'sini döner** (SBM Entegrasyon Dokümanı §5.1:
+  toplu işlemde kurum VKN'si). Config'te sabit kişi (`token-management.user-name`) **yoktur**.
+- Token cevabı hem `clientIdentityNo` (dokümandaki ad) hem `clientIdNumber` (ortamdaki eski ad)
+  okunur (`@JsonAlias`).
+- Her SBM çağrısı için tek UUID: token `transactionId` = SBM `Transaction-Id` başlığı; retry'da
+  aynı kalır. `ALZ_SBM_DECL_LOG`'a yeni kolon **eklenmedi**; Transaction-Id ve maskeli kimlik
+  `LOG_MESSAGE` içinde.
+
+### ⟲ API (2026-09-22)
+
+- Anahtar `ysvDosyaNo`; dış API'de iç `id` / `processIds` **yoktur**.
+- Toplu (filtre `{year, month, cityCode, ysvDosyaNoList}`) ve tekli (`/{ysvDosyaNo}`) gönder,
+  güncelle, sorgula, iptal. Tekli güncelleme = DB + (SBM'deyse) PUT, tek çağrı.
+- Excel yükleme upsert'tür: anahtar `ysvDosyaNo + menkulTipi`. Ayrıntı README §4.
 
 ## 6. ESB
 
@@ -435,6 +457,9 @@ Tam liste `CALISMA-PRENSIBI.md` §11'de. Öne çıkanlar:
 - ❌ Dockerfile'a `USER` / `adduser` / `chown` / `HEALTHCHECK` ekleme — base image rootless
   UBI9; `addgroup`/`adduser`/`wget` yok.
 - ❌ `sbm.company-code` ile `token-management.company-code`'u tek property'de birleştirme.
+- ❌ Token isteğine config'ten sabit bir `userName` / kimlik koyma — kimlik istekten gelir, yoksa şirket VKN'si.
+- ❌ Hata cevabına istisna mesajı / iç adres yazma (PEN). Ayrıntı yalnızca loga.
+- ❌ helm `templates/*configmap.yaml`'da `range` gövdesini girintileme — 0. kolonda olmalı, yoksa ConfigMap geçersiz olur.
 - ❌ `.editorconfig`, `Jenkinsfile`, `lombok.config` gibi ek dosyalar bırakma.
 - ❌ Token cache'i ekleme.
 - ❌ `Requester-ID-Type` / `Requester-ID-No` header'larını hardcode etme.

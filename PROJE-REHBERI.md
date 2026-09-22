@@ -100,7 +100,7 @@ diğer 34 dosyada javadoc silme işlemi temiz yapılmış.
 |---|---|
 | `ExcelDeclarationParser` | İlk sheet, başlık adına göre kolon eşleme (sıra bağımsız), tip dönüşümü (seri tarih/gerçek tarih, `1`/`2` → `MovableType`, tutarlar `BigDecimal` scale 2 HALF_UP). Satır hatası diğer satırları durdurmaz. Sınır: 20.000 satır |
 | `DeclarationImportService` | Tek (yıl,ay) kuralı (ihlalde 400), DB'de mükerrer `ysvDosyaNo` reddi, `COMPANY_CODE=045`, `STATUS=NEW` insert |
-| `DeclarationService` | Aday seçimi (filtre: yıl/ay/il veya `processIds`), `DeclarationGroupKey` = (yıl, ay, ilKodu, ilceKodu) ile gruplama, grup grup çağırma. Batch **tek transaction değil** |
+| `DeclarationService` | Aday seçimi (filtre: yıl/ay/il veya `ysvDosyaNoList`; tekli uçlar `ysvDosyaNo`), `DeclarationGroupKey` = (yıl, ay, ilKodu, ilceKodu) ile gruplama, grup grup çağırma. Batch **tek transaction değil** |
 | `DeclarationGroupProcessor` | Tek grup = tek SBM isteği. Pesimistik kilit → durum uygunluk kontrolü → `PROCESSING` → çağrı → `SENT`/`ERROR` + audit log |
 | `SbmMapper` | Entity listesi → `SbmDeclarationRequest`. POST'ta `ay/yil/ilKodu/ilceKodu` dolu, PUT'ta `null` (⇒ `@JsonInclude(NON_NULL)` ile payload'a girmez). `ilceKodu` null/0 → alan hiç yok. Mükerrer menkul tipi → `RISK-HAVUZU-00005` |
 | `TokenManagementService` | Her çağrıda yeni UUID `transactionId` ile token; cache yok; `accessToken`/`clientIdNumber` maskeli loglanır |
@@ -123,20 +123,23 @@ Reddedilen tüm dosya halleri: .xlsx değil, sheet/başlık yok, zorunlu kolon e
 
 ### 2.2 Gönder (POST)
 ```
-POST /api/v1/declarations/send   { "year":2026, "month":7 }        (veya "processIds":[...])
+POST /api/v1/declarations/send   { "year":2026, "month":7 }        (veya "ysvDosyaNoList":[...])
+POST /api/v1/declarations/{ysvDosyaNo}/send                        (tekli)
 ```
 `NEW`+`ERROR` satırlar → gruplanır → grup başına: token → ESB POST → 2xx & `result==true` ise `SENT`.
 
 ### 2.3 Güncelle / İptal (PUT)
 ```
 PUT  /api/v1/declarations/update  { "year":2026, "month":7 }
-POST /api/v1/declarations/cancel  { "processIds":[123,124] }   ← tutarları 0 gönderir
+POST /api/v1/declarations/cancel  { "ysvDosyaNoList":["YSV1"] } ← tutarları 0 gönderir
+PUT  /api/v1/declarations/{ysvDosyaNo}   ← tekli: yeni tutarlar DB + (SBM'deyse) PUT
 ```
 `SENT`+`COMPLETED` satırlar → PUT gövdesi 4 alan + `ysvTutarList`.
 
 ### 2.4 Sorgu (GET)
 ```
-GET /api/v1/declarations/query/{ysvDosyaNo}
+GET  /api/v1/declarations/{ysvDosyaNo}    (tekli)
+POST /api/v1/declarations/query           (toplu, filtre)
 ```
 ESB'ye `GET <base>/sbmDeclarationServices?sigortaSirketKodu=045&ysvDosyaNo=...`;
 başarılıysa ilgili satırlar `SENT` → `COMPLETED`.
@@ -261,7 +264,7 @@ Dikkat edilecekler:
   kontrolü yapmadığı ilk POST'ta teyit edilmeli.
 - **Süre.** 580 satır = 290 grup = 290 token + 290 ESB çağrısı, tek senkron HTTP isteği
   içinde sırayla. Read timeout 60s **çağrı başına**; toplam süre gateway timeout'unu
-  aşabilir. İlk canlı çalıştırma `cityCode` veya `processIds` ile parçalı yapılmalı.
+  aşabilir. İlk canlı çalıştırma `cityCode` veya `ysvDosyaNoList` ile parçalı yapılmalı.
 
 ### 4.5 Helm chart iskeleti — ✅ accounting deseniyle uyumlu
 `Chart.yaml` (springboot-deployment 1.x.x, OCI repo), `common-configmap.yaml`/`configmap.yaml`
@@ -273,7 +276,9 @@ Eksikler yukarıdaki 4.3'te.
 
 ## 5. Güncelleme akışı — neden yanlıştı (2026-09-21'de düzeltildi)
 
-> **Durum: çözüldü.** `PUT /api/v1/declarations/{id}` ucu eklendi (tutarları DB'de
+> **Durum: çözüldü (2026-09-22'de yeniden kurgulandı).** Güncelleme artık `ysvDosyaNo` ile:
+> `PUT /api/v1/declarations/{ysvDosyaNo}` DB + SBM tek adımda; toplu düzeltme Excel upsert ile.
+> İlk sürümdeki id tabanlı uç kaldırıldı. Eski not: `PUT /api/v1/declarations/{id}` ucu eklenmişti (tutarları DB'de
 > düzeltir, SBM'ye göndermez), PUT hatası artık satırı `ERROR`'a düşürmüyor ve
 > `RISK-HAVUZU-00004` alan satır `SENT`'e alınıyor. Ayrıntı: `README.md` §"Güncelleme
 > akışı". Aşağıdaki teşhis kayıt amaçlı duruyor.
@@ -376,7 +381,7 @@ Taban URL: `http://localhost:8080/sbm-declaration-services`
 | T6 | Tipli gövde doğrulaması | `CORE-00005`/`CORE-00006` gelmemeli (SC-UAT'ta doğrulandı, canlıda tekrar) |
 | T7 | `update` aynı filtreyle | PUT gövdesinde `ay/yil/ilKodu/ilceKodu` yok, 4 alan + liste |
 | T8 | `query/{ysvDosyaNo}` | ESB GET route düzeldiyse `result:true`; satırlar `COMPLETED` |
-| T9 | `cancel` `{"processIds":[..]}` | SBM'de tutarlar 0; **DB'de tutarların değişmediğini not et** (§5.5) |
+| T9 | `POST /{ysvDosyaNo}/cancel` | SBM'de tutarlar 0; **DB'de tutarların değişmediğini not et** (§5.5) |
 | T10 | Token hata yolu: `userName`'i bozup `send` | `TokenException` → grup `ERROR`, `ERROR_DETAILS` dolu, SBM'ye hiçbir şey gitmemiş |
 | T11 | Tam dosya `send` (290 grup) | Süre ölçülür; gateway timeout'a takılırsa parçalı gönderim kararı |
 

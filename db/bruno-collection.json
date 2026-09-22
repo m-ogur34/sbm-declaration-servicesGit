@@ -4,7 +4,7 @@
   "items": [
     {
       "type": "http",
-      "name": "1 - Excel yukle",
+      "name": "01 - Excel yukle (upsert)",
       "seq": 1,
       "request": {
         "url": "{{baseUrl}}/api/v1/declarations/upload",
@@ -14,6 +14,16 @@
             "name": "X-User-Name",
             "value": "pentest",
             "enabled": true
+          },
+          {
+            "name": "X-Requester-Id-Type",
+            "value": "1",
+            "enabled": false
+          },
+          {
+            "name": "X-Requester-Id-No",
+            "value": "12345678901",
+            "enabled": false
           }
         ],
         "params": [],
@@ -43,17 +53,33 @@
         },
         "assertions": [],
         "tests": "",
-        "docs": "pentest-ornek-beyanname.xlsx dosyasini yukler (12 satir, 6 grup, donem 2026-8).\nONEMLI: Import sonrasi Bruno'da Body > File alanindan dosyayi kendi diskinizdeki\nyoldan yeniden secin; JSON icindeki yol goreceli tutuldu.\n\nBeklenen: 200, inserted=12, failed=0, errors=[].\nAyni dosya ikinci kez yuklenirse 12 satir da ALZ-EXCEL-DUPLICATE verir."
+        "docs": "pentest-ornek-beyanname.xlsx (12 satir, 6 beyanname, donem 2026-8). Import sonrasi Body > File alanindan dosyayi diskinizden yeniden secin.\n\nIlk yukleme: inserted=12. Ayni dosya tekrar: degisen yoksa inserted=0, updated=0. Tutar degistirip yuklerseniz updated>0 ve updatedFileNos doner -> 06 numarali istekle SBM'ye tasiyin."
       }
     },
     {
       "type": "http",
-      "name": "2 - Kayitlari listele",
+      "name": "02 - Kayitlari listele",
       "seq": 2,
       "request": {
-        "url": "{{baseUrl}}/api/v1/declarations/processes?status=NEW&year=2026&month=8&page=0&size=50&sort=id,desc",
+        "url": "{{baseUrl}}/api/v1/declarations/processes?year=2026&month=8&size=50&sort=id,desc",
         "method": "GET",
-        "headers": [],
+        "headers": [
+          {
+            "name": "X-User-Name",
+            "value": "pentest",
+            "enabled": true
+          },
+          {
+            "name": "X-Requester-Id-Type",
+            "value": "1",
+            "enabled": false
+          },
+          {
+            "name": "X-Requester-Id-No",
+            "value": "12345678901",
+            "enabled": false
+          }
+        ],
         "params": [],
         "body": {
           "mode": "none"
@@ -71,12 +97,12 @@
         },
         "assertions": [],
         "tests": "",
-        "docs": "Yuklenen satirlari ve ID'lerini gorur. Gonderim sonrasi status=SENT,\nsorgu sonrasi status=COMPLETED ile tekrar calistirilabilir."
+        "docs": "Durumlari gormek icin. status=NEW|SENT|COMPLETED|ERROR ekleyebilirsiniz."
       }
     },
     {
       "type": "http",
-      "name": "3 - Gonder (POST) - il 34",
+      "name": "03 - Toplu gonder (donem 2026-8)",
       "seq": 3,
       "request": {
         "url": "{{baseUrl}}/api/v1/declarations/send",
@@ -91,12 +117,22 @@
             "name": "X-User-Name",
             "value": "pentest",
             "enabled": true
+          },
+          {
+            "name": "X-Requester-Id-Type",
+            "value": "1",
+            "enabled": false
+          },
+          {
+            "name": "X-Requester-Id-No",
+            "value": "12345678901",
+            "enabled": false
           }
         ],
         "params": [],
         "body": {
           "mode": "json",
-          "json": "{\n  \"year\": 2026,\n  \"month\": 8,\n  \"cityCode\": 34\n}"
+          "json": "{\n  \"year\": 2026,\n  \"month\": 8\n}"
         },
         "auth": {
           "mode": "none"
@@ -111,13 +147,107 @@
         },
         "assertions": [],
         "tests": "",
-        "docs": "Ornek Excel'deki il 34 grubunu SBM'ye gonderir (1 grup = 2 satir:\nMENKUL + GAYRIMENKUL, ysvDosyaNo PENTEST260801, ilceKodu 0 oldugu icin\npayload'a konmaz).\n\nBeklenen: 200, totalGroups=1, successCount=1.\nTum dosyayi gondermek icin cityCode satirini silin (6 grup).\nDIKKAT: gercekten SBM'ye veri gonderir."
+        "docs": "NEW/ERROR tum beyannameleri SBM'ye POST eder (6 grup). DIKKAT: gercekten SBM'ye gonderir.\n\nKimlik: X-Requester-Id-Type / X-Requester-Id-No başlıkları kapalı gelir; kapalıyken token servisi şirket VKN'sini döner (toplu işlem). İşlemi yapanın kimliğiyle göndermek için ikisini de açıp gerçek değer yazın (tip 1/2/4; TCKN/YKN 11, VKN 10 hane)."
       }
     },
     {
       "type": "http",
-      "name": "4 - Guncelle (PUT) - il 34",
+      "name": "04 - Tekli gonder (PENTEST260801)",
       "seq": 4,
+      "request": {
+        "url": "{{baseUrl}}/api/v1/declarations/PENTEST260801/send",
+        "method": "POST",
+        "headers": [
+          {
+            "name": "X-User-Name",
+            "value": "pentest",
+            "enabled": true
+          },
+          {
+            "name": "X-Requester-Id-Type",
+            "value": "1",
+            "enabled": false
+          },
+          {
+            "name": "X-Requester-Id-No",
+            "value": "12345678901",
+            "enabled": false
+          }
+        ],
+        "params": [],
+        "body": {
+          "mode": "none"
+        },
+        "auth": {
+          "mode": "none"
+        },
+        "script": {
+          "req": "",
+          "res": ""
+        },
+        "vars": {
+          "req": [],
+          "res": []
+        },
+        "assertions": [],
+        "tests": "",
+        "docs": "Tek beyanname. Zaten gonderilmisse ALZ-STATUS-CONFLICT doner; dosya no yoksa 404.\n\nKimlik: X-Requester-Id-Type / X-Requester-Id-No başlıkları kapalı gelir; kapalıyken token servisi şirket VKN'sini döner (toplu işlem). İşlemi yapanın kimliğiyle göndermek için ikisini de açıp gerçek değer yazın (tip 1/2/4; TCKN/YKN 11, VKN 10 hane)."
+      }
+    },
+    {
+      "type": "http",
+      "name": "05 - Tekli guncelle (PENTEST260801)",
+      "seq": 5,
+      "request": {
+        "url": "{{baseUrl}}/api/v1/declarations/PENTEST260801",
+        "method": "PUT",
+        "headers": [
+          {
+            "name": "Content-Type",
+            "value": "application/json",
+            "enabled": true
+          },
+          {
+            "name": "X-User-Name",
+            "value": "pentest",
+            "enabled": true
+          },
+          {
+            "name": "X-Requester-Id-Type",
+            "value": "1",
+            "enabled": false
+          },
+          {
+            "name": "X-Requester-Id-No",
+            "value": "12345678901",
+            "enabled": false
+          }
+        ],
+        "params": [],
+        "body": {
+          "mode": "json",
+          "json": "{\n  \"sonOdemeTarihi\": \"2026-09-20\",\n  \"ysvTutarList\": [\n    {\n      \"menkulTipi\": \"MENKUL\",\n      \"alinanPrimTutari\": 2000000.0,\n      \"iptalPrimTutari\": 50000.0,\n      \"odenecekVergi\": 195000.0,\n      \"vergiOrani\": 10,\n      \"vergiPrimTutari\": 1950000.0\n    },\n    {\n      \"menkulTipi\": \"GAYRIMENKUL\",\n      \"alinanPrimTutari\": 1000000.0,\n      \"iptalPrimTutari\": 25000.0,\n      \"odenecekVergi\": 97500.0,\n      \"vergiOrani\": 10,\n      \"vergiPrimTutari\": 975000.0\n    }\n  ]\n}"
+        },
+        "auth": {
+          "mode": "none"
+        },
+        "script": {
+          "req": "",
+          "res": ""
+        },
+        "vars": {
+          "req": [],
+          "res": []
+        },
+        "assertions": [],
+        "tests": "",
+        "docs": "Yeni tutarlari DB'ye yazar; beyanname SBM'deyse (SENT/COMPLETED) ayni cagrida PUT eder (sentToSbm=true). Henuz gonderilmediyse sadece DB guncellenir.\n\nKimlik: X-Requester-Id-Type / X-Requester-Id-No başlıkları kapalı gelir; kapalıyken token servisi şirket VKN'sini döner (toplu işlem). İşlemi yapanın kimliğiyle göndermek için ikisini de açıp gerçek değer yazın (tip 1/2/4; TCKN/YKN 11, VKN 10 hane)."
+      }
+    },
+    {
+      "type": "http",
+      "name": "06 - Toplu guncelle (dosya listesiyle)",
+      "seq": 6,
       "request": {
         "url": "{{baseUrl}}/api/v1/declarations/update",
         "method": "PUT",
@@ -131,12 +261,22 @@
             "name": "X-User-Name",
             "value": "pentest",
             "enabled": true
+          },
+          {
+            "name": "X-Requester-Id-Type",
+            "value": "1",
+            "enabled": false
+          },
+          {
+            "name": "X-Requester-Id-No",
+            "value": "12345678901",
+            "enabled": false
           }
         ],
         "params": [],
         "body": {
           "mode": "json",
-          "json": "{\n  \"year\": 2026,\n  \"month\": 8,\n  \"cityCode\": 34\n}"
+          "json": "{\n  \"ysvDosyaNoList\": [\n    \"PENTEST260801\",\n    \"PENTEST260802\"\n  ]\n}"
         },
         "auth": {
           "mode": "none"
@@ -151,21 +291,31 @@
         },
         "assertions": [],
         "tests": "",
-        "docs": "Ayni grubu SBM'de gunceller. Yalnizca SENT / COMPLETED kayitlari alir,\nyani once 3. istek basarili olmali.\nPUT govdesinde ay/yil/ilKodu/ilceKodu yoktur."
+        "docs": "DB'deki degerleri SBM'ye PUT eder. Excel upsert'unden donen updatedFileNos'u buraya verin. Donemin tamamini gondermek icin govdeyi {\"year\":2026,\"month\":8} yapin.\n\nKimlik: X-Requester-Id-Type / X-Requester-Id-No başlıkları kapalı gelir; kapalıyken token servisi şirket VKN'sini döner (toplu işlem). İşlemi yapanın kimliğiyle göndermek için ikisini de açıp gerçek değer yazın (tip 1/2/4; TCKN/YKN 11, VKN 10 hane)."
       }
     },
     {
       "type": "http",
-      "name": "5 - Sorgula (GET) - PENTEST260801",
-      "seq": 5,
+      "name": "07 - Tekli sorgula (PENTEST260801)",
+      "seq": 7,
       "request": {
-        "url": "{{baseUrl}}/api/v1/declarations/query/PENTEST260801",
+        "url": "{{baseUrl}}/api/v1/declarations/PENTEST260801",
         "method": "GET",
         "headers": [
           {
             "name": "X-User-Name",
             "value": "pentest",
             "enabled": true
+          },
+          {
+            "name": "X-Requester-Id-Type",
+            "value": "1",
+            "enabled": false
+          },
+          {
+            "name": "X-Requester-Id-No",
+            "value": "12345678901",
+            "enabled": false
           }
         ],
         "params": [],
@@ -185,7 +335,101 @@
         },
         "assertions": [],
         "tests": "",
-        "docs": "Beyannameyi SBM'den sorgular; basarili olursa ilgili satirlari COMPLETED yapar.\nYanit zarfi: { result, data, status }.\nNot: SC-UAT'ta ESB proxy'sinin GET route'u parametreleri SBM'ye tasimiyordu\n(CORE-00004) - duzeltme ESB tarafinda."
+        "docs": "SBM'nin cevabini aynen doner ({result, data, status}); dogrulanirsa satirlar COMPLETED olur.\n\nKimlik: X-Requester-Id-Type / X-Requester-Id-No başlıkları kapalı gelir; kapalıyken token servisi şirket VKN'sini döner (toplu işlem). İşlemi yapanın kimliğiyle göndermek için ikisini de açıp gerçek değer yazın (tip 1/2/4; TCKN/YKN 11, VKN 10 hane)."
+      }
+    },
+    {
+      "type": "http",
+      "name": "08 - Toplu sorgula (donem 2026-8)",
+      "seq": 8,
+      "request": {
+        "url": "{{baseUrl}}/api/v1/declarations/query",
+        "method": "POST",
+        "headers": [
+          {
+            "name": "Content-Type",
+            "value": "application/json",
+            "enabled": true
+          },
+          {
+            "name": "X-User-Name",
+            "value": "pentest",
+            "enabled": true
+          },
+          {
+            "name": "X-Requester-Id-Type",
+            "value": "1",
+            "enabled": false
+          },
+          {
+            "name": "X-Requester-Id-No",
+            "value": "12345678901",
+            "enabled": false
+          }
+        ],
+        "params": [],
+        "body": {
+          "mode": "json",
+          "json": "{\n  \"year\": 2026,\n  \"month\": 8\n}"
+        },
+        "auth": {
+          "mode": "none"
+        },
+        "script": {
+          "req": "",
+          "res": ""
+        },
+        "vars": {
+          "req": [],
+          "res": []
+        },
+        "assertions": [],
+        "tests": "",
+        "docs": "SENT/COMPLETED beyannamelerin her birini SBM'den dogrular; icerik donmez, sayim + hatalar doner.\n\nKimlik: X-Requester-Id-Type / X-Requester-Id-No başlıkları kapalı gelir; kapalıyken token servisi şirket VKN'sini döner (toplu işlem). İşlemi yapanın kimliğiyle göndermek için ikisini de açıp gerçek değer yazın (tip 1/2/4; TCKN/YKN 11, VKN 10 hane)."
+      }
+    },
+    {
+      "type": "http",
+      "name": "09 - Tekli iptal (PENTEST260801)",
+      "seq": 9,
+      "request": {
+        "url": "{{baseUrl}}/api/v1/declarations/PENTEST260801/cancel",
+        "method": "POST",
+        "headers": [
+          {
+            "name": "X-User-Name",
+            "value": "pentest",
+            "enabled": true
+          },
+          {
+            "name": "X-Requester-Id-Type",
+            "value": "1",
+            "enabled": false
+          },
+          {
+            "name": "X-Requester-Id-No",
+            "value": "12345678901",
+            "enabled": false
+          }
+        ],
+        "params": [],
+        "body": {
+          "mode": "none"
+        },
+        "auth": {
+          "mode": "none"
+        },
+        "script": {
+          "req": "",
+          "res": ""
+        },
+        "vars": {
+          "req": [],
+          "res": []
+        },
+        "assertions": [],
+        "tests": "",
+        "docs": "SBM'de silme yok: tum tutarlar 0 ile PUT edilir. DIKKAT: geri almak icin 05 ile tutarlari tekrar gonderin.\n\nKimlik: X-Requester-Id-Type / X-Requester-Id-No başlıkları kapalı gelir; kapalıyken token servisi şirket VKN'sini döner (toplu işlem). İşlemi yapanın kimliğiyle göndermek için ikisini de açıp gerçek değer yazın (tip 1/2/4; TCKN/YKN 11, VKN 10 hane)."
       }
     }
   ],
@@ -195,7 +439,7 @@
       "variables": [
         {
           "name": "baseUrl",
-          "value": "http://localhost:8080/sbm-declaration-services",
+          "value": "http://localhost:8081/sbm-declaration-services",
           "enabled": true,
           "secret": false,
           "type": "text"
