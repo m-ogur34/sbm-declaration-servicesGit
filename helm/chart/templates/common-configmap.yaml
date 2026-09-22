@@ -1,3 +1,6 @@
+{{- $files := .Files.Glob "common-configs/*" }}
+{{- $filesNotExists := include "isArrayEmpty" (dict "list" $files) }}
+{{- if eq "false" $filesNotExists }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -9,3 +12,5 @@ data:
 {{ $path | trimPrefix "common-configs/" | indent 2 }}: |
 {{ $.Files.Get $path | indent 4 }}
 {{- end }}
+{{- end }}
+
