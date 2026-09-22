@@ -6,9 +6,6 @@ springboot-deployment:
     env:
       java:
         args: -Xms4g -Xmx4g -XX:+FlightRecorder
-      others:
-        - name: COMMON_CONFIG
-          value: application-config-common.yml
       springboot:
         profile: dr
       sysType: DR

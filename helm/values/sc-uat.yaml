@@ -6,9 +6,6 @@ springboot-deployment:
     env:
       java:
         args: -Xms3g -Xmx3g -XX:+FlightRecorder
-      others:
-        - name: COMMON_CONFIG
-          value: application-config-common.yml
       springboot:
         profile: sc-uat
       sysType: SC-UAT

@@ -170,7 +170,7 @@ mvn spring-boot:run
 ```sql
 -- 1) Şema (ilk kurulum; tablolar varsa önce db/rollback_db.sql)
 @"db/DB güncel.sql"
--- Test verisi: Pen Test/test-1-yukleme.xlsx dosyası /upload ile yüklenir.
+-- Test verisi: Pen Test/test-gelistirici.xlsx (geliştirici) veya Pen Test/pentest-uat-yukleme.xlsx (PEN) /upload ile yüklenir.
 -- Test verisini temizlemek: db/cleanup_test_data.sql
 ```
 
@@ -641,8 +641,9 @@ Vault yolları: `sc-test → kv/data/TEST`, `sc-uat → kv/data/UAT`, `prep → 
 | Dosya | İçerik |
 |---|---|
 | `PENTEST-REHBERI.md` | Ortam URL'leri, kimlik doğrulama modeli, tüm uçların curl'leri, negatif senaryolar, bilgi sızıntısı kontrolleri |
-| `bruno-collection.json` | Bruno koleksiyonu (JSON) — gönder / güncelle / sorgula + 4 ortam (`sc-test`, `sc-uat`, `prep`, `prod`). Bruno'da *Import Collection → Bruno Collection* ile yüklenir |
-| `pentest-ornek-beyanname.xlsx` | 12 geçerli satır / 6 beyanname grubu, dönem 2026-8 |
+| `bruno-pentest-uat.json` | PEN ekibinin Bruno koleksiyonu (JSON) — yalnız `sc-uat` ortamı, `PENTEST260841-46`. Bruno'da *Import Collection → Bruno Collection* ile yüklenir |
+| `pentest-uat-yukleme.xlsx` | PEN verisi: 12 satır / 6 beyanname (`PENTEST260841-46`), dönem 2026-8 |
+| `test-gelistirici.xlsx` + `db/bruno-collection.json` | Geliştirici testleri: `PENTEST260831-36`, 5 ortam (`local` dahil) |
 | `pentest-hatali-satirlar.xlsx` | Doğrulama yollarını tetikleyen hatalı satırlar |
 | `db/cleanup_test_data.sql` | Test verisini temizleme (SC-TEST / SC-UAT) |
 
