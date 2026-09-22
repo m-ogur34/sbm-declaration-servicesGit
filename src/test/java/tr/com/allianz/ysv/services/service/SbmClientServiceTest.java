@@ -14,6 +14,7 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withException;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withServerError;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
@@ -22,6 +23,9 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.LocalDate;
+import tr.com.allianz.ysv.services.dto.request.RequestContext;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -91,6 +95,8 @@ class SbmClientServiceTest {
             }
             """;
 
+    private static final RequestContext CTX = RequestContext.of("WDA2422", null, null);
+
     private MockRestServiceServer server;
     private TokenManagementService tokenManagementService;
     private EsbProperties esbProperties;
@@ -103,11 +109,11 @@ class SbmClientServiceTest {
         server = MockRestServiceServer.bindTo(builder).build();
 
         tokenManagementService = mock(TokenManagementService.class);
-        when(tokenManagementService.generateToken(any())).thenReturn(TokenResponse.builder()
+        when(tokenManagementService.generateToken(any(), any(), anyString())).thenReturn(TokenResponse.builder()
                 .accessToken(ACCESS_TOKEN)
                 .clientCredentials(ClientCredentials.builder()
-                        .clientIdentityType(1)
-                        .clientIdNumber("86773997310")
+                        .clientIdentityType("1")
+                        .clientIdentityNo("86773997310")
                         .build())
                 .build());
 
@@ -140,7 +146,7 @@ class SbmClientServiceTest {
                 .andRespond(withSuccess(SUCCESS_BODY, MediaType.APPLICATION_JSON)
                         .headers(transactionIdHeader()));
 
-        SbmCallResult result = service.send(declarationRequest());
+        SbmCallResult result = service.send(declarationRequest(), CTX);
 
         assertThat(result.isSuccess()).isTrue();
         assertThat(result.getHttpStatus()).isEqualTo(200);
@@ -150,23 +156,7 @@ class SbmClientServiceTest {
         assertThat(result.getErrorMessage()).isNull();
         assertThat(result.getRequestPayload()).contains("YSV202513491");
         server.verify();
-        verify(tokenManagementService).generateToken(OperationType.POST);
-    }
-
-    @Test
-    @DisplayName("token identityType null ise Requester-ID-Type header'ı hiç yazılmaz")
-    void call_withoutIdentityType_skipsTheTypeHeader() {
-        when(tokenManagementService.generateToken(any())).thenReturn(TokenResponse.builder()
-                .accessToken(ACCESS_TOKEN)
-                .clientCredentials(ClientCredentials.builder().clientIdNumber("86773997310").build())
-                .build());
-        server.expect(requestTo(BEYANNAME_URL))
-                .andExpect(header("Requester-ID-No", "86773997310"))
-                .andExpect(headerDoesNotExist("Requester-ID-Type"))
-                .andRespond(withSuccess(SUCCESS_BODY, MediaType.APPLICATION_JSON));
-
-        assertThat(service.send(declarationRequest()).isSuccess()).isTrue();
-        server.verify();
+        verify(tokenManagementService).generateToken(eq(OperationType.POST), eq(CTX), anyString());
     }
 
     @Test
@@ -175,10 +165,10 @@ class SbmClientServiceTest {
                 .andExpect(method(HttpMethod.PUT))
                 .andRespond(withSuccess(SUCCESS_BODY, MediaType.APPLICATION_JSON));
 
-        assertThat(service.update(declarationRequest()).isSuccess()).isTrue();
+        assertThat(service.update(declarationRequest(), CTX).isSuccess()).isTrue();
 
         server.verify();
-        verify(tokenManagementService).generateToken(OperationType.PUT);
+        verify(tokenManagementService).generateToken(eq(OperationType.PUT), eq(CTX), anyString());
     }
 
     @Test
@@ -191,12 +181,12 @@ class SbmClientServiceTest {
                 .andRespond(withSuccess(QUERY_SUCCESS_BODY, MediaType.APPLICATION_JSON)
                         .headers(transactionIdHeader()));
 
-        SbmCallResult result = service.query(queryRequest());
+        SbmCallResult result = service.query(queryRequest(), CTX);
 
         assertThat(result.isSuccess()).isTrue();
         assertThat(result.getTransactionId()).isEqualTo(TRANSACTION_ID);
         server.verify();
-        verify(tokenManagementService).generateToken(OperationType.GET);
+        verify(tokenManagementService).generateToken(eq(OperationType.GET), eq(CTX), anyString());
     }
 
     // --- failures ----------------------------------------------------------------------
@@ -210,7 +200,7 @@ class SbmClientServiceTest {
                         .body(VALIDATION_ERROR_BODY)
                         .headers(transactionIdHeader()));
 
-        SbmCallResult result = service.send(declarationRequest());
+        SbmCallResult result = service.send(declarationRequest(), CTX);
 
         assertThat(result.isSuccess()).isFalse();
         assertThat(result.getHttpStatus()).isEqualTo(422);
@@ -231,11 +221,11 @@ class SbmClientServiceTest {
         server.expect(ExpectedCount.once(), requestTo(BEYANNAME_URL))
                 .andRespond(withSuccess(SUCCESS_BODY, MediaType.APPLICATION_JSON));
 
-        SbmCallResult result = service.send(declarationRequest());
+        SbmCallResult result = service.send(declarationRequest(), CTX);
 
         assertThat(result.isSuccess()).isTrue();
         server.verify();
-        verify(tokenManagementService, times(2)).generateToken(OperationType.POST);
+        verify(tokenManagementService, times(2)).generateToken(eq(OperationType.POST), eq(CTX), anyString());
     }
 
     @Test
@@ -246,14 +236,14 @@ class SbmClientServiceTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .body("{\"result\":false,\"status\":500}"));
 
-        SbmCallResult result = service.send(declarationRequest());
+        SbmCallResult result = service.send(declarationRequest(), CTX);
 
         assertThat(result.isSuccess()).isFalse();
         assertThat(result.getHttpStatus()).isEqualTo(500);
         assertThat(result.getErrorCode()).isEqualTo(SbmErrorCode.CORE_00000.getCode());
         assertThat(result.getErrorMessage()).contains("HTTP 500");
         server.verify();
-        verify(tokenManagementService, times(2)).generateToken(OperationType.POST);
+        verify(tokenManagementService, times(2)).generateToken(eq(OperationType.POST), eq(CTX), anyString());
     }
 
     @Test
@@ -265,10 +255,10 @@ class SbmClientServiceTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .body("{\"result\":false,\"status\":500}"));
 
-        assertThat(service.send(declarationRequest()).isSuccess()).isFalse();
+        assertThat(service.send(declarationRequest(), CTX).isSuccess()).isFalse();
 
         server.verify();
-        verify(tokenManagementService, times(1)).generateToken(OperationType.POST);
+        verify(tokenManagementService, times(1)).generateToken(eq(OperationType.POST), eq(CTX), anyString());
     }
 
     @Test
@@ -277,7 +267,7 @@ class SbmClientServiceTest {
         server.expect(requestTo(BEYANNAME_URL))
                 .andRespond(withSuccess("{\"result\":false,\"status\":200}", MediaType.APPLICATION_JSON));
 
-        SbmCallResult result = service.send(declarationRequest());
+        SbmCallResult result = service.send(declarationRequest(), CTX);
 
         assertThat(result.isSuccess()).isFalse();
         assertThat(result.getErrorCode()).isEqualTo(SbmErrorCode.CORE_00000.getCode());
@@ -287,7 +277,7 @@ class SbmClientServiceTest {
     void send_emptyBody_isFailure() {
         server.expect(requestTo(BEYANNAME_URL)).andRespond(withStatus(HttpStatus.OK));
 
-        SbmCallResult result = service.send(declarationRequest());
+        SbmCallResult result = service.send(declarationRequest(), CTX);
 
         assertThat(result.isSuccess()).isFalse();
         assertThat(result.getResponsePayload()).isNull();
@@ -303,7 +293,7 @@ class SbmClientServiceTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .body("{\"result\":false,\"status\":422,\"error\":{\"reasons\":[{}]}}"));
 
-        SbmCallResult result = service.send(declarationRequest());
+        SbmCallResult result = service.send(declarationRequest(), CTX);
 
         assertThat(result.isSuccess()).isFalse();
         assertThat(result.getErrorCode()).isNull();
@@ -318,7 +308,7 @@ class SbmClientServiceTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .body("{\"result\":false,\"status\":400,\"error\":{\"timestamp\":\"x\"}}"));
 
-        SbmCallResult result = service.send(declarationRequest());
+        SbmCallResult result = service.send(declarationRequest(), CTX);
 
         assertThat(result.getErrorCode()).isEqualTo(SbmErrorCode.CORE_00000.getCode());
         assertThat(result.getErrorMessage()).contains("HTTP 400");
@@ -330,12 +320,14 @@ class SbmClientServiceTest {
         server.expect(ExpectedCount.once(), requestTo(BEYANNAME_URL))
                 .andRespond(withException(new IOException("connection reset")));
 
-        SbmCallResult result = service.send(declarationRequest());
+        SbmCallResult result = service.send(declarationRequest(), CTX);
 
         assertThat(result.isSuccess()).isFalse();
         assertThat(result.getHttpStatus()).isZero();
         assertThat(result.getErrorCode()).isEqualTo(SbmErrorCode.CORE_00000.getCode());
-        assertThat(result.getErrorMessage()).contains("SBM servisine erişilemedi");
+        assertThat(result.getErrorMessage()).contains("SBM servisine erişilemedi")
+                .doesNotContain("connection reset");
+        assertThat(result.getTransactionId()).isNotBlank();
         assertThat(result.getRequestPayload()).contains("YSV202513491");
         server.verify();
     }
@@ -343,11 +335,64 @@ class SbmClientServiceTest {
     @Test
     @DisplayName("without a token nothing is sent and the failure surfaces to the caller")
     void send_tokenFailure_propagates() {
-        when(tokenManagementService.generateToken(any()))
+        when(tokenManagementService.generateToken(any(), any(), anyString()))
                 .thenThrow(new TokenException("Token servisine erişilemedi"));
 
-        assertThatThrownBy(() -> service.send(declarationRequest()))
+        assertThatThrownBy(() -> service.send(declarationRequest(), CTX))
                 .isInstanceOf(TokenException.class);
+    }
+
+    // --- izlenebilirlik (Transaction-Id) ve kimlik ----------------------------------------
+
+    @Test
+    @DisplayName("the same Transaction-Id goes to the token service and to SBM")
+    void send_sendsOneTransactionIdToTokenAndSbm() {
+        org.mockito.ArgumentCaptor<String> tokenTx = org.mockito.ArgumentCaptor.forClass(String.class);
+        server.expect(requestTo(BEYANNAME_URL))
+                .andExpect(request -> assertThat(request.getHeaders().getFirst("Transaction-Id")).isNotBlank())
+                .andRespond(withSuccess(SUCCESS_BODY, MediaType.APPLICATION_JSON));
+
+        SbmCallResult result = service.send(declarationRequest(), CTX);
+
+        verify(tokenManagementService).generateToken(eq(OperationType.POST), eq(CTX), tokenTx.capture());
+        assertThat(result.getTransactionId()).isEqualTo(tokenTx.getValue());
+        server.verify();
+    }
+
+    @Test
+    @DisplayName("a retried call keeps its Transaction-Id: SBM groups the attempts under one number")
+    void send_retryKeepsTheTransactionId() {
+        org.mockito.ArgumentCaptor<String> tokenTx = org.mockito.ArgumentCaptor.forClass(String.class);
+        server.expect(ExpectedCount.twice(), requestTo(BEYANNAME_URL))
+                .andRespond(withServerError());
+
+        service.send(declarationRequest(), CTX);
+
+        verify(tokenManagementService, times(2)).generateToken(eq(OperationType.POST), eq(CTX), tokenTx.capture());
+        assertThat(tokenTx.getAllValues()).hasSize(2).containsOnly(tokenTx.getAllValues().get(0));
+    }
+
+    @Test
+    @DisplayName("SBM's own Transaction-Id wins when it answers with one")
+    void send_prefersTheReturnedTransactionId() {
+        server.expect(requestTo(BEYANNAME_URL))
+                .andRespond(withSuccess(SUCCESS_BODY, MediaType.APPLICATION_JSON).headers(transactionIdHeader()));
+
+        assertThat(service.send(declarationRequest(), CTX).getTransactionId()).isEqualTo(TRANSACTION_ID);
+    }
+
+    @Test
+    @DisplayName("the requester SBM sees comes from the token and is reported masked")
+    void send_reportsTheMaskedRequester() {
+        server.expect(requestTo(BEYANNAME_URL))
+                .andExpect(header("Requester-ID-Type", "1"))
+                .andExpect(header("Requester-ID-No", "86773997310"))
+                .andRespond(withSuccess(SUCCESS_BODY, MediaType.APPLICATION_JSON));
+
+        SbmCallResult result = service.send(declarationRequest(), CTX);
+
+        assertThat(result.getRequesterIdType()).isEqualTo("1");
+        assertThat(result.getRequesterIdNo()).isEqualTo("86*******10");
     }
 
     // --- retry decision ------------------------------------------------------------------

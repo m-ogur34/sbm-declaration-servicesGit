@@ -18,7 +18,6 @@ token-management:
   path: /alz-token-management/api/v1/tokens/sbm-token-generate
   client-name: ysv
   function-name: test
-  user-name: TEST_USER
   company-code: "045"
   connect-timeout: 1s
   read-timeout: 2s

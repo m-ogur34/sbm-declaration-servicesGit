@@ -29,19 +29,34 @@ public interface DeclarationProcessRepository extends JpaRepository<DeclarationP
                                             @Param("cityCode") Integer cityCode);
 
     /** Candidates pinned by explicit id. */
+    /** Candidates pinned by SBM file number (ysvDosyaNo). */
     @Query("""
             select p from DeclarationProcess p
-            where p.id in :ids and p.status in :statuses
+            where p.sbmFileNo in :fileNos and p.status in :statuses
             order by p.declarationYear, p.declarationMonth, p.cityCode, p.districtCode, p.id
             """)
-    List<DeclarationProcess> findCandidatesByIds(@Param("ids") Collection<Long> ids,
-                                                 @Param("statuses") Collection<ProcessStatus> statuses);
+    List<DeclarationProcess> findCandidatesByFileNos(@Param("fileNos") Collection<String> fileNos,
+                                                     @Param("statuses") Collection<ProcessStatus> statuses);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select p from DeclarationProcess p where p.id in :ids order by p.id")
     List<DeclarationProcess> lockByIds(@Param("ids") Collection<Long> ids);
 
     List<DeclarationProcess> findBySbmFileNo(String sbmFileNo);
+
+    /** Bir beyannamenin tüm satırlarını, iki operatör aynı anda değiştiremesin diye kilitleyerek okur. */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select p from DeclarationProcess p where p.sbmFileNo = :fileNo order by p.id")
+    List<DeclarationProcess> lockBySbmFileNo(@Param("fileNo") String fileNo);
+
+    /** Excel upsert'ünde dosyadaki dönemin mevcut satırları, kilitli. */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("""
+            select p from DeclarationProcess p
+            where p.declarationYear = :year and p.declarationMonth = :month
+            order by p.id
+            """)
+    List<DeclarationProcess> lockByPeriod(@Param("year") Integer year, @Param("month") Integer month);
 
     /** Excel yüklemede mükerrer dosya numarası kontrolü için. */
     boolean existsBySbmFileNo(String sbmFileNo);

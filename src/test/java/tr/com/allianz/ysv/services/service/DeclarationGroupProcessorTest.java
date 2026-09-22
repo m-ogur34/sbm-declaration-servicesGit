@@ -13,6 +13,15 @@ import static org.mockito.Mockito.when;
 import static tr.com.allianz.ysv.services.testsupport.DeclarationProcessFixtures.baseRow;
 import static tr.com.allianz.ysv.services.testsupport.DeclarationProcessFixtures.cityLevelRow;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import tr.com.allianz.ysv.services.dto.request.RequestContext;
+import tr.com.allianz.ysv.services.dto.request.DeclarationUpdateRequest;
+import tr.com.allianz.ysv.services.mapper.ProcessMapper;
+import tr.com.allianz.ysv.services.exception.DeclarationNotFoundException;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -53,6 +62,11 @@ class DeclarationGroupProcessorTest {
     private SbmClientService sbmClientService;
     @Mock
     private SbmMapper sbmMapper;
+    @Mock
+    private ProcessMapper processMapper;
+
+    private static final RequestContext CTX = RequestContext.of("WDA2422", null, null);
+    private static final JsonUtil JSON = new JsonUtil(new ObjectMapper().registerModule(new JavaTimeModule()));
 
     private SbmProperties sbmProperties;
     private DeclarationGroupProcessor processor;
@@ -62,7 +76,8 @@ class DeclarationGroupProcessorTest {
         sbmProperties = new SbmProperties();
         sbmProperties.setCompanyCode("045");
         processor = new DeclarationGroupProcessor(declarationProcessRepository, declarationLogService,
-                sbmClientService, sbmMapper, sbmProperties);
+                sbmClientService, sbmMapper, sbmProperties, processMapper,
+                new JsonUtil(new ObjectMapper().registerModule(new JavaTimeModule())));
         when(sbmMapper.toSendRequest(anyList(), anyString()))
                 .thenReturn(SbmDeclarationRequest.builder().build());
         when(sbmMapper.toUpdateRequest(anyList(), anyString(), anyBoolean()))
@@ -76,10 +91,10 @@ class DeclarationGroupProcessorTest {
     void process_postAccepted_marksSent() {
         List<DeclarationProcess> group = newGroup(ProcessStatus.NEW);
         when(declarationProcessRepository.lockByIds(GROUP_IDS)).thenReturn(group);
-        when(sbmClientService.send(any())).thenReturn(successResult());
+        when(sbmClientService.send(any(), any())).thenReturn(successResult());
 
         Optional<FailureDetail> failure =
-                processor.process(OperationType.POST, false, GROUP_IDS, "WDA2422");
+                processor.process(OperationType.POST, false, GROUP_IDS, CTX);
 
         assertThat(failure).isEmpty();
         assertThat(group).allSatisfy(row -> {
@@ -98,10 +113,10 @@ class DeclarationGroupProcessorTest {
     void process_putAccepted_marksUpdated() {
         List<DeclarationProcess> group = newGroup(ProcessStatus.COMPLETED);
         when(declarationProcessRepository.lockByIds(GROUP_IDS)).thenReturn(group);
-        when(sbmClientService.update(any())).thenReturn(successResult());
+        when(sbmClientService.update(any(), any())).thenReturn(successResult());
 
         Optional<FailureDetail> failure =
-                processor.process(OperationType.PUT, false, GROUP_IDS, "WDA2422");
+                processor.process(OperationType.PUT, false, GROUP_IDS, CTX);
 
         assertThat(failure).isEmpty();
         assertThat(group).allSatisfy(row -> {
@@ -111,7 +126,7 @@ class DeclarationGroupProcessorTest {
             assertThat(row.getDateSent()).isNull();
         });
         verify(sbmMapper).toUpdateRequest(group, "045", false);
-        verify(sbmClientService).update(any());
+        verify(sbmClientService).update(any(), any());
     }
 
     @Test
@@ -119,11 +134,138 @@ class DeclarationGroupProcessorTest {
     void process_cancel_usesZeroedAmounts() {
         List<DeclarationProcess> group = newGroup(ProcessStatus.SENT);
         when(declarationProcessRepository.lockByIds(GROUP_IDS)).thenReturn(group);
-        when(sbmClientService.update(any())).thenReturn(successResult());
+        when(sbmClientService.update(any(), any())).thenReturn(successResult());
 
-        processor.process(OperationType.PUT, true, GROUP_IDS, "WDA2422");
+        processor.process(OperationType.PUT, true, GROUP_IDS, CTX);
 
         verify(sbmMapper).toUpdateRequest(group, "045", true);
+    }
+
+
+    // --- applyUpdate (tekli guncellemenin DB kismi) ------------------------------------------
+
+    private static DeclarationUpdateRequest.AmountLine line(MovableType type, String amount) {
+        BigDecimal value = new BigDecimal(amount);
+        return new DeclarationUpdateRequest.AmountLine(type, value, BigDecimal.ONE, value, 10, value, null);
+    }
+
+    @Test
+    @DisplayName("applyUpdate writes the new amounts, rounded to the column scale, and audits the change")
+    void applyUpdate_writesAmountsAndAudits() {
+        List<DeclarationProcess> rows = newGroup(ProcessStatus.SENT);
+        when(declarationProcessRepository.lockBySbmFileNo("YSV202513491")).thenReturn(rows);
+
+        processor.applyUpdate("YSV202513491", new DeclarationUpdateRequest(LocalDate.of(2026, 9, 20),
+                List.of(line(MovableType.MENKUL, "1000.005"))), "WDA2422");
+
+        DeclarationProcess menkul = rows.stream().filter(r -> r.getMovableType() == MovableType.MENKUL).findFirst().orElseThrow();
+        DeclarationProcess gayri = rows.stream().filter(r -> r.getMovableType() == MovableType.GAYRIMENKUL).findFirst().orElseThrow();
+        assertThat(menkul.getReceivedPremiumAmount()).isEqualByComparingTo("1000.01");
+        assertThat(gayri.getReceivedPremiumAmount()).isEqualByComparingTo("7453723.22");
+        assertThat(rows).allSatisfy(r -> {
+            assertThat(r.getPaymentDate()).isEqualTo(LocalDate.of(2026, 9, 20));
+            assertThat(r.getUpdatedByUser()).isEqualTo("WDA2422");
+            assertThat(r.getStatus()).isEqualTo(ProcessStatus.SENT);
+        });
+        verify(declarationProcessRepository).saveAll(rows);
+        verify(declarationLogService).logCall(anyList(), eq(OperationType.LOCAL_UPDATE), eq(LogLevel.INFO),
+                anyString(), any(), any());
+    }
+
+    @Test
+    @DisplayName("a COMPLETED declaration falls back to SENT once its amounts change")
+    void applyUpdate_completedFallsBackToSent() {
+        List<DeclarationProcess> rows = newGroup(ProcessStatus.COMPLETED);
+        when(declarationProcessRepository.lockBySbmFileNo("YSV202513491")).thenReturn(rows);
+
+        processor.applyUpdate("YSV202513491", new DeclarationUpdateRequest(null,
+                List.of(line(MovableType.MENKUL, "1"))), "WDA2422");
+
+        assertThat(rows).allSatisfy(r -> assertThat(r.getStatus()).isEqualTo(ProcessStatus.SENT));
+    }
+
+    @Test
+    @DisplayName("gecmisAyIadeTutari and the payment date are kept when the request leaves them out")
+    void applyUpdate_keepsOptionalFields() {
+        List<DeclarationProcess> rows = newGroup(ProcessStatus.NEW);
+        rows.forEach(r -> r.setPrevMonthRefundAmount(new BigDecimal("12.00")));
+        LocalDate before = rows.get(0).getPaymentDate();
+        when(declarationProcessRepository.lockBySbmFileNo("YSV202513491")).thenReturn(rows);
+
+        processor.applyUpdate("YSV202513491", new DeclarationUpdateRequest(null,
+                List.of(line(MovableType.MENKUL, "1"))), "WDA2422");
+
+        assertThat(rows).allSatisfy(r -> {
+            assertThat(r.getPrevMonthRefundAmount()).isEqualByComparingTo("12.00");
+            assertThat(r.getPaymentDate()).isEqualTo(before);
+            assertThat(r.getStatus()).isEqualTo(ProcessStatus.NEW);
+        });
+    }
+
+    @Test
+    void applyUpdate_writesGecmisAyIadeWhenGiven() {
+        List<DeclarationProcess> rows = newGroup(ProcessStatus.SENT);
+        when(declarationProcessRepository.lockBySbmFileNo("YSV202513491")).thenReturn(rows);
+
+        processor.applyUpdate("YSV202513491", new DeclarationUpdateRequest(null, List.of(
+                new DeclarationUpdateRequest.AmountLine(MovableType.MENKUL, BigDecimal.ONE, BigDecimal.ONE,
+                        BigDecimal.ONE, 10, BigDecimal.ONE, new BigDecimal("-50")))), "WDA2422");
+
+        assertThat(rows.stream().filter(r -> r.getMovableType() == MovableType.MENKUL).findFirst().orElseThrow()
+                .getPrevMonthRefundAmount()).isEqualByComparingTo("-50.00");
+    }
+
+    @Test
+    void applyUpdate_unknownFileNo_isNotFound() {
+        when(declarationProcessRepository.lockBySbmFileNo("YOK")).thenReturn(List.of());
+
+        assertThatThrownBy(() -> processor.applyUpdate("YOK",
+                new DeclarationUpdateRequest(null, List.of(line(MovableType.MENKUL, "1"))), "WDA2422"))
+                .isInstanceOf(DeclarationNotFoundException.class);
+    }
+
+    @Test
+    void applyUpdate_processingDeclaration_isRejected() {
+        when(declarationProcessRepository.lockBySbmFileNo("YSV202513491")).thenReturn(newGroup(ProcessStatus.PROCESSING));
+
+        assertThatThrownBy(() -> processor.applyUpdate("YSV202513491",
+                new DeclarationUpdateRequest(null, List.of(line(MovableType.MENKUL, "1"))), "WDA2422"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("PROCESSING");
+        verify(declarationProcessRepository, never()).saveAll(anyList());
+    }
+
+    @Test
+    @DisplayName("an update cannot add a movable type the declaration does not have")
+    void applyUpdate_unknownMovableType_isRejected() {
+        List<DeclarationProcess> onlyMenkul = List.of(cityLevelRow(1L, MovableType.MENKUL));
+        when(declarationProcessRepository.lockBySbmFileNo("YSV202513491")).thenReturn(onlyMenkul);
+
+        assertThatThrownBy(() -> processor.applyUpdate("YSV202513491",
+                new DeclarationUpdateRequest(null, List.of(line(MovableType.GAYRIMENKUL, "1"))), "WDA2422"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("GAYRIMENKUL");
+    }
+
+    @Test
+    void applyUpdate_repeatedMovableType_isRejected() {
+        when(declarationProcessRepository.lockBySbmFileNo("YSV202513491")).thenReturn(newGroup(ProcessStatus.SENT));
+
+        assertThatThrownBy(() -> processor.applyUpdate("YSV202513491", new DeclarationUpdateRequest(null,
+                List.of(line(MovableType.MENKUL, "1"), line(MovableType.MENKUL, "2"))), "WDA2422"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("tekrarlanamaz");
+    }
+
+    @Test
+    @DisplayName("the audit message carries the Transaction-Id, the masked requester and the user")
+    void buildLogMessage_carriesTraceability() {
+        String message = DeclarationGroupProcessor.buildLogMessage(OperationType.POST, "YSV1",
+                SbmCallResult.builder().success(true).httpStatus(201).transactionId("tx-1")
+                        .requesterIdType("1").requesterIdNo("12*******01").build(), "WDA2422");
+
+        assertThat(message).contains("POST YSV1 başarılı", "HTTP 201", "Transaction-Id: tx-1",
+                "Requester: 1/12*******01", "kullanıcı: WDA2422");
     }
 
     // --- failures -----------------------------------------------------------------------
@@ -134,7 +276,7 @@ class DeclarationGroupProcessorTest {
         List<DeclarationProcess> group = newGroup(ProcessStatus.SENT);
         group.get(1).setStatus(ProcessStatus.COMPLETED);
         when(declarationProcessRepository.lockByIds(GROUP_IDS)).thenReturn(group);
-        when(sbmClientService.update(any())).thenReturn(SbmCallResult.builder()
+        when(sbmClientService.update(any(), any())).thenReturn(SbmCallResult.builder()
                 .success(false)
                 .httpStatus(422)
                 .errorCode(SbmErrorCode.CORE_01004.getCode())
@@ -142,7 +284,7 @@ class DeclarationGroupProcessorTest {
                 .build());
 
         Optional<FailureDetail> failure =
-                processor.process(OperationType.PUT, false, GROUP_IDS, "WDA2422");
+                processor.process(OperationType.PUT, false, GROUP_IDS, CTX);
 
         assertThat(failure).isPresent();
         assertThat(group.get(0).getStatus()).isEqualTo(ProcessStatus.SENT);
@@ -156,7 +298,7 @@ class DeclarationGroupProcessorTest {
     void process_duplicateDeclaration_marksSent() {
         List<DeclarationProcess> group = newGroup(ProcessStatus.NEW);
         when(declarationProcessRepository.lockByIds(GROUP_IDS)).thenReturn(group);
-        when(sbmClientService.send(any())).thenReturn(SbmCallResult.builder()
+        when(sbmClientService.send(any(), any())).thenReturn(SbmCallResult.builder()
                 .success(false)
                 .httpStatus(422)
                 .errorCode(SbmErrorCode.RISK_HAVUZU_00004.getCode())
@@ -164,7 +306,7 @@ class DeclarationGroupProcessorTest {
                 .build());
 
         Optional<FailureDetail> failure =
-                processor.process(OperationType.POST, false, GROUP_IDS, "WDA2422");
+                processor.process(OperationType.POST, false, GROUP_IDS, CTX);
 
         assertThat(failure).isPresent();
         assertThat(group).allSatisfy(row -> {
@@ -178,10 +320,10 @@ class DeclarationGroupProcessorTest {
     void process_putTokenFailure_keepsPreviousStatus() {
         List<DeclarationProcess> group = newGroup(ProcessStatus.SENT);
         when(declarationProcessRepository.lockByIds(GROUP_IDS)).thenReturn(group);
-        when(sbmClientService.update(any())).thenThrow(new TokenException("token alınamadı"));
+        when(sbmClientService.update(any(), any())).thenThrow(new TokenException("token alınamadı"));
 
         Optional<FailureDetail> failure =
-                processor.process(OperationType.PUT, false, GROUP_IDS, "WDA2422");
+                processor.process(OperationType.PUT, false, GROUP_IDS, CTX);
 
         assertThat(failure).isPresent();
         assertThat(group).allSatisfy(row -> assertThat(row.getStatus()).isEqualTo(ProcessStatus.SENT));
@@ -192,7 +334,7 @@ class DeclarationGroupProcessorTest {
     void process_rejected_marksError() {
         List<DeclarationProcess> group = newGroup(ProcessStatus.NEW);
         when(declarationProcessRepository.lockByIds(GROUP_IDS)).thenReturn(group);
-        when(sbmClientService.send(any())).thenReturn(SbmCallResult.builder()
+        when(sbmClientService.send(any(), any())).thenReturn(SbmCallResult.builder()
                 .success(false)
                 .httpStatus(422)
                 .errorCode("CORE-01004")
@@ -202,7 +344,7 @@ class DeclarationGroupProcessorTest {
                 .build());
 
         Optional<FailureDetail> failure =
-                processor.process(OperationType.POST, false, GROUP_IDS, "WDA2422");
+                processor.process(OperationType.POST, false, GROUP_IDS, CTX);
 
         assertThat(failure).isPresent();
         assertThat(failure.get().errorCode()).isEqualTo("CORE-01004");
@@ -221,14 +363,14 @@ class DeclarationGroupProcessorTest {
     void process_longErrorMessage_isTruncated() {
         List<DeclarationProcess> group = newGroup(ProcessStatus.NEW);
         when(declarationProcessRepository.lockByIds(GROUP_IDS)).thenReturn(group);
-        when(sbmClientService.send(any())).thenReturn(SbmCallResult.builder()
+        when(sbmClientService.send(any(), any())).thenReturn(SbmCallResult.builder()
                 .success(false)
                 .httpStatus(422)
                 .errorCode("CORE-01004")
                 .errorMessage("x".repeat(3000))
                 .build());
 
-        processor.process(OperationType.POST, false, GROUP_IDS, "WDA2422");
+        processor.process(OperationType.POST, false, GROUP_IDS, CTX);
 
         assertThat(group.get(0).getErrorDetails()).hasSize(JsonUtil.ERROR_DETAILS_MAX_LENGTH);
     }
@@ -243,12 +385,12 @@ class DeclarationGroupProcessorTest {
                         "Aynı beyannamede mükerrer menkul tipi var: MENKUL"));
 
         Optional<FailureDetail> failure =
-                processor.process(OperationType.POST, false, GROUP_IDS, "WDA2422");
+                processor.process(OperationType.POST, false, GROUP_IDS, CTX);
 
         assertThat(failure).isPresent();
         assertThat(failure.get().errorCode()).isEqualTo(SbmErrorCode.RISK_HAVUZU_00005.getCode());
         assertThat(group.get(0).getStatus()).isEqualTo(ProcessStatus.ERROR);
-        verify(sbmClientService, never()).send(any());
+        verify(sbmClientService, never()).send(any(), any());
         verify(declarationLogService).logCall(eq(GROUP_IDS), eq(OperationType.POST), eq(LogLevel.ERROR),
                 anyString(), isNull(), isNull());
     }
@@ -258,7 +400,7 @@ class DeclarationGroupProcessorTest {
     void process_duplicateMovableType_marksErrorWithoutCallingSbm() {
         DeclarationGroupProcessor withRealMapper = new DeclarationGroupProcessor(
                 declarationProcessRepository, declarationLogService, sbmClientService,
-                new SbmMapper(), sbmProperties);
+                new SbmMapper(), sbmProperties, processMapper, JSON);
         List<DeclarationProcess> group = new java.util.ArrayList<>(List.of(
                 cityLevelRow(1L, MovableType.MENKUL),
                 cityLevelRow(2L, MovableType.MENKUL)));
@@ -266,7 +408,7 @@ class DeclarationGroupProcessorTest {
         when(declarationProcessRepository.lockByIds(GROUP_IDS)).thenReturn(group);
 
         Optional<FailureDetail> failure =
-                withRealMapper.process(OperationType.POST, false, GROUP_IDS, "WDA2422");
+                withRealMapper.process(OperationType.POST, false, GROUP_IDS, CTX);
 
         assertThat(failure).isPresent();
         assertThat(failure.get().errorCode()).isEqualTo(SbmErrorCode.RISK_HAVUZU_00005.getCode());
@@ -274,7 +416,7 @@ class DeclarationGroupProcessorTest {
             assertThat(row.getStatus()).isEqualTo(ProcessStatus.ERROR);
             assertThat(row.getErrorDetails()).contains("mükerrer menkul tipi");
         });
-        verify(sbmClientService, never()).send(any());
+        verify(sbmClientService, never()).send(any(), any());
     }
 
     @Test
@@ -282,7 +424,7 @@ class DeclarationGroupProcessorTest {
     void process_tooLongFileNo_marksErrorWithoutCallingSbm() {
         DeclarationGroupProcessor withRealMapper = new DeclarationGroupProcessor(
                 declarationProcessRepository, declarationLogService, sbmClientService,
-                new SbmMapper(), sbmProperties);
+                new SbmMapper(), sbmProperties, processMapper, JSON);
         DeclarationProcess row = baseRow(1L, MovableType.MENKUL)
                 .cityCode(1)
                 .districtCode(0)
@@ -293,13 +435,13 @@ class DeclarationGroupProcessorTest {
                 .thenReturn(new java.util.ArrayList<>(List.of(row)));
 
         Optional<FailureDetail> failure =
-                withRealMapper.process(OperationType.POST, false, List.of(1L), "WDA2422");
+                withRealMapper.process(OperationType.POST, false, List.of(1L), CTX);
 
         assertThat(failure).isPresent();
         assertThat(failure.get().errorCode()).isEqualTo(SbmErrorCode.CORE_01008.getCode());
         assertThat(row.getStatus()).isEqualTo(ProcessStatus.ERROR);
         assertThat(row.getErrorDetails()).contains("en fazla 36 karakter");
-        verify(sbmClientService, never()).send(any());
+        verify(sbmClientService, never()).send(any(), any());
     }
 
     @Test
@@ -309,12 +451,12 @@ class DeclarationGroupProcessorTest {
         wrongCompanyCode.setCompanyCode("2320");        // OPUS internal code, not the SBM one
         DeclarationGroupProcessor withRealMapper = new DeclarationGroupProcessor(
                 declarationProcessRepository, declarationLogService, sbmClientService,
-                new SbmMapper(), wrongCompanyCode);
+                new SbmMapper(), wrongCompanyCode, processMapper, JSON);
         List<DeclarationProcess> group = newGroup(ProcessStatus.NEW);
         when(declarationProcessRepository.lockByIds(GROUP_IDS)).thenReturn(group);
 
         Optional<FailureDetail> failure =
-                withRealMapper.process(OperationType.POST, false, GROUP_IDS, "WDA2422");
+                withRealMapper.process(OperationType.POST, false, GROUP_IDS, CTX);
 
         assertThat(failure).isPresent();
         assertThat(failure.get().errorCode()).isEqualTo(SbmErrorCode.CORE_01008.getCode());
@@ -322,7 +464,7 @@ class DeclarationGroupProcessorTest {
             assertThat(row.getStatus()).isEqualTo(ProcessStatus.ERROR);
             assertThat(row.getErrorDetails()).contains("en fazla 3 karakter");
         });
-        verify(sbmClientService, never()).send(any());
+        verify(sbmClientService, never()).send(any(), any());
     }
 
     @Test
@@ -330,7 +472,7 @@ class DeclarationGroupProcessorTest {
     void process_missingDistrict_isSentAnyway() {
         DeclarationGroupProcessor withRealMapper = new DeclarationGroupProcessor(
                 declarationProcessRepository, declarationLogService, sbmClientService,
-                new SbmMapper(), sbmProperties);
+                new SbmMapper(), sbmProperties, processMapper, JSON);
         DeclarationProcess row = baseRow(1L, MovableType.MENKUL)
                 .cityCode(2)
                 .districtCode(0)
@@ -338,24 +480,24 @@ class DeclarationGroupProcessorTest {
                 .build();
         when(declarationProcessRepository.lockByIds(List.of(1L)))
                 .thenReturn(new java.util.ArrayList<>(List.of(row)));
-        when(sbmClientService.send(any())).thenReturn(successResult());
+        when(sbmClientService.send(any(), any())).thenReturn(successResult());
 
         Optional<FailureDetail> failure =
-                withRealMapper.process(OperationType.POST, false, List.of(1L), "WDA2422");
+                withRealMapper.process(OperationType.POST, false, List.of(1L), CTX);
 
         assertThat(failure).isEmpty();
         assertThat(row.getStatus()).isEqualTo(ProcessStatus.SENT);
-        verify(sbmClientService).send(any());
+        verify(sbmClientService).send(any(), any());
     }
 
     @Test
     void process_tokenFailure_marksErrorWithSec00001() {
         List<DeclarationProcess> group = newGroup(ProcessStatus.NEW);
         when(declarationProcessRepository.lockByIds(GROUP_IDS)).thenReturn(group);
-        when(sbmClientService.send(any())).thenThrow(new TokenException("Token servisine erişilemedi"));
+        when(sbmClientService.send(any(), any())).thenThrow(new TokenException("Token servisine erişilemedi"));
 
         Optional<FailureDetail> failure =
-                processor.process(OperationType.POST, false, GROUP_IDS, "WDA2422");
+                processor.process(OperationType.POST, false, GROUP_IDS, CTX);
 
         assertThat(failure).isPresent();
         assertThat(failure.get().errorCode()).isEqualTo(SbmErrorCode.SEC_00001.getCode());
@@ -367,7 +509,7 @@ class DeclarationGroupProcessorTest {
         when(declarationProcessRepository.lockByIds(GROUP_IDS)).thenReturn(List.of());
 
         Optional<FailureDetail> failure =
-                processor.process(OperationType.POST, false, GROUP_IDS, "WDA2422");
+                processor.process(OperationType.POST, false, GROUP_IDS, CTX);
 
         assertThat(failure).isPresent();
         assertThat(failure.get().errorCode()).isEqualTo(SbmErrorCode.CORE_01001.getCode());
@@ -383,12 +525,12 @@ class DeclarationGroupProcessorTest {
         when(declarationProcessRepository.lockByIds(GROUP_IDS)).thenReturn(group);
 
         Optional<FailureDetail> failure =
-                processor.process(OperationType.POST, false, GROUP_IDS, "WDA2422");
+                processor.process(OperationType.POST, false, GROUP_IDS, CTX);
 
         assertThat(failure).isPresent();
         assertThat(failure.get().errorCode()).isEqualTo(DeclarationGroupProcessor.STATUS_CONFLICT_CODE);
         assertThat(group.get(0).getStatus()).isEqualTo(ProcessStatus.SENT);
-        verify(sbmClientService, never()).send(any());
+        verify(sbmClientService, never()).send(any(), any());
     }
 
     @Test
@@ -397,11 +539,11 @@ class DeclarationGroupProcessorTest {
         when(declarationProcessRepository.lockByIds(GROUP_IDS)).thenReturn(group);
 
         Optional<FailureDetail> failure =
-                processor.process(OperationType.PUT, false, GROUP_IDS, "WDA2422");
+                processor.process(OperationType.PUT, false, GROUP_IDS, CTX);
 
         assertThat(failure).isPresent();
         assertThat(failure.get().errorCode()).isEqualTo(DeclarationGroupProcessor.STATUS_CONFLICT_CODE);
-        verify(sbmClientService, never()).update(any());
+        verify(sbmClientService, never()).update(any(), any());
     }
 
     @Test
@@ -411,7 +553,7 @@ class DeclarationGroupProcessorTest {
         when(declarationProcessRepository.lockByIds(GROUP_IDS)).thenReturn(group);
 
         Optional<FailureDetail> failure =
-                processor.process(OperationType.POST, false, GROUP_IDS, "WDA2422");
+                processor.process(OperationType.POST, false, GROUP_IDS, CTX);
 
         assertThat(failure).isPresent();
         assertThat(failure.get().errorCode()).isEqualTo(DeclarationGroupProcessor.STATUS_CONFLICT_CODE);
@@ -424,7 +566,7 @@ class DeclarationGroupProcessorTest {
         group.get(1).setStatus(ProcessStatus.COMPLETED);
         when(declarationProcessRepository.lockByIds(GROUP_IDS)).thenReturn(group);
 
-        assertThat(processor.process(OperationType.POST, false, GROUP_IDS, "WDA2422")).isPresent();
+        assertThat(processor.process(OperationType.POST, false, GROUP_IDS, CTX)).isPresent();
     }
 
     // --- COMPLETED promotion ---------------------------------------------------------------

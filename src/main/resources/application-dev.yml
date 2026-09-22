@@ -29,7 +29,6 @@ token-management:
   base-url: https://int-sc-test-auth.allianz.com.tr
   path: /alz-token-management/api/v1/tokens/sbm-token-generate
   client-name: ${tokenManagementClientName}
-  user-name: ${tokenManagementUserName}
   company-code: ${tokenManagementCompanyCode}
   connect-timeout: 5s
   read-timeout: 30s
@@ -43,8 +42,8 @@ logging:
   level:
     tr.com.allianz.ysv.services: DEBUG
 
-  springdoc:
-    swagger-ui:
-      path: /swagger-ui.html
-    api-docs:
-      path: /v3/api-docs
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /v3/api-docs

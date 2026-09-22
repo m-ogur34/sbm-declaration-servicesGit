@@ -1,8 +1,12 @@
 package tr.com.allianz.ysv.services.service;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -11,18 +15,30 @@ import org.springframework.transaction.annotation.Transactional;
 import tr.com.allianz.ysv.services.config.SbmProperties;
 import tr.com.allianz.ysv.services.dto.internal.SbmCallResult;
 import tr.com.allianz.ysv.services.dto.internal.SbmDeclarationRequest;
+import tr.com.allianz.ysv.services.dto.request.DeclarationUpdateRequest;
+import tr.com.allianz.ysv.services.dto.request.RequestContext;
 import tr.com.allianz.ysv.services.dto.response.FailureDetail;
 import tr.com.allianz.ysv.services.entity.DeclarationProcess;
 import tr.com.allianz.ysv.services.enums.LogLevel;
+import tr.com.allianz.ysv.services.enums.MovableType;
 import tr.com.allianz.ysv.services.enums.OperationType;
 import tr.com.allianz.ysv.services.enums.ProcessStatus;
 import tr.com.allianz.ysv.services.enums.SbmErrorCode;
+import tr.com.allianz.ysv.services.exception.DeclarationNotFoundException;
 import tr.com.allianz.ysv.services.exception.SbmIntegrationException;
 import tr.com.allianz.ysv.services.exception.TokenException;
+import tr.com.allianz.ysv.services.mapper.ProcessMapper;
 import tr.com.allianz.ysv.services.mapper.SbmMapper;
 import tr.com.allianz.ysv.services.repository.DeclarationProcessRepository;
 import tr.com.allianz.ysv.services.util.JsonUtil;
 
+/**
+ * Tek bir beyanname grubunu (tek SBM isteği) işler ve durum geçişlerinin sahibidir.
+ *
+ * <p>Her grup kendi transaction'ında, satır kilidiyle işlenir; aynı grubun iki kez
+ * gönderilmesini kilit engeller. Batch'in kendisi transaction'sız
+ * ({@link DeclarationService}), böylece uzun uzak çağrılar boyunca kilit tutulmaz.</p>
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -31,21 +47,25 @@ public class DeclarationGroupProcessor {
     /** Reported when a row changed status between selection and locking. */
     static final String STATUS_CONFLICT_CODE = "ALZ-STATUS-CONFLICT";
 
+    private static final int AMOUNT_SCALE = 2;
+
     private final DeclarationProcessRepository declarationProcessRepository;
     private final DeclarationLogService declarationLogService;
     private final SbmClientService sbmClientService;
     private final SbmMapper sbmMapper;
     private final SbmProperties sbmProperties;
+    private final ProcessMapper processMapper;
+    private final JsonUtil jsonUtil;
 
     @Transactional
     public Optional<FailureDetail> process(OperationType operationType,
                                            boolean zeroAmounts,
                                            List<Long> processIds,
-                                           String user) {
+                                           RequestContext context) {
         List<DeclarationProcess> group = declarationProcessRepository.lockByIds(processIds);
         if (group.isEmpty()) {
             return Optional.of(new FailureDetail(null, SbmErrorCode.CORE_01001.getCode(),
-                    "Beyanname satırları bulunamadı: " + processIds));
+                    "Beyanname satırları bulunamadı."));
         }
 
         String fileNo = group.get(0).getSbmFileNo();
@@ -59,16 +79,17 @@ public class DeclarationGroupProcessor {
                 .map(DeclarationProcess::getStatus)
                 .toList();
         markProcessing(group);
+        String user = context.userName();
 
         try {
             SbmDeclarationRequest request = buildRequest(operationType, zeroAmounts, group);
             SbmCallResult result = operationType == OperationType.POST
-                    ? sbmClientService.send(request)
-                    : sbmClientService.update(request);
+                    ? sbmClientService.send(request, context)
+                    : sbmClientService.update(request, context);
 
             declarationLogService.logCall(processIds, operationType,
                     result.isSuccess() ? LogLevel.INFO : LogLevel.ERROR,
-                    buildLogMessage(operationType, fileNo, result),
+                    buildLogMessage(operationType, fileNo, result, user),
                     result.getRequestPayload(), result.getResponsePayload());
 
             if (result.isSuccess()) {
@@ -90,6 +111,78 @@ public class DeclarationGroupProcessor {
         }
     }
 
+    /**
+     * Tekli güncellemenin DB kısmı: beyannamenin satırlarını kilitler, yeni tutarları yazar ve
+     * değişikliği öncesi/sonrası değerleriyle loglar. SBM'ye göndermez — çağıran
+     * ({@link DeclarationService}) gerekiyorsa bu transaction bittikten sonra {@link #process}
+     * ile ayrı bir transaction'da gönderir.
+     *
+     * <p>Beyanname SBM'ye daha önce gitmişse ({@code COMPLETED}) durum {@code SENT}'e çekilir:
+     * yereldeki veri artık SBM'dekinden farklıdır ve yeniden gönderilip doğrulanmalıdır.</p>
+     *
+     * @return beyannamenin güncel satırları
+     * @throws DeclarationNotFoundException dosya no DB'de yoksa (HTTP 404)
+     * @throws IllegalArgumentException satır o anda gönderimdeyse ya da istekteki menkul tipi
+     *         beyannamede yoksa / tekrarlıyorsa (HTTP 400)
+     */
+    @Transactional
+    public List<DeclarationProcess> applyUpdate(String ysvDosyaNo,
+                                                DeclarationUpdateRequest request,
+                                                String user) {
+        List<DeclarationProcess> rows = declarationProcessRepository.lockBySbmFileNo(ysvDosyaNo);
+        if (rows.isEmpty()) {
+            throw new DeclarationNotFoundException("Beyanname bulunamadı: " + ysvDosyaNo);
+        }
+        if (rows.stream().anyMatch(r -> r.getStatus() == ProcessStatus.PROCESSING)) {
+            throw new IllegalArgumentException(
+                    "Beyanname şu anda SBM'ye gönderiliyor (PROCESSING), güncellenemez: " + ysvDosyaNo);
+        }
+
+        Map<MovableType, DeclarationProcess> byType = new EnumMap<>(MovableType.class);
+        rows.forEach(r -> byType.put(r.getMovableType(), r));
+        Map<MovableType, DeclarationUpdateRequest.AmountLine> lines = new EnumMap<>(MovableType.class);
+        for (DeclarationUpdateRequest.AmountLine line : request.ysvTutarList()) {
+            if (lines.put(line.menkulTipi(), line) != null) {
+                throw new IllegalArgumentException("ysvTutarList'te menkul tipi tekrarlanamaz: " + line.menkulTipi());
+            }
+            if (!byType.containsKey(line.menkulTipi())) {
+                throw new IllegalArgumentException("Beyannamede " + line.menkulTipi()
+                        + " satırı yok; güncelleme yeni menkul tipi ekleyemez. Dosya no: " + ysvDosyaNo);
+            }
+        }
+
+        String before = jsonUtil.toJson(processMapper.toViews(rows));
+        LocalDateTime now = LocalDateTime.now();
+        for (DeclarationProcess row : rows) {
+            DeclarationUpdateRequest.AmountLine line = lines.get(row.getMovableType());
+            if (line != null) {
+                row.setReceivedPremiumAmount(scaled(line.alinanPrimTutari()));
+                row.setCancelledPremiumAmount(scaled(line.iptalPrimTutari()));
+                row.setTaxAmount(scaled(line.odenecekVergi()));
+                row.setTaxPremiumAmount(scaled(line.vergiPrimTutari()));
+                row.setTaxRatio(line.vergiOrani());
+                if (line.gecmisAyIadeTutari() != null) {
+                    row.setPrevMonthRefundAmount(scaled(line.gecmisAyIadeTutari()));
+                }
+            }
+            if (request.sonOdemeTarihi() != null) {
+                row.setPaymentDate(request.sonOdemeTarihi());
+            }
+            if (row.getStatus() == ProcessStatus.COMPLETED) {
+                row.setStatus(ProcessStatus.SENT);
+            }
+            row.setDateUpdated(now);
+            row.setUpdatedByUser(user);
+        }
+        declarationProcessRepository.saveAll(rows);
+
+        declarationLogService.logCall(rows.stream().map(DeclarationProcess::getId).toList(),
+                OperationType.LOCAL_UPDATE, LogLevel.INFO,
+                "Beyanname tutarları güncellendi. Dosya no: " + ysvDosyaNo + ", kullanıcı: " + user,
+                before, jsonUtil.toJson(processMapper.toViews(rows)));
+        log.info("Declaration {} amounts updated by {} ({} rows)", ysvDosyaNo, user, rows.size());
+        return rows;
+    }
 
     @Transactional
     public void markCompleted(Collection<Long> processIds, String user) {
@@ -169,6 +262,12 @@ public class DeclarationGroupProcessor {
         declarationProcessRepository.saveAll(group);
     }
 
+    /**
+     * POST hatası → {@code ERROR} (kayıt SBM'ye girmedi). PUT hatası → satır önceki durumunda
+     * kalır; {@code ERROR} yazılsaydı sonraki "gönder" kaydı tekrar POST eder, SBM'de mükerrer
+     * beyanname riski doğardı. {@code RISK-HAVUZU-00004} → beyanname SBM'de zaten var, satır
+     * {@code SENT}'e alınır ki güncelleme ile yönetilebilsin.
+     */
     private void markFailure(OperationType operationType,
                              List<DeclarationProcess> group,
                              List<ProcessStatus> previousStatuses,
@@ -194,9 +293,20 @@ public class DeclarationGroupProcessor {
         declarationProcessRepository.saveAll(group);
     }
 
-    private String buildLogMessage(OperationType operationType, String fileNo, SbmCallResult result) {
+    /**
+     * {@code ALZ_SBM_DECL_LOG.LOG_MESSAGE}: SBM destek talebi için Transaction-Id, kimin adına
+     * gönderildiği (kimlik maskeli) ve tetikleyen kullanıcı.
+     */
+    static String buildLogMessage(OperationType operationType, String fileNo, SbmCallResult result, String user) {
         String outcome = result.isSuccess() ? "başarılı" : "başarısız";
         return operationType + " " + fileNo + " " + outcome
-                + " (HTTP " + result.getHttpStatus() + ", Transaction-Id: " + result.getTransactionId() + ")";
+                + " (HTTP " + result.getHttpStatus()
+                + ", Transaction-Id: " + result.getTransactionId()
+                + ", Requester: " + result.getRequesterIdType() + "/" + result.getRequesterIdNo()
+                + ", kullanıcı: " + user + ")";
+    }
+
+    private static BigDecimal scaled(BigDecimal value) {
+        return value == null ? null : value.setScale(AMOUNT_SCALE, RoundingMode.HALF_UP);
     }
 }

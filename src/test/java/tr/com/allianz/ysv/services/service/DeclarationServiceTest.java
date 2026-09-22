@@ -38,8 +38,10 @@ import org.springframework.data.domain.Pageable;
 import tr.com.allianz.ysv.services.config.SbmProperties;
 import tr.com.allianz.ysv.services.dto.internal.SbmCallResult;
 import tr.com.allianz.ysv.services.dto.internal.SbmQueryResponse;
-import tr.com.allianz.ysv.services.dto.request.DeclarationAmountUpdateRequest;
 import tr.com.allianz.ysv.services.dto.request.DeclarationFilterRequest;
+import tr.com.allianz.ysv.services.dto.request.DeclarationUpdateRequest;
+import tr.com.allianz.ysv.services.dto.request.RequestContext;
+import tr.com.allianz.ysv.services.dto.response.DeclarationUpdateResponse;
 import tr.com.allianz.ysv.services.dto.response.BatchOperationResponse;
 import tr.com.allianz.ysv.services.dto.response.FailureDetail;
 import tr.com.allianz.ysv.services.dto.response.PageResponse;
@@ -62,6 +64,7 @@ import tr.com.allianz.ysv.services.util.JsonUtil;
 class DeclarationServiceTest {
 
     private static final String USER = "WDA2422";
+    private static final RequestContext CTX = RequestContext.of(USER, null, null);
 
     @Mock
     private DeclarationProcessRepository declarationProcessRepository;
@@ -89,111 +92,8 @@ class DeclarationServiceTest {
                 declarationLogService, sbmClientService, new SbmMapper(), processMapper,
                 sbmProperties, jsonUtil);
 
-        when(declarationGroupProcessor.process(any(), anyBoolean(), anyList(), anyString()))
+        when(declarationGroupProcessor.process(any(), anyBoolean(), anyList(), any(RequestContext.class)))
                 .thenReturn(Optional.empty());
-    }
-
-    // --- tutar guncelleme (yerel duzeltme) ------------------------------------------------
-
-    private static DeclarationAmountUpdateRequest amountUpdate() {
-        return new DeclarationAmountUpdateRequest(
-                new BigDecimal("1000.00"), new BigDecimal("100.00"), new BigDecimal("90.00"),
-                new BigDecimal("900.00"), 10, new BigDecimal("-50.00"), LocalDate.of(2026, 9, 20));
-    }
-
-    @Test
-    @DisplayName("updateAmounts writes the new amounts and audits the change")
-    void updateAmounts_appliesValuesAndLogs() {
-        DeclarationProcess row = cityLevelRow(7L, MovableType.MENKUL);
-        when(declarationProcessRepository.lockByIds(List.of(7L))).thenReturn(List.of(row));
-
-        service.updateAmounts(7L, amountUpdate(), USER);
-
-        assertThat(row.getReceivedPremiumAmount()).isEqualByComparingTo("1000.00");
-        assertThat(row.getCancelledPremiumAmount()).isEqualByComparingTo("100.00");
-        assertThat(row.getTaxAmount()).isEqualByComparingTo("90.00");
-        assertThat(row.getTaxPremiumAmount()).isEqualByComparingTo("900.00");
-        assertThat(row.getTaxRatio()).isEqualTo(10);
-        assertThat(row.getPrevMonthRefundAmount()).isEqualByComparingTo("-50.00");
-        assertThat(row.getPaymentDate()).isEqualTo(LocalDate.of(2026, 9, 20));
-        assertThat(row.getUpdatedByUser()).isEqualTo(USER);
-        assertThat(row.getDateUpdated()).isNotNull();
-        verify(declarationProcessRepository).save(row);
-        verify(declarationLogService).logCall(eq(List.of(7L)), eq(OperationType.LOCAL_UPDATE),
-                eq(LogLevel.INFO), anyString(), any(), any());
-    }
-
-    @Test
-    @DisplayName("amounts are stored with the two decimals the column holds")
-    void updateAmounts_roundsToColumnScale() {
-        DeclarationProcess row = cityLevelRow(7L, MovableType.MENKUL);
-        when(declarationProcessRepository.lockByIds(List.of(7L))).thenReturn(List.of(row));
-
-        service.updateAmounts(7L, new DeclarationAmountUpdateRequest(
-                new BigDecimal("1000.005"), BigDecimal.ZERO, BigDecimal.ZERO,
-                BigDecimal.ZERO, 10, null, null), USER);
-
-        assertThat(row.getReceivedPremiumAmount()).isEqualByComparingTo("1000.01");
-    }
-
-    @Test
-    @DisplayName("optional fields left out keep their current value")
-    void updateAmounts_keepsUntouchedFields() {
-        DeclarationProcess row = cityLevelRow(7L, MovableType.MENKUL);
-        row.setPrevMonthRefundAmount(new BigDecimal("12.00"));
-        when(declarationProcessRepository.lockByIds(List.of(7L))).thenReturn(List.of(row));
-
-        service.updateAmounts(7L, new DeclarationAmountUpdateRequest(
-                BigDecimal.ONE, BigDecimal.ONE, BigDecimal.ONE, BigDecimal.ONE, 10, null, null), USER);
-
-        assertThat(row.getPrevMonthRefundAmount()).isEqualByComparingTo("12.00");
-        assertThat(row.getPaymentDate()).isEqualTo(cityLevelRow(7L, MovableType.MENKUL).getPaymentDate());
-    }
-
-    @Test
-    @DisplayName("a COMPLETED row falls back to SENT: the local data no longer matches SBM")
-    void updateAmounts_completedFallsBackToSent() {
-        DeclarationProcess row = cityLevelRow(7L, MovableType.MENKUL);
-        row.setStatus(ProcessStatus.COMPLETED);
-        when(declarationProcessRepository.lockByIds(List.of(7L))).thenReturn(List.of(row));
-
-        service.updateAmounts(7L, amountUpdate(), USER);
-
-        assertThat(row.getStatus()).isEqualTo(ProcessStatus.SENT);
-    }
-
-    @Test
-    @DisplayName("a NEW row keeps its status")
-    void updateAmounts_newRowKeepsStatus() {
-        DeclarationProcess row = cityLevelRow(7L, MovableType.MENKUL);
-        when(declarationProcessRepository.lockByIds(List.of(7L))).thenReturn(List.of(row));
-
-        service.updateAmounts(7L, amountUpdate(), USER);
-
-        assertThat(row.getStatus()).isEqualTo(ProcessStatus.NEW);
-    }
-
-    @Test
-    @DisplayName("a row that is being transferred right now cannot be edited")
-    void updateAmounts_rejectsProcessingRow() {
-        DeclarationProcess row = cityLevelRow(7L, MovableType.MENKUL);
-        row.setStatus(ProcessStatus.PROCESSING);
-        when(declarationProcessRepository.lockByIds(List.of(7L))).thenReturn(List.of(row));
-
-        assertThatThrownBy(() -> service.updateAmounts(7L, amountUpdate(), USER))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("PROCESSING");
-        verify(declarationProcessRepository, never()).save(any());
-    }
-
-    @Test
-    @DisplayName("an unknown id is reported as not found")
-    void updateAmounts_unknownIdIsNotFound() {
-        when(declarationProcessRepository.lockByIds(List.of(99L))).thenReturn(List.of());
-
-        assertThatThrownBy(() -> service.updateAmounts(99L, amountUpdate(), USER))
-                .isInstanceOf(DeclarationNotFoundException.class)
-                .hasMessageContaining("99");
     }
 
     // --- grouping -------------------------------------------------------------------------
@@ -209,7 +109,7 @@ class DeclarationServiceTest {
                 .thenReturn(List.of(adanaMenkul, adanaGayri, adiyamanMenkul));
 
         BatchOperationResponse response =
-                service.send(new DeclarationFilterRequest(2026, 1, null, null), USER);
+                service.send(new DeclarationFilterRequest(2026, 1, null, null), CTX);
 
         assertThat(response.totalGroups()).isEqualTo(2);
         assertThat(response.successCount()).isEqualTo(2);
@@ -217,7 +117,7 @@ class DeclarationServiceTest {
         assertThat(response.failures()).isEmpty();
 
         verify(declarationGroupProcessor, org.mockito.Mockito.times(2))
-                .process(eq(OperationType.POST), eq(false), groupIdsCaptor.capture(), eq(USER));
+                .process(eq(OperationType.POST), eq(false), groupIdsCaptor.capture(), eq(CTX));
         assertThat(groupIdsCaptor.getAllValues()).containsExactly(List.of(1L, 2L), List.of(3L));
     }
 
@@ -230,10 +130,10 @@ class DeclarationServiceTest {
         when(declarationProcessRepository.findCandidates(any(), any(), any(), any()))
                 .thenReturn(List.of(menkul, gayrimenkul));
 
-        BatchOperationResponse response = service.send(null, USER);
+        BatchOperationResponse response = service.send(null, CTX);
 
         assertThat(response.totalGroups()).isEqualTo(1);
-        verify(declarationGroupProcessor).process(OperationType.POST, false, List.of(1L, 2L), USER);
+        verify(declarationGroupProcessor).process(OperationType.POST, false, List.of(1L, 2L), CTX);
     }
 
     @Test
@@ -246,10 +146,10 @@ class DeclarationServiceTest {
         when(declarationProcessRepository.findCandidates(any(), any(), any(), any()))
                 .thenReturn(List.of(zeroDistrict, nullDistrict));
 
-        BatchOperationResponse response = service.send(null, USER);
+        BatchOperationResponse response = service.send(null, CTX);
 
         assertThat(response.totalGroups()).isEqualTo(1);
-        verify(declarationGroupProcessor).process(OperationType.POST, false, List.of(1L, 2L), USER);
+        verify(declarationGroupProcessor).process(OperationType.POST, false, List.of(1L, 2L), CTX);
     }
 
     @Test
@@ -261,7 +161,7 @@ class DeclarationServiceTest {
         when(declarationProcessRepository.findCandidates(any(), any(), any(), any()))
                 .thenReturn(List.of(cityLevel, withDistrict));
 
-        assertThat(service.send(null, USER).totalGroups()).isEqualTo(2);
+        assertThat(service.send(null, CTX).totalGroups()).isEqualTo(2);
     }
 
     @Test
@@ -273,7 +173,7 @@ class DeclarationServiceTest {
         when(declarationProcessRepository.findCandidates(any(), any(), any(), any()))
                 .thenReturn(List.of(first, second));
 
-        assertThat(service.send(null, USER).totalGroups()).isEqualTo(2);
+        assertThat(service.send(null, CTX).totalGroups()).isEqualTo(2);
     }
 
     @Test
@@ -281,21 +181,21 @@ class DeclarationServiceTest {
         when(declarationProcessRepository.findCandidates(any(), any(), any(), any()))
                 .thenReturn(List.of());
 
-        service.send(new DeclarationFilterRequest(2026, 1, 34, List.of()), USER);
+        service.send(new DeclarationFilterRequest(2026, 1, 34, List.of()), CTX);
 
         verify(declarationProcessRepository)
                 .findCandidates(ProcessStatus.SENDABLE, 2026, 1, 34);
     }
 
     @Test
-    @DisplayName("explicit processIds bypass the year/month/city filter")
-    void send_withProcessIds_selectsByIdOnly() {
-        when(declarationProcessRepository.findCandidatesByIds(any(), any())).thenReturn(List.of());
+    @DisplayName("an explicit ysvDosyaNoList bypasses the year/month/city filter")
+    void send_withFileNos_selectsByFileNoOnly() {
+        when(declarationProcessRepository.findCandidatesByFileNos(any(), any())).thenReturn(List.of());
 
-        service.send(new DeclarationFilterRequest(2026, 1, 34, List.of(7L, 8L)), USER);
+        service.send(new DeclarationFilterRequest(2026, 1, 34, List.of("YSV1", "YSV2")), CTX);
 
         verify(declarationProcessRepository)
-                .findCandidatesByIds(List.of(7L, 8L), ProcessStatus.SENDABLE);
+                .findCandidatesByFileNos(List.of("YSV1", "YSV2"), ProcessStatus.SENDABLE);
         verify(declarationProcessRepository, never()).findCandidates(any(), any(), any(), any());
     }
 
@@ -304,7 +204,7 @@ class DeclarationServiceTest {
         when(declarationProcessRepository.findCandidates(any(), any(), any(), any()))
                 .thenReturn(List.of());
 
-        service.send(null, USER);
+        service.send(null, CTX);
 
         verify(declarationProcessRepository)
                 .findCandidates(ProcessStatus.SENDABLE, null, null, null);
@@ -315,11 +215,11 @@ class DeclarationServiceTest {
         when(declarationProcessRepository.findCandidates(any(), any(), any(), any()))
                 .thenReturn(List.of(cityLevelRow(1L, MovableType.MENKUL)));
 
-        service.update(new DeclarationFilterRequest(2026, 1, null, null), USER);
+        service.update(new DeclarationFilterRequest(2026, 1, null, null), CTX);
 
         verify(declarationProcessRepository)
                 .findCandidates(ProcessStatus.UPDATABLE, 2026, 1, null);
-        verify(declarationGroupProcessor).process(OperationType.PUT, false, List.of(1L), USER);
+        verify(declarationGroupProcessor).process(OperationType.PUT, false, List.of(1L), CTX);
     }
 
     @Test
@@ -328,19 +228,19 @@ class DeclarationServiceTest {
         when(declarationProcessRepository.findCandidates(any(), any(), any(), any()))
                 .thenReturn(List.of(cityLevelRow(1L, MovableType.MENKUL)));
 
-        service.cancel(new DeclarationFilterRequest(null, null, null, null), USER);
+        service.cancel(new DeclarationFilterRequest(null, null, null, null), CTX);
 
-        verify(declarationGroupProcessor).process(OperationType.PUT, true, List.of(1L), USER);
+        verify(declarationGroupProcessor).process(OperationType.PUT, true, List.of(1L), CTX);
     }
 
     @Test
     void send_countsFailuresPerGroup() {
         when(declarationProcessRepository.findCandidates(any(), any(), any(), any()))
                 .thenReturn(List.of(cityLevelRow(1L, MovableType.MENKUL)));
-        when(declarationGroupProcessor.process(any(), anyBoolean(), anyList(), anyString()))
+        when(declarationGroupProcessor.process(any(), anyBoolean(), anyList(), any(RequestContext.class)))
                 .thenReturn(Optional.of(new FailureDetail("YSV202513491", "CORE-01004", "hata")));
 
-        BatchOperationResponse response = service.send(null, USER);
+        BatchOperationResponse response = service.send(null, CTX);
 
         assertThat(response.totalGroups()).isEqualTo(1);
         assertThat(response.successCount()).isZero();
@@ -354,11 +254,166 @@ class DeclarationServiceTest {
         when(declarationProcessRepository.findCandidates(any(), any(), any(), any()))
                 .thenReturn(List.of());
 
-        BatchOperationResponse response = service.send(null, USER);
+        BatchOperationResponse response = service.send(null, CTX);
 
         assertThat(response.totalGroups()).isZero();
         assertThat(response.failures()).isEmpty();
-        verify(declarationGroupProcessor, never()).process(any(), anyBoolean(), anyList(), anyString());
+        verify(declarationGroupProcessor, never()).process(any(), anyBoolean(), anyList(), any(RequestContext.class));
+    }
+
+    // --- tekli islemler ---------------------------------------------------------------------
+
+    @Test
+    @DisplayName("single send of an unknown file number is 404, nothing is sent")
+    void sendOne_unknownFileNo_isNotFound() {
+        when(declarationProcessRepository.findBySbmFileNo("YOK")).thenReturn(List.of());
+
+        assertThatThrownBy(() -> service.sendOne("YOK", CTX))
+                .isInstanceOf(DeclarationNotFoundException.class)
+                .hasMessageContaining("YOK");
+        verify(declarationGroupProcessor, never()).process(any(), anyBoolean(), anyList(), any(RequestContext.class));
+    }
+
+    @Test
+    @DisplayName("single send of an already sent declaration reports a status conflict")
+    void sendOne_notSendable_reportsConflict() {
+        DeclarationProcess sent = cityLevelRow(1L, MovableType.MENKUL);
+        sent.setStatus(ProcessStatus.SENT);
+        when(declarationProcessRepository.findBySbmFileNo("YSV202513491")).thenReturn(List.of(sent));
+        when(declarationProcessRepository.findCandidatesByFileNos(any(), any())).thenReturn(List.of());
+
+        BatchOperationResponse response = service.sendOne("YSV202513491", CTX);
+
+        assertThat(response.failCount()).isEqualTo(1);
+        assertThat(response.failures()).singleElement().satisfies(f -> {
+            assertThat(f.errorCode()).isEqualTo("ALZ-STATUS-CONFLICT");
+            assertThat(f.message()).contains("SENT");
+        });
+    }
+
+    @Test
+    @DisplayName("single send selects the declaration by file number and POSTs it")
+    void sendOne_postsTheDeclaration() {
+        DeclarationProcess row = cityLevelRow(1L, MovableType.MENKUL);
+        when(declarationProcessRepository.findBySbmFileNo("YSV202513491")).thenReturn(List.of(row));
+        when(declarationProcessRepository.findCandidatesByFileNos(List.of("YSV202513491"), ProcessStatus.SENDABLE))
+                .thenReturn(List.of(row));
+
+        BatchOperationResponse response = service.sendOne("YSV202513491", CTX);
+
+        assertThat(response.successCount()).isEqualTo(1);
+        verify(declarationGroupProcessor).process(OperationType.POST, false, List.of(1L), CTX);
+    }
+
+    @Test
+    @DisplayName("single cancel is a PUT with zeroed amounts on the updatable rows")
+    void cancelOne_putsZeroedAmounts() {
+        DeclarationProcess row = cityLevelRow(1L, MovableType.MENKUL);
+        row.setStatus(ProcessStatus.SENT);
+        when(declarationProcessRepository.findBySbmFileNo("YSV202513491")).thenReturn(List.of(row));
+        when(declarationProcessRepository.findCandidatesByFileNos(List.of("YSV202513491"), ProcessStatus.UPDATABLE))
+                .thenReturn(List.of(row));
+
+        service.cancelOne("YSV202513491", CTX);
+
+        verify(declarationGroupProcessor).process(OperationType.PUT, true, List.of(1L), CTX);
+    }
+
+    private static DeclarationUpdateRequest updateBody() {
+        return new DeclarationUpdateRequest(null, List.of(new DeclarationUpdateRequest.AmountLine(
+                MovableType.MENKUL, java.math.BigDecimal.TEN, java.math.BigDecimal.ONE,
+                java.math.BigDecimal.ONE, 10, java.math.BigDecimal.TEN, null)));
+    }
+
+    @Test
+    @DisplayName("updating a declaration that never reached SBM only changes the database")
+    void updateOne_notAtSbm_updatesDatabaseOnly() {
+        DeclarationProcess row = cityLevelRow(1L, MovableType.MENKUL);
+        when(declarationGroupProcessor.applyUpdate(eq("YSV202513491"), any(), eq(USER))).thenReturn(List.of(row));
+
+        DeclarationUpdateResponse response = service.updateOne("YSV202513491", updateBody(), CTX);
+
+        assertThat(response.sentToSbm()).isFalse();
+        assertThat(response.success()).isTrue();
+        assertThat(response.message()).contains("gönder");
+        verify(declarationGroupProcessor, never()).process(any(), anyBoolean(), anyList(), any(RequestContext.class));
+    }
+
+    @Test
+    @DisplayName("updating a declaration already at SBM also PUTs it in the same call")
+    void updateOne_atSbm_putsToSbm() {
+        DeclarationProcess row = cityLevelRow(1L, MovableType.MENKUL);
+        row.setStatus(ProcessStatus.SENT);
+        when(declarationGroupProcessor.applyUpdate(eq("YSV202513491"), any(), eq(USER))).thenReturn(List.of(row));
+
+        DeclarationUpdateResponse response = service.updateOne("YSV202513491", updateBody(), CTX);
+
+        assertThat(response.sentToSbm()).isTrue();
+        assertThat(response.success()).isTrue();
+        assertThat(response.errorCode()).isNull();
+        verify(declarationGroupProcessor).process(OperationType.PUT, false, List.of(1L), CTX);
+    }
+
+    @Test
+    @DisplayName("an SBM rejection of the PUT is reported, the database keeps the new values")
+    void updateOne_sbmRejects_reportsFailure() {
+        DeclarationProcess row = cityLevelRow(1L, MovableType.MENKUL);
+        row.setStatus(ProcessStatus.COMPLETED);
+        when(declarationGroupProcessor.applyUpdate(eq("YSV202513491"), any(), eq(USER))).thenReturn(List.of(row));
+        when(declarationGroupProcessor.process(any(), anyBoolean(), anyList(), any(RequestContext.class)))
+                .thenReturn(Optional.of(new FailureDetail("YSV202513491", "CORE-01004", "red")));
+
+        DeclarationUpdateResponse response = service.updateOne("YSV202513491", updateBody(), CTX);
+
+        assertThat(response.sentToSbm()).isTrue();
+        assertThat(response.success()).isFalse();
+        assertThat(response.errorCode()).isEqualTo("CORE-01004");
+    }
+
+    // --- toplu sorgu ------------------------------------------------------------------------
+
+    @Test
+    @DisplayName("bulk query asks SBM once per file number and promotes the confirmed ones")
+    void queryBatch_queriesEachFileNoOnce() {
+        DeclarationProcess menkul = cityLevelRow(1L, MovableType.MENKUL);
+        DeclarationProcess gayri = cityLevelRow(2L, MovableType.GAYRIMENKUL);
+        when(declarationProcessRepository.findCandidates(eq(ProcessStatus.QUERYABLE), any(), any(), any()))
+                .thenReturn(List.of(menkul, gayri));
+        when(sbmClientService.query(any(), any())).thenReturn(SbmCallResult.builder()
+                .success(true).responsePayload("{\"result\":true,\"status\":200}").build());
+
+        BatchOperationResponse response = service.queryBatch(new DeclarationFilterRequest(2026, 1, null, null), CTX);
+
+        assertThat(response.totalGroups()).isEqualTo(1);
+        assertThat(response.successCount()).isEqualTo(1);
+        verify(sbmClientService, org.mockito.Mockito.times(1)).query(any(), eq(CTX));
+        verify(declarationGroupProcessor).markCompleted(List.of(1L, 2L), USER);
+    }
+
+    @Test
+    @DisplayName("a rejected file number in a bulk query is reported and the batch continues")
+    void queryBatch_collectsFailures() {
+        DeclarationProcess row = cityLevelRow(1L, MovableType.MENKUL);
+        when(declarationProcessRepository.findCandidatesByFileNos(any(), any())).thenReturn(List.of(row));
+        when(sbmClientService.query(any(), any())).thenReturn(SbmCallResult.builder()
+                .success(false).httpStatus(422).errorCode("CORE-01001").errorMessage("Kayıt bulunamadı.").build());
+
+        BatchOperationResponse response =
+                service.queryBatch(new DeclarationFilterRequest(null, null, null, List.of("YSV202513491")), CTX);
+
+        assertThat(response.failCount()).isEqualTo(1);
+        assertThat(response.failures()).singleElement()
+                .satisfies(f -> assertThat(f.errorCode()).isEqualTo("CORE-01001"));
+        verify(declarationGroupProcessor, never()).markCompleted(anyCollection(), anyString());
+    }
+
+    @Test
+    void queryBatch_withoutFilter_usesQueryableStatuses() {
+        when(declarationProcessRepository.findCandidates(any(), any(), any(), any())).thenReturn(List.of());
+
+        assertThat(service.queryBatch(null, CTX).totalGroups()).isZero();
+
+        verify(declarationProcessRepository).findCandidates(ProcessStatus.QUERYABLE, null, null, null);
     }
 
     // --- query -----------------------------------------------------------------------------
@@ -368,7 +423,7 @@ class DeclarationServiceTest {
     void query_success_promotesRowsToCompleted() {
         when(declarationProcessRepository.findBySbmFileNo("YSV202513491"))
                 .thenReturn(List.of(cityLevelRow(1L, MovableType.MENKUL)));
-        when(sbmClientService.query(any())).thenReturn(SbmCallResult.builder()
+        when(sbmClientService.query(any(), any())).thenReturn(SbmCallResult.builder()
                 .success(true)
                 .httpStatus(200)
                 .requestPayload("{}")
@@ -377,7 +432,7 @@ class DeclarationServiceTest {
                         + "\"ysvTutarList\":[]}}")
                 .build());
 
-        SbmQueryResponse response = service.query("YSV202513491", USER);
+        SbmQueryResponse response = service.query("YSV202513491", CTX);
 
         assertThat(response.getResult()).isTrue();
         assertThat(response.getData().getYsvDosyaNo()).isEqualTo("YSV202513491");
@@ -387,12 +442,12 @@ class DeclarationServiceTest {
     @Test
     void query_withoutLocalRows_doesNotPromoteAnything() {
         when(declarationProcessRepository.findBySbmFileNo(anyString())).thenReturn(List.of());
-        when(sbmClientService.query(any())).thenReturn(SbmCallResult.builder()
+        when(sbmClientService.query(any(), any())).thenReturn(SbmCallResult.builder()
                 .success(true)
                 .responsePayload("{\"result\":true,\"status\":200}")
                 .build());
 
-        assertThat(service.query("YSV202513491", USER)).isNotNull();
+        assertThat(service.query("YSV202513491", CTX)).isNotNull();
 
         verify(declarationGroupProcessor, never()).markCompleted(anyCollection(), anyString());
     }
@@ -400,14 +455,14 @@ class DeclarationServiceTest {
     @Test
     void query_rejectedBySbm_throws() {
         when(declarationProcessRepository.findBySbmFileNo(anyString())).thenReturn(List.of());
-        when(sbmClientService.query(any())).thenReturn(SbmCallResult.builder()
+        when(sbmClientService.query(any(), any())).thenReturn(SbmCallResult.builder()
                 .success(false)
                 .httpStatus(422)
                 .errorCode(SbmErrorCode.CORE_01001.getCode())
                 .errorMessage("Kayıt bulunamadı.")
                 .build());
 
-        assertThatThrownBy(() -> service.query("YSV202513491", USER))
+        assertThatThrownBy(() -> service.query("YSV202513491", CTX))
                 .isInstanceOf(SbmIntegrationException.class)
                 .hasMessageContaining("Kayıt bulunamadı");
     }
@@ -415,13 +470,13 @@ class DeclarationServiceTest {
     @Test
     void query_withUnparsableBody_throws() {
         when(declarationProcessRepository.findBySbmFileNo(anyString())).thenReturn(List.of());
-        when(sbmClientService.query(any())).thenReturn(SbmCallResult.builder()
+        when(sbmClientService.query(any(), any())).thenReturn(SbmCallResult.builder()
                 .success(true)
                 .httpStatus(200)
                 .responsePayload("not-json")
                 .build());
 
-        assertThatThrownBy(() -> service.query("YSV202513491", USER))
+        assertThatThrownBy(() -> service.query("YSV202513491", CTX))
                 .isInstanceOf(SbmIntegrationException.class)
                 .hasMessageContaining("çözümlenemedi");
     }
@@ -429,12 +484,12 @@ class DeclarationServiceTest {
     @Test
     void query_alwaysWritesAnAuditRow() {
         when(declarationProcessRepository.findBySbmFileNo(anyString())).thenReturn(List.of());
-        when(sbmClientService.query(any())).thenReturn(SbmCallResult.builder()
+        when(sbmClientService.query(any(), any())).thenReturn(SbmCallResult.builder()
                 .success(true)
                 .responsePayload("{\"result\":true}")
                 .build());
 
-        service.query("YSV202513491", USER);
+        service.query("YSV202513491", CTX);
 
         verify(declarationLogService).logCall(eq(List.of()), eq(OperationType.GET), any(),
                 anyString(), isNull(), anyString());
@@ -442,9 +497,9 @@ class DeclarationServiceTest {
 
     @Test
     void query_withoutFileNo_isRejectedBeforeAnyCall() {
-        assertThatThrownBy(() -> service.query("  ", USER))
+        assertThatThrownBy(() -> service.query("  ", CTX))
                 .isInstanceOf(SbmIntegrationException.class);
-        verify(sbmClientService, never()).query(any());
+        verify(sbmClientService, never()).query(any(), any());
     }
 
     // --- listing ----------------------------------------------------------------------------

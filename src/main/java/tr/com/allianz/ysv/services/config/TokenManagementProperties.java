@@ -26,8 +26,6 @@ public class TokenManagementProperties {
     @NotBlank
     private String functionName = "test";
 
-    @NotBlank
-    private String userName;
 
     @NotBlank
     private String companyCode;

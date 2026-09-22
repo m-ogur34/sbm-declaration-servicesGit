@@ -36,4 +36,10 @@ public class SbmCallResult {
 
     /** Echoed back by SBM on a successful POST. */
     private String ysvDosyaNo;
+
+    /** SBM'ye giden {@code Requester-ID-Type}. */
+    private String requesterIdType;
+
+    /** SBM'ye giden {@code Requester-ID-No}, maskeli ({@link tr.com.allianz.ysv.services.util.MaskUtil#maskIdentity}). */
+    private String requesterIdNo;
 }

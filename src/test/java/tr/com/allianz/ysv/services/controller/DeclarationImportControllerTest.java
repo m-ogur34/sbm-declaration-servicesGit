@@ -37,7 +37,7 @@ class DeclarationImportControllerTest {
     @DisplayName("geçerli .xlsx yüklenir, X-User-Name CREATED_BY_USER'a geçer")
     void upload_returnsImportResult() throws Exception {
         when(declarationImportService.importFile(any(), eq("WDA2422")))
-                .thenReturn(ImportResultResponse.of("b.xlsx", 3, 2, List.of()));
+                .thenReturn(ImportResultResponse.of("b.xlsx", 3, 2, 0, List.of(), List.of()));
 
         mockMvc.perform(multipart("/api/v1/declarations/upload")
                         .file(xlsx("b.xlsx"))
@@ -52,7 +52,7 @@ class DeclarationImportControllerTest {
     @Test
     void upload_withoutUserHeader_defaultsToSystem() throws Exception {
         when(declarationImportService.importFile(any(), eq("SYSTEM")))
-                .thenReturn(ImportResultResponse.of("b.xlsx", 0, 0, List.of()));
+                .thenReturn(ImportResultResponse.of("b.xlsx", 0, 0, 0, List.of(), List.of()));
 
         mockMvc.perform(multipart("/api/v1/declarations/upload").file(xlsx("b.xlsx")))
                 .andExpect(status().isOk());
@@ -82,6 +82,21 @@ class DeclarationImportControllerTest {
                 "application/octet-stream", "data".getBytes());
 
         mockMvc.perform(multipart("/api/v1/declarations/upload").file(noName))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("ALZ-VALIDATION"));
+    }
+
+    @Test
+    @DisplayName("a request without the file part is a 400, not a 500")
+    void upload_withoutFilePart_returns400() throws Exception {
+        mockMvc.perform(multipart("/api/v1/declarations/upload"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void upload_invalidUserHeader_returns400() throws Exception {
+        mockMvc.perform(multipart("/api/v1/declarations/upload").file(xlsx("b.xlsx"))
+                        .header("X-User-Name", "x".repeat(101)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("ALZ-VALIDATION"));
     }

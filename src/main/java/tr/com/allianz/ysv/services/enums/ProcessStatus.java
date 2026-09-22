@@ -26,6 +26,9 @@ public enum ProcessStatus {
     /** Statuses the "update" (HTTP PUT) and "cancel" operations are allowed to pick up. */
     public static final Set<ProcessStatus> UPDATABLE = EnumSet.of(SENT, COMPLETED);
 
+    /** SBM'de kaydı olan, dolayısıyla sorgulanabilen durumlar. */
+    public static final Set<ProcessStatus> QUERYABLE = EnumSet.of(SENT, COMPLETED);
+
     public boolean isSendable() {
         return SENDABLE.contains(this);
     }

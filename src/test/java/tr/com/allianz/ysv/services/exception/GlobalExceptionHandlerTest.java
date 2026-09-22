@@ -6,15 +6,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.MethodParameter;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockHttpServletRequest;
-import org.springframework.validation.BeanPropertyBindingResult;
-import org.springframework.validation.FieldError;
-import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.context.request.ServletWebRequest;
+import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
-import tr.com.allianz.ysv.services.controller.DeclarationController;
-import tr.com.allianz.ysv.services.dto.request.DeclarationFilterRequest;
 import tr.com.allianz.ysv.services.enums.SbmErrorCode;
 
 class GlobalExceptionHandlerTest {
@@ -48,67 +47,81 @@ class GlobalExceptionHandlerTest {
     @Test
     void handleToken_returns503() {
         ResponseEntity<ErrorResponse> response =
-                handler.handleToken(new TokenException("Token servisine erişilemedi"), request);
+                handler.handleToken(new TokenException("Token servisine erişilemedi (transactionId=t)."), request);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.SERVICE_UNAVAILABLE);
-        assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().code()).isEqualTo(SbmErrorCode.SEC_00001.getCode());
-        assertThat(response.getBody().details()).containsExactly("Token servisine erişilemedi");
+        assertThat(response.getBody().details()).containsExactly("Token servisine erişilemedi (transactionId=t).");
     }
 
     @Test
-    void handleValidation_listsEveryFieldError() throws Exception {
-        BeanPropertyBindingResult bindingResult =
-                new BeanPropertyBindingResult(new Object(), "declarationFilterRequest");
-        bindingResult.addError(new FieldError("declarationFilterRequest", "month",
-                "en fazla 12 olmalıdır"));
-        MethodParameter parameter = new MethodParameter(
-                DeclarationController.class.getDeclaredMethod("send",
-                        DeclarationFilterRequest.class, String.class), 0);
+    void handleNotFound_returns404() {
+        ResponseEntity<ErrorResponse> response =
+                handler.handleNotFound(new DeclarationNotFoundException("Beyanname bulunamadı: X"), request);
 
-        ResponseEntity<ErrorResponse> response = handler.handleValidation(
-                new MethodArgumentNotValidException(parameter, bindingResult), request);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        assertThat(response.getBody().code()).isEqualTo(GlobalExceptionHandler.NOT_FOUND_CODE);
+        assertThat(response.getBody().message()).isEqualTo("Beyanname bulunamadı: X");
+    }
+
+    @Test
+    void handleIllegalArgument_returns400WithOurMessage() {
+        ResponseEntity<ErrorResponse> response =
+                handler.handleIllegalArgument(new IllegalArgumentException("ay 1-12 aralığında olmalı"), request);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-        assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().code()).isEqualTo(GlobalExceptionHandler.VALIDATION_CODE);
-        assertThat(response.getBody().details()).containsExactly("month: en fazla 12 olmalıdır");
+        assertThat(response.getBody().details()).containsExactly("ay 1-12 aralığında olmalı");
     }
 
     @Test
-    void handleBadRequest_coversTypeMismatchAndIllegalArgument() throws Exception {
-        MethodParameter parameter = new MethodParameter(
-                DeclarationController.class.getDeclaredMethod("send",
-                        DeclarationFilterRequest.class, String.class), 0);
-        MethodArgumentTypeMismatchException mismatch = new MethodArgumentTypeMismatchException(
-                "ABC", Integer.class, "year", parameter, new NumberFormatException("ABC"));
+    @DisplayName("a type mismatch names the parameter but never echoes the rejected value")
+    void handleTypeMismatch_namesOnlyTheParameter() throws Exception {
+        MethodParameter parameter = new MethodParameter(Object.class.getMethod("equals", Object.class), 0);
+        ResponseEntity<ErrorResponse> response = handler.handleTypeMismatch(
+                new MethodArgumentTypeMismatchException("<script>", Integer.class, "year", parameter, null), request);
 
-        ResponseEntity<ErrorResponse> fromMismatch = handler.handleBadRequest(mismatch, request);
-        ResponseEntity<ErrorResponse> fromIllegalArgument =
-                handler.handleBadRequest(new IllegalArgumentException("geçersiz parametre"), request);
-
-        assertThat(fromMismatch.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-        assertThat(fromIllegalArgument.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-        assertThat(fromIllegalArgument.getBody()).isNotNull();
-        assertThat(fromIllegalArgument.getBody().code()).isEqualTo(GlobalExceptionHandler.VALIDATION_CODE);
-        assertThat(fromIllegalArgument.getBody().details()).containsExactly("geçersiz parametre");
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(response.getBody().details()).containsExactly("year: geçersiz değer");
     }
 
     @Test
-    void handleUnexpected_returns500AndHidesInternals() {
+    @DisplayName("an unexpected failure never exposes the exception message")
+    void handleUnexpected_hidesTheDetail() {
         ResponseEntity<ErrorResponse> response =
-                handler.handleUnexpected(new IllegalStateException("ORA-00942"), request);
+                handler.handleUnexpected(new IllegalStateException("ORA-00942 table does not exist"), request);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
-        assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().code()).isEqualTo(GlobalExceptionHandler.INTERNAL_CODE);
         assertThat(response.getBody().message()).isEqualTo("Beklenmeyen bir hata oluştu.");
+        assertThat(response.getBody().details()).isEmpty();
     }
 
     @Test
-    void errorResponse_defaultsDetailsToAnEmptyList() {
-        ErrorResponse response = ErrorResponse.of("/x", "CODE", "mesaj", null);
+    @DisplayName("standard MVC failures keep their status, get our body and no internal message")
+    void handleExceptionInternal_wrapsStandardFailures() {
+        WebRequest webRequest = new ServletWebRequest(request);
 
-        assertThat(response.details()).isEmpty();
+        ResponseEntity<Object> response = handler.handleExceptionInternal(
+                new IllegalStateException("Jackson: Unexpected end-of-input"), null, new HttpHeaders(),
+                HttpStatus.METHOD_NOT_ALLOWED, webRequest);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.METHOD_NOT_ALLOWED);
+        ErrorResponse body = (ErrorResponse) response.getBody();
+        assertThat(body.code()).isEqualTo(GlobalExceptionHandler.REQUEST_CODE);
+        assertThat(body.path()).isEqualTo("/api/v1/declarations/send");
+        assertThat(body.message()).doesNotContain("Jackson");
+        assertThat(body.details()).isEmpty();
+    }
+
+    @Test
+    void messageFor_coversTheCommonStatuses() {
+        assertThat(GlobalExceptionHandler.messageFor(HttpStatusCode.valueOf(400))).contains("geçersiz");
+        assertThat(GlobalExceptionHandler.messageFor(HttpStatusCode.valueOf(404))).contains("bulunamadı");
+        assertThat(GlobalExceptionHandler.messageFor(HttpStatusCode.valueOf(405))).contains("metodu");
+        assertThat(GlobalExceptionHandler.messageFor(HttpStatusCode.valueOf(406))).contains("üretilemiyor");
+        assertThat(GlobalExceptionHandler.messageFor(HttpStatusCode.valueOf(413))).contains("10MB");
+        assertThat(GlobalExceptionHandler.messageFor(HttpStatusCode.valueOf(415))).contains("İçerik tipi");
+        assertThat(GlobalExceptionHandler.messageFor(HttpStatusCode.valueOf(409))).isEqualTo("İstek işlenemedi.");
     }
 }

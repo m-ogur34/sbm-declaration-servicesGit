@@ -8,12 +8,17 @@ import java.util.List;
 public record ImportResultResponse(String sourceFileName,
                                    int totalRows,
                                    int inserted,
+                                   int updated,
+                                   @Schema(description = "Tutarı değişen beyannameler; SBM'ye taşımak için "
+                                           + "PUT /update gövdesinde ysvDosyaNoList olarak verilebilir.")
+                                   List<String> updatedFileNos,
                                    int failed,
                                    List<ExcelRowError> errors) {
 
-    public static ImportResultResponse of(String sourceFileName, int totalRows, int inserted,
-                                          List<ExcelRowError> errors) {
+    public static ImportResultResponse of(String sourceFileName, int totalRows, int inserted, int updated,
+                                          List<String> updatedFileNos, List<ExcelRowError> errors) {
         List<ExcelRowError> safe = errors == null ? List.of() : List.copyOf(errors);
-        return new ImportResultResponse(sourceFileName, totalRows, inserted, safe.size(), safe);
+        List<String> fileNos = updatedFileNos == null ? List.of() : List.copyOf(updatedFileNos);
+        return new ImportResultResponse(sourceFileName, totalRows, inserted, updated, fileNos, safe.size(), safe);
     }
 }
