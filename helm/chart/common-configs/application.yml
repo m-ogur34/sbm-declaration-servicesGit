@@ -63,14 +63,16 @@ esb:
   connect-timeout: 10s
   read-timeout: 60s
 
+# k8s: degerler Vault agent export'larindan gelir (helm/values/<ortam>.yaml).
+# Placeholder adi export adiyla BIREBIR ayni olmali; ${camelCase} UPPER_SNAKE env ile eslesmez.
 token-management:
   path: /alz-token-management/api/v1/tokens/sbm-token-generate
-  client-name: ${tokenManagementClientName}
-  company-code: ${tokenManagementCompanyCode}
+  client-name: ${TOKEN_MANAGEMENT_CLIENT_NAME}
+  company-code: ${TOKEN_MANAGEMENT_COMPANY_CODE}
   connect-timeout: 30s
   read-timeout: 30s
 
 sbm:
-  company-code: ${sbmCompanyCode}
+  company-code: ${SBM_COMPANY_CODE}
   retry:
     max-attempts: 2
