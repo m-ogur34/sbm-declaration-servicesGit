@@ -1,6 +1,15 @@
+spring:
+  datasource:
+    hikari:
+      connection-timeout: 50000
+      maximum-pool-size: 25 #maximum pool size
+
 token-management:
   base-url: https://int-prep-auth.allianz.com.tr
 
 logging:
   level:
+    root: INFO
     tr.com.allianz.ysv.services: INFO
+    org.springframework.web: INFO
+
