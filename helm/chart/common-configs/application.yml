@@ -3,57 +3,68 @@ server:
   servlet:
     context-path: /sbm-declaration-services
 
-logging:
-  level:
-    root: INFO
-    tr.com.allianz.ysv.services: INFO
-    org.springframework.web: INFO
 
 spring:
   application:
     name: sbm-declaration-services
+  transaction:
+    default-timeout: 50000
+  main:
+    allow-bean-definition-overriding: true
   datasource:
     driver-class-name: oracle.jdbc.OracleDriver
     hikari:
-      pool-name: sbm-declaration-pool
-      maximum-pool-size: 10
-      minimum-idle: 2
-      connection-timeout: 30000
+      minimum-idle: 10
+      idle-timeout: 10000 #maximum idle time for connection
+      auto-commit: true #default auto-commit behavior
+      connection-init-sql: ALTER SESSION SET NLS_LANGUAGE='TURKISH' NLS_DATE_FORMAT='DD/MM/YYYY' NLS_TERRITORY='TURKEY' NLS_CURRENCY='TL' NLS_ISO_CURRENCY='TURKEY' NLS_NUMERIC_CHARACTERS=',.' NLS_CALENDAR='GREGORIAN' NLS_DATE_LANGUAGE='TURKISH' NLS_SORT='TURKISH' NLS_TIME_FORMAT='HH24:MI:SSXFF' NLS_TIMESTAMP_FORMAT='DD/MM/RRRR HH24:MI:SSXFF' NLS_TIME_TZ_FORMAT='HH24:MI:SSXFF TZR' NLS_TIMESTAMP_TZ_FORMAT='DD/MM/RRRR HH24:MI:SSXFF TZR' NLS_DUAL_CURRENCY='TL' NLS_COMP='BINARY' NLS_LENGTH_SEMANTICS='BYTE' NLS_NCHAR_CONV_EXCP='FALSE'
   jpa:
+    show-sql: false
     hibernate:
       ddl-auto: none
-    open-in-view: false
-    show-sql: false
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.OracleDialect
-        jdbc:
-          batch_size: 50
-        order_inserts: true
-  jackson:
-    default-property-inclusion: non_null
-    serialization:
-      write-dates-as-timestamps: false
-  servlet:
-    multipart:
-      max-file-size: 10MB
-      max-request-size: 10MB
+        use_sql_comments: true
+        globally_quoted_identifiers: false
+        format_sql: true
+        type: error
+        generate_statistics: false
+      jakarta:
+        persistence:
+          query:
+            timeout: 60000
 
 management:
   endpoints:
+    enabled-by-default: false
     web:
       exposure:
-        include: health,info,metrics
+        include:
+          - health
+          - info
+          - prometheus
   endpoint:
     health:
-      probes:
-        enabled: true
+      enabled: true
+    info:
+      enabled: true
+    prometheus:
+      enabled: true
 
 springdoc:
-  swagger-ui:
-    path: /swagger-ui.html
   api-docs:
-    path: /v3/api-docs
+    enabled: true
+    path: /swagger-ui/api/api-docs
+  swagger-ui:
+    path: /swagger-ui
+    doc-expansion: none
+    display-request-duration: true
+    deep-linking: true
+    show-extensions: true
+    default-model-expand-depth: 1
+    default-models-expand-depth: 1
+    operations-sorter: alpha
+    tags-sorter: alpha
 
 esb:
   base-url: ${ESB_SERVER:http://esb.allianz.com.tr:12000}
@@ -63,8 +74,6 @@ esb:
   connect-timeout: 10s
   read-timeout: 60s
 
-# k8s: degerler Vault agent export'larindan gelir (helm/values/<ortam>.yaml).
-# Placeholder adi export adiyla BIREBIR ayni olmali; ${camelCase} UPPER_SNAKE env ile eslesmez.
 token-management:
   path: /alz-token-management/api/v1/tokens/sbm-token-generate
   client-name: ${TOKEN_MANAGEMENT_CLIENT_NAME}
