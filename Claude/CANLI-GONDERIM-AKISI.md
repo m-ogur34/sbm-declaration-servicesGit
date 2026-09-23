@@ -205,9 +205,9 @@ Kod, cevaptaki `error.reasons[].code` alanındadır; satırın `ERROR_DETAILS` k
 | `RISK-HAVUZU-00003` | Ay veri girişine kapalı | SBM ile iletişim. Yeniden deneme anlamsız |
 | `RISK-HAVUZU-00004` | Yuvada başka beyanname var | Mesajdaki dosya no bizimkiyse satır otomatik `SENT` olur (zaten SBM'de). Başkasıysa: kimin gönderdiği araştırılır; SBM'de silme olmadığı için o yuvaya ancak o dosya no ile PUT yapılabilir |
 | `RISK-HAVUZU-00005` | Aynı menkul tipi iki kez | Excel'de aynı dosya no + menkul tipi tekrar ediyor. Normalde doğrulamada yakalanır |
-| `RISK-HAVUZU-00006` / `00009` | İl / ilçe bulunamadı | Veri hatası; iş birimine. **Not:** bugünkü kodla bu satırın il/ilçesi Excel ile düzeltilemez |
-| `RISK-HAVUZU-00007` | Büyükşehirde ilçe gönderilemez | Excel'de ilçe kodu 0 olmalı; iş birimine. Aynı not geçerli |
-| `RISK-HAVUZU-00008` | Büyükşehir değilse ilçe gönderilmeli | Excel'de ilçe kodu eksik; iş birimine. Aynı not geçerli |
+| `RISK-HAVUZU-00006` / `00009` | İl / ilçe bulunamadı | Veri hatası; iş birimine. Düzeltilmiş Excel `/upload/validate` → `/upload` ile yüklenir (il/ilçe düzeltilir, satır `NEW` olur), sonra `POST /send` |
+| `RISK-HAVUZU-00007` | Büyükşehirde ilçe gönderilemez | Excel'de ilçe kodu 0 olmalı; iş birimine. Düzeltme yolu bir üst satırdaki gibi |
+| `RISK-HAVUZU-00008` | Büyükşehir değilse ilçe gönderilmeli | Excel'de ilçe kodu eksik; iş birimine. Düzeltme yolu bir üst satırdaki gibi |
 | `CORE-01000/01004/01008`, `CORE-00005/00006` | Alan zorunlu / aralık / uzunluk / format | Veri hatası; `field` alanı hangi alan olduğunu söyler |
 | `SEC-00001` (503) | Token alınamadı | Token servisi erişimi / PROD kullanıcı tanımı |
 | `SEC-00002` | Token geçersiz | Uygulama 1 kez yeni token ile otomatik dener; sürerse token ekibi |
@@ -227,7 +227,7 @@ uygulama logundadır. SBM her destek talebinde bu değeri ister.
 | Tutar / son ödeme tarihi değişti (birden çok beyanname) | Düzeltilmiş Excel → önce `/upload/validate`, sonra `/upload`. Cevaptaki `updatedFileNos` → `PUT $BASE/update` gövdesinde `{"ysvDosyaNoList":[…]}` |
 | Tek beyannamenin tutarı değişti | `PUT $BASE/{ysvDosyaNo}` — DB'yi günceller ve aynı çağrıda SBM'ye PUT eder |
 | Beyanname geri çekilmeli | `POST $BASE/{ysvDosyaNo}/cancel` — SBM'de tutarlar 0 olur (silme yoktur, yuva bu dosya no'da kalır) |
-| İl / ilçe yanlış | SBM'ye **gitmişse** değiştirilemez: iptal + yeni dosya no ile yeni beyanname. Gitmemişse (`ERROR`) bugün düzeltme yolu yoktur — geliştiriciyle konuşulur |
+| İl / ilçe yanlış | SBM'ye **gitmişse** değiştirilemez: iptal + yeni dosya no ile yeni beyanname. SBM il/ilçe hatasıyla (`RISK-HAVUZU-00006..00009`) reddettiyse ya da satır `NEW` ise: düzeltilmiş Excel ile yeniden yükle — beyannamenin **tüm** menkul satırları aynı yeni il/ilçeyle dosyada olmalı. Zaman aşımı sonrası `ERROR` olan satırın il/ilçesi değiştirilemez |
 
 ---
 
