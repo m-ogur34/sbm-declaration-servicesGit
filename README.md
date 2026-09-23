@@ -318,6 +318,7 @@ Anahtar `ysvDosyaNo + menkulTipi`; bir dosya tek dönem içerir (değilse tüm d
 | Satır DB'de var, değerler aynı | Dokunulmaz |
 | İl/ilçe farklı, satır `PROCESSING`, dosya no başka dönemde, SBM'deki beyannameye yeni menkul tipi, aynı il/ilçe/dönemde başka dosya no (DB'de veya dosyada) | Satır hatası (`ALZ-EXCEL-CONFLICT` / `ALZ-EXCEL-BUSY`) |
 | Dosyada aynı anahtar iki kez | `ALZ-EXCEL-DUPLICATE` |
+| İl/ilçe farklı, beyanname SBM'ye **hiç ulaşmamış** (`NEW` ya da SBM'nin `RISK-HAVUZU-00006..00009` il/ilçe reddiyle `ERROR`), beyannamenin tüm menkul satırları aynı yeni il/ilçeyle Excel'de ve yeni il/ilçe/dönem boş | İl/ilçe düzeltilir, satır `NEW` olur, `ERROR_DETAILS` temizlenir; `LOCAL_UPDATE` logu "il/ilçe düzeltildi". Zaman aşımı/5xx sonrası `ERROR` bu kapsamda değildir (SBM kaydı almış olabilir) |
 
 ### Durum kuralları
 

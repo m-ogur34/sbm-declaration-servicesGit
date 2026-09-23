@@ -5,13 +5,16 @@ import java.io.InputStream;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -22,6 +25,7 @@ import tr.com.allianz.ysv.services.dto.response.ExcelRowError;
 import tr.com.allianz.ysv.services.dto.response.ImportResultResponse;
 import tr.com.allianz.ysv.services.entity.DeclarationProcess;
 import tr.com.allianz.ysv.services.enums.LogLevel;
+import tr.com.allianz.ysv.services.enums.MovableType;
 import tr.com.allianz.ysv.services.enums.OperationType;
 import tr.com.allianz.ysv.services.enums.ProcessStatus;
 import tr.com.allianz.ysv.services.mapper.ProcessMapper;
@@ -40,6 +44,8 @@ public class DeclarationImportService {
     static final String BUSY_CODE = "ALZ-EXCEL-BUSY";
     /** Oracle'da bir IN listesine verilebilecek en fazla değer. */
     static final int IN_LIMIT = 1000;
+    /** SBM'nin il/ilçe gerekçeli redleri: il yok, büyükşehirde ilçe, büyükşehir değilse ilçe yok, ilçe yok. */
+    private static final Pattern LOCATION_REJECTION = Pattern.compile("RISK-HAVUZU-0000[6-9]");
 
     private final ExcelDeclarationParser parser;
     private final DeclarationProcessRepository repository;
@@ -75,7 +81,7 @@ public class DeclarationImportService {
         for (PlannedUpdate update : plan.updates()) {
             DeclarationProcess target = update.target();
             beforeById.put(target.getId(), jsonUtil.toJson(processMapper.toView(target)));
-            apply(target, update.row(), now, user);
+            apply(target, update.row(), update.relocate(), now, user);
             updated.add(target);
         }
         List<DeclarationProcess> toInsert = plan.inserts().stream()
@@ -86,9 +92,12 @@ public class DeclarationImportService {
             repository.saveAll(updated);
             repository.saveAll(toInsert);
         }
+        Set<Long> relocatedIds = new HashSet<>();
+        plan.updates().stream().filter(PlannedUpdate::relocate).forEach(u -> relocatedIds.add(u.target().getId()));
         for (DeclarationProcess row : updated) {
             declarationLogService.logCall(List.of(row.getId()), OperationType.LOCAL_UPDATE, LogLevel.INFO,
-                    "Excel ile güncellendi (" + plan.fileName() + "). Dosya no: " + row.getSbmFileNo()
+                    "Excel ile güncellendi" + (relocatedIds.contains(row.getId()) ? ", il/ilçe düzeltildi" : "")
+                            + " (" + plan.fileName() + "). Dosya no: " + row.getSbmFileNo()
                             + ", menkul tipi: " + row.getMovableType() + ", kullanıcı: " + user,
                     beforeById.get(row.getId()), jsonUtil.toJson(processMapper.toView(row)));
         }
@@ -156,6 +165,8 @@ public class DeclarationImportService {
         }
 
         Set<String> registeredElsewhere = registeredInOtherPeriods(rows, existingByFileNo.keySet());
+        Map<String, String> relocationProblems = new HashMap<>();
+        Set<String> relocated = planRelocations(rows, existingByFileNo, slotOwners, relocationProblems);
 
         Set<String> seenKeys = new HashSet<>();
         for (ParsedRow row : rows) {
@@ -169,17 +180,18 @@ public class DeclarationImportService {
                     .findFirst()
                     .orElse(null);
 
+            boolean relocate = relocated.contains(row.ysvDosyaNo());
             if (match != null) {
-                String problem = updateProblem(match, row);
+                String problem = relocate ? null : updateProblem(match, row, relocationProblems);
                 if (problem != null) {
                     errors.add(error(row, problem.startsWith("Satır şu anda") ? BUSY_CODE : CONFLICT_CODE, problem));
-                } else if (changes(match, row)) {
-                    updates.add(new PlannedUpdate(match, row));
+                } else if (relocate || changes(match, row)) {
+                    updates.add(new PlannedUpdate(match, row, relocate));
                 }
                 continue;
             }
 
-            String problem = insertProblem(sameFileNo, registeredElsewhere, row);
+            String problem = insertProblem(sameFileNo, registeredElsewhere, relocate, row);
             String slot = slotKey(row.ilKodu(), row.ilceKodu());
             String owner = slotOwners.get(slot);
             if (problem == null && owner != null && !owner.equals(row.ysvDosyaNo())) {
@@ -196,8 +208,78 @@ public class DeclarationImportService {
         return new ImportPlan(fileName, totalRows, inserts, updates, errors);
     }
 
-    /** Değiştirilecek mevcut satır ve onu değiştirecek Excel satırı. */
-    private record PlannedUpdate(DeclarationProcess target, ParsedRow row) {
+    /**
+     * Değiştirilecek mevcut satır ve onu değiştirecek Excel satırı. {@code relocate}: satırın
+     * il/ilçesi de Excel'dekiyle değişir (bkz. {@link #planRelocations}).
+     */
+    private record PlannedUpdate(DeclarationProcess target, ParsedRow row, boolean relocate) {
+    }
+
+    /**
+     * SBM'ye hiç ulaşmamış bir beyannamenin il/ilçesinin Excel ile düzeltilmesi. Excel'de il/ilçesi
+     * DB'dekinden farklı gelen her dosya no için, şu koşulların hepsi sağlanırsa dosya no döner:
+     * <ol>
+     *   <li>DB'deki tüm satırları {@code NEW} ya da SBM'nin il/ilçe gerekçesiyle
+     *       ({@code RISK-HAVUZU-00006..00009}) reddettiği {@code ERROR} — yani SBM'de kaydı yok.
+     *       Zaman aşımı / 5xx sonrası {@code ERROR} olan satır dahil değil: SBM kaydı almış olabilir.
+     *       Aynı il/ilçe SBM'de reddedildiyse önceki denemelerde de kabul edilmiş olamaz.</li>
+     *   <li>Beyanname bölünmüyor: DB'deki her menkul satırı Excel'de var ve Excel'deki tüm
+     *       satırları aynı yeni il/ilçeyi taşıyor.</li>
+     *   <li>Yeni il/ilçe/dönem yuvası başka bir dosya no'ya ait değil (RISK-HAVUZU-00004).</li>
+     * </ol>
+     * Kabul edilen dosya no için yuva sahipliği yeni yuvaya taşınır; reddedilenlerin sebebi
+     * {@code problems}'a yazılır.
+     */
+    private static Set<String> planRelocations(List<ParsedRow> rows,
+                                               Map<String, List<DeclarationProcess>> existingByFileNo,
+                                               Map<String, String> slotOwners,
+                                               Map<String, String> problems) {
+        Map<String, List<ParsedRow>> excelByFileNo = new LinkedHashMap<>();
+        for (ParsedRow row : rows) {
+            if (existingByFileNo.containsKey(row.ysvDosyaNo())) {
+                excelByFileNo.computeIfAbsent(row.ysvDosyaNo(), k -> new ArrayList<>()).add(row);
+            }
+        }
+        Set<String> relocated = new HashSet<>();
+        excelByFileNo.forEach((fileNo, excelRows) -> {
+            List<DeclarationProcess> dbRows = existingByFileNo.get(fileNo);
+            String oldSlot = slotKey(dbRows.get(0).getCityCode(), dbRows.get(0).getDistrictCode());
+            Set<String> newSlots = new HashSet<>();
+            excelRows.forEach(r -> newSlots.add(slotKey(r.ilKodu(), r.ilceKodu())));
+            if (newSlots.size() != 1 || newSlots.contains(oldSlot)) {
+                return;
+            }
+            String newSlot = newSlots.iterator().next();
+            String owner = slotOwners.get(newSlot);
+            Set<MovableType> inExcel = EnumSet.noneOf(MovableType.class);
+            excelRows.forEach(r -> inExcel.add(r.menkulTipi()));
+            if (!dbRows.stream().allMatch(DeclarationImportService::neverReachedSbm)) {
+                problems.put(fileNo, "ysvDosyaNo mevcut kayıtta farklı il/ilçe ile kayıtlı ("
+                        + dbRows.get(0).getCityCode() + "/" + dbRows.get(0).getDistrictCode()
+                        + "); beyanname SBM'ye gönderilmiş olabileceği için il/ilçe değiştirilemez. "
+                        + "Yalnız NEW ya da SBM'nin il/ilçe hatasıyla (RISK-HAVUZU-00006..00009) reddettiği "
+                        + "beyannamenin il/ilçesi düzeltilebilir.");
+            } else if (!dbRows.stream().allMatch(p -> inExcel.contains(p.getMovableType()))) {
+                problems.put(fileNo, "İl/ilçe düzeltmesinde beyannamenin tüm menkul satırları aynı yeni "
+                        + "il/ilçe ile Excel'de olmalı.");
+            } else if (owner != null && !owner.equals(fileNo)) {
+                problems.put(fileNo, "Yeni il/ilçe/dönem için başka bir beyanname kayıtlı (Dosya no: " + owner
+                        + "); il-ilçe-dönem başına tek beyanname olabilir.");
+            } else {
+                relocated.add(fileNo);
+                slotOwners.remove(oldSlot, fileNo);
+                slotOwners.put(newSlot, fileNo);
+            }
+        });
+        return relocated;
+    }
+
+    /** {@code NEW} ya da SBM'nin il/ilçe gerekçesiyle reddettiği {@code ERROR}: SBM'de kaydı yok. */
+    private static boolean neverReachedSbm(DeclarationProcess process) {
+        return process.getStatus() == ProcessStatus.NEW
+                || (process.getStatus() == ProcessStatus.ERROR
+                        && process.getErrorDetails() != null
+                        && LOCATION_REJECTION.matcher(process.getErrorDetails()).find());
     }
 
     /** {@link #plan} sonucu: yükleme bunu uygular, doğrulama yalnızca raporlar. */
@@ -222,9 +304,14 @@ public class DeclarationImportService {
     }
 
     /** @return mevcut satır bu Excel satırıyla güncellenemiyorsa sebebi, yoksa {@code null} */
-    private static String updateProblem(DeclarationProcess existing, ParsedRow row) {
+    private static String updateProblem(DeclarationProcess existing, ParsedRow row,
+                                        Map<String, String> relocationProblems) {
         if (!Objects.equals(existing.getCityCode(), row.ilKodu())
                 || !Objects.equals(normalizeDistrict(existing.getDistrictCode()), normalizeDistrict(row.ilceKodu()))) {
+            String relocationProblem = relocationProblems.get(row.ysvDosyaNo());
+            if (relocationProblem != null) {
+                return relocationProblem;
+            }
             return "ysvDosyaNo mevcut kayıtta farklı il/ilçe ile kayıtlı ("
                     + existing.getCityCode() + "/" + existing.getDistrictCode()
                     + "); beyannamenin kimliği değiştirilemez.";
@@ -257,6 +344,7 @@ public class DeclarationImportService {
     /** @return bu Excel satırı eklenemiyorsa sebebi, yoksa {@code null} */
     private static String insertProblem(List<DeclarationProcess> sameFileNoInPeriod,
                                         Set<String> registeredElsewhere,
+                                        boolean relocated,
                                         ParsedRow row) {
         if (sameFileNoInPeriod.isEmpty()) {
             return registeredElsewhere.contains(row.ysvDosyaNo())
@@ -264,8 +352,8 @@ public class DeclarationImportService {
                     : null;
         }
         DeclarationProcess sibling = sameFileNoInPeriod.get(0);
-        if (!Objects.equals(sibling.getCityCode(), row.ilKodu())
-                || !Objects.equals(normalizeDistrict(sibling.getDistrictCode()), normalizeDistrict(row.ilceKodu()))) {
+        if (!relocated && (!Objects.equals(sibling.getCityCode(), row.ilKodu())
+                || !Objects.equals(normalizeDistrict(sibling.getDistrictCode()), normalizeDistrict(row.ilceKodu())))) {
             return "ysvDosyaNo mevcut kayıtta farklı il/ilçe ile kayıtlı; beyannamenin kimliği değiştirilemez.";
         }
         boolean atSbm = sameFileNoInPeriod.stream()
@@ -286,7 +374,14 @@ public class DeclarationImportService {
                         && !sameAmount(existing.getPrevMonthRefundAmount(), row.gecmisAyIadeTutari()));
     }
 
-    private static void apply(DeclarationProcess existing, ParsedRow row, LocalDateTime now, String user) {
+    private static void apply(DeclarationProcess existing, ParsedRow row, boolean relocate,
+                              LocalDateTime now, String user) {
+        if (relocate) {
+            existing.setCityCode(row.ilKodu());
+            existing.setDistrictCode(row.ilceKodu());
+            existing.setStatus(ProcessStatus.NEW);
+            existing.setErrorDetails(null);
+        }
         existing.setReceivedPremiumAmount(row.alinanPrimTutari());
         existing.setCancelledPremiumAmount(row.iptalPrimTutari());
         existing.setTaxAmount(row.odenecekVergi());

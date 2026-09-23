@@ -478,4 +478,146 @@ class DeclarationImportServiceTest {
 
         verify(repository, never()).findExistingFileNos(anyList());
     }
+    // --- il/ilce duzeltme (SBM'ye hic ulasmamis beyanname) -------------------------------------
+
+    private static DeclarationProcess rejected(long id, MovableType type, String errorDetails) {
+        DeclarationProcess p = existing(id, "YSV-7", type, ProcessStatus.ERROR);
+        p.setCityCode(22);
+        p.setDistrictCode(0);
+        p.setErrorDetails(errorDetails);
+        return p;
+    }
+
+    private static ParsedRow edirne(int rowNumber, String fileNo, MovableType type, int district) {
+        BigDecimal one = new BigDecimal("1.00");
+        return new ParsedRow(rowNumber, 8, 22, district, 2026, fileNo, PAYMENT, type,
+                one, one, one, 10, one, null);
+    }
+
+    @Test
+    @DisplayName("a declaration SBM rejected for its district (RISK-HAVUZU-00008) is moved to the corrected district")
+    void locationRejected_isRelocated() {
+        String sbm = "RISK-HAVUZU-00008: Büyükşehir değilse ilçe gönderilmelidir";
+        DeclarationProcess menkul = rejected(1L, MovableType.MENKUL, sbm);
+        DeclarationProcess gayrimenkul = rejected(2L, MovableType.GAYRIMENKUL, sbm);
+        when(repository.lockByPeriod(2026, 8)).thenReturn(List.of(menkul, gayrimenkul));
+        sheet(edirne(2, "YSV-7", MovableType.MENKUL, 1295), edirne(3, "YSV-7", MovableType.GAYRIMENKUL, 1295));
+
+        ImportResultResponse result = service.importFile(file(), USER);
+
+        assertThat(result.failed()).isZero();
+        assertThat(result.updated()).isEqualTo(2);
+        assertThat(result.updatedFileNos()).containsExactly("YSV-7");
+        assertThat(List.of(menkul, gayrimenkul)).allSatisfy(p -> {
+            assertThat(p.getCityCode()).isEqualTo(22);
+            assertThat(p.getDistrictCode()).isEqualTo(1295);
+            assertThat(p.getStatus()).isEqualTo(ProcessStatus.NEW);
+            assertThat(p.getErrorDetails()).isNull();
+        });
+        verify(declarationLogService, times(2)).logCall(anyList(), eq(OperationType.LOCAL_UPDATE),
+                eq(LogLevel.INFO), org.mockito.ArgumentMatchers.contains("il/ilçe düzeltildi"), any(), any());
+    }
+
+    @Test
+    @DisplayName("validate reports the relocation but leaves the rows untouched")
+    void locationRejected_validateDoesNotTouch() {
+        DeclarationProcess menkul = rejected(1L, MovableType.MENKUL, "RISK-HAVUZU-00007: Büyükşehirde ilçe gönderilemez");
+        when(repository.findByPeriod(2026, 8)).thenReturn(List.of(menkul));
+        sheet(edirne(2, "YSV-7", MovableType.MENKUL, 1295));
+
+        ImportResultResponse result = service.validate(file());
+
+        assertThat(result.updated()).isEqualTo(1);
+        assertThat(menkul.getDistrictCode()).isZero();
+        assertThat(menkul.getStatus()).isEqualTo(ProcessStatus.ERROR);
+    }
+
+    @Test
+    void newDeclaration_canBeRelocated() {
+        DeclarationProcess row = existing(1L, "YSV-7", MovableType.MENKUL, ProcessStatus.NEW);
+        when(repository.lockByPeriod(2026, 8)).thenReturn(List.of(row));
+        sheet(edirne(2, "YSV-7", MovableType.MENKUL, 1295));
+
+        assertThat(service.importFile(file(), USER).updated()).isEqualTo(1);
+        assertThat(row.getCityCode()).isEqualTo(22);
+    }
+
+    @Test
+    @DisplayName("an ERROR after a timeout may already be at SBM: its location stays locked")
+    void timeoutError_isNotRelocated() {
+        DeclarationProcess row = rejected(1L, MovableType.MENKUL,
+                "SBM servisine erişilemedi (ESB bağlantı hatası). Transaction-Id: x");
+        when(repository.lockByPeriod(2026, 8)).thenReturn(List.of(row));
+        sheet(edirne(2, "YSV-7", MovableType.MENKUL, 1295));
+
+        ImportResultResponse result = service.importFile(file(), USER);
+
+        assertThat(result.updated()).isZero();
+        assertThat(result.errors()).singleElement().satisfies(e -> {
+            assertThat(e.code()).isEqualTo(DeclarationImportService.CONFLICT_CODE);
+            assertThat(e.message()).contains("gönderilmiş olabileceği");
+        });
+        assertThat(row.getDistrictCode()).isZero();
+    }
+
+    @Test
+    void sentDeclaration_isNotRelocated() {
+        DeclarationProcess row = existing(1L, "YSV-7", MovableType.MENKUL, ProcessStatus.SENT);
+        when(repository.lockByPeriod(2026, 8)).thenReturn(List.of(row));
+        sheet(edirne(2, "YSV-7", MovableType.MENKUL, 1295));
+
+        assertThat(service.importFile(file(), USER).errors()).singleElement()
+                .satisfies(e -> assertThat(e.message()).contains("gönderilmiş olabileceği"));
+    }
+
+    @Test
+    @DisplayName("correcting only one movable row would split the declaration: refused")
+    void partialRelocation_isRefused() {
+        String sbm = "RISK-HAVUZU-00008: Büyükşehir değilse ilçe gönderilmelidir";
+        when(repository.lockByPeriod(2026, 8)).thenReturn(List.of(
+                rejected(1L, MovableType.MENKUL, sbm), rejected(2L, MovableType.GAYRIMENKUL, sbm)));
+        sheet(edirne(2, "YSV-7", MovableType.MENKUL, 1295));
+
+        assertThat(service.importFile(file(), USER).errors()).singleElement()
+                .satisfies(e -> assertThat(e.message()).contains("tüm menkul satırları"));
+    }
+
+    @Test
+    void relocationIntoAnOccupiedSlot_isRefused() {
+        DeclarationProcess other = existing(9L, "YSV-OTHER", MovableType.MENKUL, ProcessStatus.SENT);
+        other.setCityCode(22);
+        other.setDistrictCode(1295);
+        when(repository.lockByPeriod(2026, 8)).thenReturn(List.of(
+                rejected(1L, MovableType.MENKUL, "RISK-HAVUZU-00008: x"), other));
+        sheet(edirne(2, "YSV-7", MovableType.MENKUL, 1295));
+
+        assertThat(service.importFile(file(), USER).errors()).singleElement()
+                .satisfies(e -> assertThat(e.message()).contains("YSV-OTHER"));
+    }
+
+    @Test
+    @DisplayName("the slot a relocated declaration leaves is free for another declaration in the same file")
+    void relocation_freesTheOldSlot() {
+        when(repository.lockByPeriod(2026, 8)).thenReturn(List.of(rejected(1L, MovableType.MENKUL, "RISK-HAVUZU-00008: x")));
+        sheet(edirne(2, "YSV-7", MovableType.MENKUL, 1295), edirne(3, "YSV-8", MovableType.MENKUL, 0));
+
+        ImportResultResponse result = service.importFile(file(), USER);
+
+        assertThat(result.failed()).isZero();
+        assertThat(result.updated()).isEqualTo(1);
+        assertThat(result.insertedFileNos()).containsExactly("YSV-8");
+    }
+
+    @Test
+    @DisplayName("a relocated declaration may gain a new movable row in the same file")
+    void relocation_withNewMovableRow() {
+        when(repository.lockByPeriod(2026, 8)).thenReturn(List.of(rejected(1L, MovableType.MENKUL, "RISK-HAVUZU-00008: x")));
+        sheet(edirne(2, "YSV-7", MovableType.MENKUL, 1295), edirne(3, "YSV-7", MovableType.GAYRIMENKUL, 1295));
+
+        ImportResultResponse result = service.importFile(file(), USER);
+
+        assertThat(result.errors()).isEmpty();
+        assertThat(result.updated()).isEqualTo(1);
+        assertThat(result.inserted()).isEqualTo(1);
+    }
 }
