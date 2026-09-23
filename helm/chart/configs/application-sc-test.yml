@@ -1,15 +1,14 @@
+spring:
+  datasource:
+    hikari:
+      connection-timeout: 50000
+      maximum-pool-size: 25 #maximum pool size
+
 token-management:
   base-url: https://int-sc-test-auth.allianz.com.tr
 
 logging:
   level:
-    tr.com.allianz.ysv.services: DEBUG
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info,metrics,loggers
-  endpoint:
-    loggers:
-      enabled: true
+    root: INFO
+    tr.com.allianz.ysv.services: INFO
+    org.springframework.web: INFO
