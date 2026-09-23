@@ -14,7 +14,7 @@ springboot-deployment:
     podLogger:
       enabled: true
       template:
-        - image: harbor.allianz-tr.local/allianz-release/pod-logger:v2
+        - image: harbor.allianz-tr.local/allianz-release/pod-logger:v5
           name: pod-logger
           resources:
             requests:
@@ -25,13 +25,14 @@ springboot-deployment:
               name: log-path
               readOnly: true
   app:
-    configs:
-      enabled: true
     contextPath: sbm-declaration-services
     image:
       repository:
         group: internal-release
         name: sbm-declaration-services
+    secretManager:
+      vault:
+        type: vault
     probes:
       enabled: true
       template:
@@ -56,22 +57,19 @@ springboot-deployment:
           successThreshold: 1
           timeoutSeconds: 2
         startupProbe:
-          failureThreshold: 30
+          failureThreshold: 3
           httpGet:
-            path: /sbm-declaration-services/actuator/health/readiness
+            path: /sbm-declaration-services/actuator/health/liveness
             port: 8080
             scheme: HTTP
-          initialDelaySeconds: 10
-          periodSeconds: 3
+          initialDelaySeconds: 60
+          periodSeconds: 5
           successThreshold: 1
           timeoutSeconds: 2
-    secretManager:
-      vault:
-        type: vault
   ingress:
+    ingressClassName: "nginx"
     annotations:
       nginx.org/mergeable-ingress-type: minion
-      nginx.ingress.kubernetes.io/proxy-buffer-size: 128k
     hosts:
       - alias: '0'
         prefix: 'int-'
