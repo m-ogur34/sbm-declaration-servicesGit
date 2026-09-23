@@ -1,13 +1,14 @@
+spring:
+  datasource:
+    hikari:
+      connection-timeout: 50000
+      maximum-pool-size: 25 #maximum pool size
+
 token-management:
   base-url: https://int-auth.allianz.com.tr
 
 logging:
   level:
+    root: INFO
     tr.com.allianz.ysv.services: INFO
-
-# PROD'da API dokumantasyonu disariya acik degil.
-springdoc:
-  api-docs:
-    enabled: false
-  swagger-ui:
-    enabled: false
+    org.springframework.web: INFO
