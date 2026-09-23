@@ -7,7 +7,8 @@ servisi. Bu rehber PEN ekibinin testi kısa adımlarla yürütmesi içindir.
 
 | Dosya | İçerik |
 |---|---|
-| `bruno-pentest-2025-02.json` | Bruno koleksiyonu — 7 klasör, 38 istek; her isteğin **Docs** sekmesinde beklenen sonuç var |
+| `bruno-pentest-2025-02-basit.json` | **Basit senaryo** — 5 istek: yükle → gönder → sorgula → güncelle → tekrar sorgula |
+| `bruno-pentest-2025-02.json` | Kapsamlı koleksiyon — 7 klasör, 38 istek (girdi doğrulama, başlık, bilgi ifşası) |
 | `pentest-2025-02-yukleme.xlsx` | Geçerli test verisi: 12 satır / 6 beyanname (`PENTEST2502-01..06`), dönem **2025/02** |
 | `pentest-2025-02-hatali-satirlar.xlsx` | Her satırda bir hata türü (boş alan, `&`/`=`, formül, `<script>`, 37 karakter, tekrar…) |
 | `pentest-2025-iki-donem.xlsx` | İki dönem içeren dosya — tümü reddedilmeli |
@@ -32,6 +33,23 @@ API kökü: `/api/v1/declarations`. **PROD'da test yapılmaz** (koleksiyonda PRO
   `X-Requester-Id-Type/No` başlıklarının gateway tarafından konması beklenir (bkz. §5).
 
 ## 4. Adımlar
+
+### 4.1 Basit senaryo (`bruno-pentest-2025-02-basit.json`)
+
+Bruno'ya aktar, ortam `sc-uat`, 1. istekte **Body → file** ile `pentest-2025-02-yukleme.xlsx`'i seç
+ve istekleri sırayla çalıştır:
+
+| # | İstek | Beklenen |
+|---|---|---|
+| 1 | Excel'i yükle | 200, `inserted: 12`, `failed: 0` |
+| 2 | Verileri SBM'ye gönder (2025/02) | 200, `successCount: 6`, `failCount: 0` |
+| 3 | Verileri SBM'den sorgula | 200, `successCount: 6` |
+| 4 | `PENTEST2502-01`'i güncelle (MENKUL alınan prim 660.000) | 200, `data: true` |
+| 5 | `PENTEST2502-01`'i tekrar sorgula | 200, MENKUL `alinanPrimTutari` 660000 |
+
+Tekrar çalıştırılabilir: 1. adım `inserted: 0`, 2. adım `totalGroups: 0` döner (zaten gönderilmiş).
+
+### 4.2 Kapsamlı koleksiyon (`bruno-pentest-2025-02.json`)
 
 1. Bruno → **Import Collection → Bruno Collection** → `bruno-pentest-2025-02.json`; ortam `sc-uat`.
 2. Excel gönderen isteklerde **Body → file** alanından ilgili dosyayı seçin.
