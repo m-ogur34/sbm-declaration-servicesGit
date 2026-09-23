@@ -59,6 +59,12 @@
                 <scope>import</scope>
             </dependency>
 
+            <dependency>
+                <groupId>io.micrometer</groupId>
+                <artifactId>micrometer-registry-prometheus</artifactId>
+                <version>1.8.2</version>
+            </dependency>
+
             <!-- Log4j2 güvenlik zafiyetini kapatmak için (CVE-2026-49844) - spring-cloud-dependencies BOM'un
      log4j-api sürümünü ezmesini engellemek için bu importu daha önce tanımlıyoruz (Maven ilk tanımı önceliklendirir) -->
             <dependency>
@@ -163,7 +169,6 @@
         <dependency>
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-registry-prometheus</artifactId>
-            <version>1.8.2</version>
         </dependency>
 
         <dependency>
