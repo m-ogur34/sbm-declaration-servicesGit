@@ -23,7 +23,6 @@ spring:
         order_inserts: true
         order_updates: true
   jackson:
-    default-property-inclusion: non_null
     serialization:
       write-dates-as-timestamps: false
   servlet:
