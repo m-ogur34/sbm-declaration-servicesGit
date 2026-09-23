@@ -21,6 +21,7 @@ spring:
         jdbc:
           batch_size: 50
         order_inserts: true
+        order_updates: true
   jackson:
     default-property-inclusion: non_null
     serialization:

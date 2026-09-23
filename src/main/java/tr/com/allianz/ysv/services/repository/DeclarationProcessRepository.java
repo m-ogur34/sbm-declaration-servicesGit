@@ -66,8 +66,12 @@ public interface DeclarationProcessRepository extends JpaRepository<DeclarationP
             """)
     List<DeclarationProcess> findByPeriod(@Param("year") Integer year, @Param("month") Integer month);
 
-    /** Excel yüklemede mükerrer dosya numarası kontrolü için. */
-    boolean existsBySbmFileNo(String sbmFileNo);
+    /**
+     * Verilen dosya numaralarından DB'de kayıtlı olanlar (Excel yüklemede "başka dönemde kayıtlı"
+     * kontrolü). Oracle IN sınırı nedeniyle en fazla 1000 değerle çağrılır.
+     */
+    @Query("select distinct p.sbmFileNo from DeclarationProcess p where p.sbmFileNo in :fileNos")
+    List<String> findExistingFileNos(@Param("fileNos") Collection<String> fileNos);
     @Query("""
             select p from DeclarationProcess p
             where (:status is null or p.status = :status)

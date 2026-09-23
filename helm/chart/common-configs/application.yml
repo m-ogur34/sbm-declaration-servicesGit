@@ -29,6 +29,11 @@ spring:
         format_sql: true
         type: error
         generate_statistics: false
+        # Excel yüklemede satırlar 50'lik gruplar hâlinde tek seferde yazılır (satır başına ayrı INSERT yerine)
+        jdbc:
+          batch_size: 50
+        order_inserts: true
+        order_updates: true
       jakarta:
         persistence:
           query:

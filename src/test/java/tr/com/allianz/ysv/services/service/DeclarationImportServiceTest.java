@@ -127,7 +127,7 @@ class DeclarationImportServiceTest {
     @DisplayName("a file number registered in another period is refused")
     void fileNoInAnotherPeriod_isConflict() {
         sheet(row(2, "YSV-OLD", MovableType.MENKUL));
-        when(repository.existsBySbmFileNo("YSV-OLD")).thenReturn(true);
+        when(repository.findExistingFileNos(anyList())).thenReturn(List.of("YSV-OLD"));
 
         ImportResultResponse result = service.importFile(file(), USER);
 
@@ -407,7 +407,7 @@ class DeclarationImportServiceTest {
         period.get(1).setDistrictCode(99);
         when(repository.findByPeriod(2026, 8)).thenReturn(period);
         when(repository.lockByPeriod(2026, 8)).thenReturn(period);
-        when(repository.existsBySbmFileNo("YSV-OLD")).thenReturn(true);
+        when(repository.findExistingFileNos(anyList())).thenReturn(List.of("YSV-OLD"));
         BigDecimal one = new BigDecimal("1.00");
         sheet(row(2, "YSV-1", MovableType.MENKUL),                    // yuva PENTEST'te
                 row(3, "YSV-OLD", MovableType.MENKUL),                // başka dönemde
@@ -439,5 +439,43 @@ class DeclarationImportServiceTest {
 
         assertThat(service.validate(file()).totalRows()).isZero();
         verify(repository, never()).findByPeriod(any(), any());
+    }
+    // --- "baska donemde kayitli" kontrolu ----------------------------------------------------
+
+    @Test
+    @DisplayName("file numbers outside the period are checked with one query per 1000, not one per row")
+    void otherPeriodCheck_isOneQueryPerThousandFileNos() {
+        List<ParsedRow> rows = new ArrayList<>();
+        for (int i = 0; i < 1001; i++) {
+            BigDecimal one = new BigDecimal("1.00");
+            rows.add(new ParsedRow(i + 2, 8, 34, i + 1, 2026, "YSV-" + i, PAYMENT, MovableType.MENKUL,
+                    one, one, one, 10, one, null));
+        }
+        when(parser.parse(any())).thenReturn(new ParsedSheet(rows, List.of()));
+        when(repository.findExistingFileNos(anyList())).thenAnswer(inv -> {
+            List<String> asked = inv.getArgument(0);
+            return asked.contains("YSV-1000") ? List.of("YSV-1000") : List.of();
+        });
+
+        ImportResultResponse result = service.importFile(file(), USER);
+
+        ArgumentCaptor<List<String>> asked = ArgumentCaptor.captor();
+        verify(repository, times(2)).findExistingFileNos(asked.capture());
+        assertThat(asked.getAllValues()).extracting(List::size).containsExactly(1000, 1);
+        assertThat(result.inserted()).isEqualTo(1000);
+        assertThat(result.errors()).singleElement()
+                .satisfies(e -> assertThat(e.ysvDosyaNo()).isEqualTo("YSV-1000"));
+    }
+
+    @Test
+    @DisplayName("file numbers already in the period are not asked again")
+    void otherPeriodCheck_skipsFileNosOfThePeriod() {
+        when(repository.lockByPeriod(2026, 8))
+                .thenReturn(List.of(existing(1L, "YSV-1", MovableType.MENKUL, ProcessStatus.SENT)));
+        sheet(row(2, "YSV-1", MovableType.MENKUL, 8, "2.00"));
+
+        service.importFile(file(), USER);
+
+        verify(repository, never()).findExistingFileNos(anyList());
     }
 }

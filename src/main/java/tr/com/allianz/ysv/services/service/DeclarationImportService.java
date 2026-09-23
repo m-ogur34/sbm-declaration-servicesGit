@@ -38,6 +38,8 @@ public class DeclarationImportService {
     static final String DUPLICATE_CODE = "ALZ-EXCEL-DUPLICATE";
     static final String CONFLICT_CODE = "ALZ-EXCEL-CONFLICT";
     static final String BUSY_CODE = "ALZ-EXCEL-BUSY";
+    /** Oracle'da bir IN listesine verilebilecek en fazla değer. */
+    static final int IN_LIMIT = 1000;
 
     private final ExcelDeclarationParser parser;
     private final DeclarationProcessRepository repository;
@@ -153,6 +155,8 @@ public class DeclarationImportService {
             slotOwners.putIfAbsent(slotKey(existing.getCityCode(), existing.getDistrictCode()), existing.getSbmFileNo());
         }
 
+        Set<String> registeredElsewhere = registeredInOtherPeriods(rows, existingByFileNo.keySet());
+
         Set<String> seenKeys = new HashSet<>();
         for (ParsedRow row : rows) {
             if (!seenKeys.add(row.ysvDosyaNo() + "|" + row.menkulTipi())) {
@@ -175,7 +179,7 @@ public class DeclarationImportService {
                 continue;
             }
 
-            String problem = insertProblem(sameFileNo, row);
+            String problem = insertProblem(sameFileNo, registeredElsewhere, row);
             String slot = slotKey(row.ilKodu(), row.ilceKodu());
             String owner = slotOwners.get(slot);
             if (problem == null && owner != null && !owner.equals(row.ysvDosyaNo())) {
@@ -231,10 +235,31 @@ public class DeclarationImportService {
         return null;
     }
 
+    /**
+     * Dosyadaki, bu dönemde olmayan dosya numaralarından DB'de kayıtlı olanlar — yani başka bir
+     * dönemde kayıtlı olanlar. Satır başına sorgu yerine 1000'lik gruplarla tek sorgu atılır
+     * (Oracle IN sınırı).
+     */
+    private Set<String> registeredInOtherPeriods(List<ParsedRow> rows, Set<String> inPeriod) {
+        List<String> candidates = rows.stream()
+                .map(ParsedRow::ysvDosyaNo)
+                .filter(fileNo -> !inPeriod.contains(fileNo))
+                .distinct()
+                .toList();
+        Set<String> registered = new HashSet<>();
+        for (int from = 0; from < candidates.size(); from += IN_LIMIT) {
+            List<String> chunk = candidates.subList(from, Math.min(from + IN_LIMIT, candidates.size()));
+            registered.addAll(repository.findExistingFileNos(chunk));
+        }
+        return registered;
+    }
+
     /** @return bu Excel satırı eklenemiyorsa sebebi, yoksa {@code null} */
-    private String insertProblem(List<DeclarationProcess> sameFileNoInPeriod, ParsedRow row) {
+    private static String insertProblem(List<DeclarationProcess> sameFileNoInPeriod,
+                                        Set<String> registeredElsewhere,
+                                        ParsedRow row) {
         if (sameFileNoInPeriod.isEmpty()) {
-            return repository.existsBySbmFileNo(row.ysvDosyaNo())
+            return registeredElsewhere.contains(row.ysvDosyaNo())
                     ? "Bu ysvDosyaNo başka bir dönemde kayıtlı."
                     : null;
         }
