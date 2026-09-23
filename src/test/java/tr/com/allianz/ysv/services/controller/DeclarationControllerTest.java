@@ -2,6 +2,7 @@ package tr.com.allianz.ysv.services.controller;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -14,6 +15,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.math.BigDecimal;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -243,6 +245,31 @@ class DeclarationControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.result").value(true))
                 .andExpect(jsonPath("$.data").value(true));
+    }
+
+    @Test
+    @DisplayName("negative vergiPrimTutari / odenecekVergi are accepted (SBM allows them, e.g. iptal > alinan)")
+    void updateOne_negativeTaxAmounts_areAccepted() throws Exception {
+        when(declarationService.updateOne(eq("YSV2027909"), any(), any()))
+                .thenReturn(sbm(200, "{\"result\":true,\"status\":200,\"data\":true}"));
+
+        mockMvc.perform(put(BASE + "/YSV2027909").contentType(MediaType.APPLICATION_JSON)
+                        .content(UPDATE_BODY.replace("\"odenecekVergi\":90.00", "\"odenecekVergi\":-196.39")
+                                .replace("\"vergiPrimTutari\":900.00", "\"vergiPrimTutari\":-1963.90")))
+                .andExpect(status().isOk());
+
+        verify(declarationService).updateOne(eq("YSV2027909"), argThat(r ->
+                r.ysvTutarList().get(0).odenecekVergi().compareTo(new BigDecimal("-196.39")) == 0
+                        && r.ysvTutarList().get(0).vergiPrimTutari().compareTo(new BigDecimal("-1963.90")) == 0),
+                any());
+    }
+
+    @Test
+    void updateOne_negativeReceivedPremium_returns400() throws Exception {
+        mockMvc.perform(put(BASE + "/YSV2027909").contentType(MediaType.APPLICATION_JSON)
+                        .content(UPDATE_BODY.replace("\"alinanPrimTutari\":1000.00", "\"alinanPrimTutari\":-1.00")))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error.reasons[0].code").value("ALZ-VALIDATION"));
     }
 
     @Test

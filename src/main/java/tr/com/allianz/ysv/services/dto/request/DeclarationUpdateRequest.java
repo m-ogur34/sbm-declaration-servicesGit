@@ -44,13 +44,15 @@ public record DeclarationUpdateRequest(
             @Schema(example = "50000.00") @NotNull @DecimalMin("0.00")
             BigDecimal iptalPrimTutari,
 
-            @Schema(example = "195000.00") @NotNull @DecimalMin("0.00")
+            @Schema(example = "195000.00", description = "Negatif olabilir (iptal edilen prim alınandan büyükse).")
+            @NotNull
             BigDecimal odenecekVergi,
 
             @Schema(example = "10") @NotNull @Min(0) @Max(100)
             Integer vergiOrani,
 
-            @Schema(example = "1950000.00") @NotNull @DecimalMin("0.00")
+            @Schema(example = "1950000.00", description = "Negatif olabilir (iptal edilen prim alınandan büyükse).")
+            @NotNull
             BigDecimal vergiPrimTutari,
 
             @Schema(description = "Opsiyonel; negatif olabilir. Verilmezse mevcut değer korunur.")
