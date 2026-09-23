@@ -130,9 +130,21 @@ okur, her satırı doğrular, geçerli satırları `CUSTOMER.ALZ_SBM_DECL_PROCES
   dosya reddedilir.
 - **Kısmi kabul:** geçerli satırlar yazılır, hatalı satırlar raporlanır (tüm dosya
   reddedilmez — sadece "tek ay" ihlalinde reddedilir).
-- **Mükerrer `ysvDosyaNo`:** aynı `ysvDosyaNo` DB'de zaten varsa o satır **hata**
-  verir (insert edilmez, güncelleme yapılmaz).
-- Zorunlu alan boşsa, tip dönüşümü başarısızsa, `menkulTipi ∉ {1,2}` ise → satır hatası.
+- ⟲ **Upsert (2026-09-22):** anahtar `ysvDosyaNo + menkulTipi`. DB'de varsa ve değer
+  değiştiyse güncellenir (`COMPLETED` → `SENT`), aynıysa dokunulmaz, yoksa `NEW` eklenir.
+  Ayrıntı: `README.md` "Excel yükleme (upsert)".
+- ⟲ **Önce doğrula (2026-09-23):** `POST /upload/validate` aynı kuralları DB'ye yazmadan
+  çalıştırır; canlıda her yüklemeden önce kullanılır.
+- Zorunlu alan boşsa, tip dönüşümü başarısızsa, `menkulTipi ∉ {1,2}` ise, `ysvDosyaNo` 36
+  karakteri aşıyorsa ya da harf/rakam/`-`/`_` dışında karakter içeriyorsa → satır hatası.
+- Aynı il/ilçe/dönemde başka dosya no (DB'de ya da dosyada), başka dönemde kayıtlı dosya no,
+  SBM'deki beyannameye yeni menkul tipi → satır hatası (`ALZ-EXCEL-CONFLICT`).
+- ⟲ **İl/ilçe:** SBM'deki beyannamenin il/ilçesi değişmez. SBM'ye hiç ulaşmamış beyannamenin
+  (`NEW` ya da `RISK-HAVUZU-00006..00009` ile `ERROR`) il/ilçesi düzeltilmiş Excel ile
+  değiştirilebilir — tüm menkul satırları aynı yeni il/ilçeyle dosyada olmalı, yeni yuva boş
+  olmalı.
+- Excel satırı DB kısıtını ihlal ederse (ör. `yil` 2000–2099 dışı) **tüm dosya** geri alınır
+  (500); bu bilinçli bir tercih (kullanıcı kararı 2026-09-23).
 - `ilceKodu` boş gelmez; `0` geçerlidir (büyükşehir anlamına gelir).
 
 ### 3.6 Büyükşehir mantığı
@@ -605,5 +617,12 @@ Servis tarafında kalanlar:
   `beans`, `mappings`, `heapdump`, `threaddump` **kapalı**.
 - Hata cevaplarında stack trace / iç detay sızmamalı (`GlobalExceptionHandler`).
 - `Authorization`, token, `Requester-ID-No` **loglara yazılmaz** (maskeli).
-- Güvenlik başlıkları (`X-Content-Type-Options`, `X-Frame-Options` vb.).
-- Girdi doğrulama: dosya boyutu / tipi (yalnız `.xlsx`), satır sayısı üst sınırı.
+- Güvenlik başlıkları (`X-Content-Type-Options`, `X-Frame-Options` vb.) — **uygulamada yok**,
+  gateway'e bırakıldı (2026-09-23 kararı).
+- PROD'da Swagger / api-docs kapalı (`configs/application-prod.yml`).
+- Toplu uçlar boş filtreyle (`{}`) çalışmaz: `ysvDosyaNoList` ya da `year + month` zorunlu.
+- `ysvDosyaNo` deseni `^[A-Za-z0-9_-]+$` (path + Excel) — SBM sorgu URL'ine parametre eklenemez.
+- `/processes` `sort` yalnız izinli alanlarla; aksi 400.
+- Girdi doğrulama: dosya tipi (yalnız `.xlsx`), satır sayısı üst sınırı (20.000). Dosya boyutu
+  sınırı lokalde 10MB; k8s'te Spring varsayılanı (1MB) geçerli — bilinçli olarak değiştirilmedi.
+- PEN ekibi için adımlar: `Pen Test/PEN-TEST-REHBERI.md`.

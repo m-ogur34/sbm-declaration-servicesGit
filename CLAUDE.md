@@ -5,12 +5,14 @@ Kod yazmadan önce bu dosyanın tamamını oku. Bir çelişki görürsen kod de�
 önce sor.
 
 > **ÖNCELİK:** Uçtan uca çalışma prensibinin güncel ve ayrıntılı hâli
-> **`CALISMA-PRENSIBI.md`**'dedir (gerçek SBM/ESB dökümanlarına göre yazıldı).
-> Proje işleyişi, canlı öncesi değerlendirme ve açık maddeler için **`PROJE-REHBERI.md`**;
-> ortam/profil/Vault/DB bağlantısı için **`README.md` §5**. (`HELM-VE-KONFIG.md`
-> kaldırıldı — içeriği bu iki dosyaya taşındı.) Bu dosya (`CLAUDE.md`) ile onlar
-> çelişirse **`CALISMA-PRENSIBI.md` geçerlidir**. 2026-08-30'da güncellenen kararlar
-> aşağıda işaretlendi (⟳); 2026-09-21 güncellemeleri (⟲) ile.
+> **`Claude/CALISMA-PRENSIBI.md`**'dedir (gerçek SBM/ESB dökümanlarına göre yazıldı).
+> Proje işleyişi ve açık maddeler için **`Claude/PROJE-REHBERI.md`**; uçların ne yaptığı ve
+> şemalar için **`Claude/SISTEM-NASIL-CALISIR.md`**; PROD gönderimi için
+> **`Claude/CANLI-GONDERIM-AKISI.md`**; ortam/profil/Vault/DB bağlantısı için
+> **`README.md` §5**. SBM/token dokümanlarının asılları `SBM ve Allianz Dökümanları/`
+> altındadır. Bu dosya (`CLAUDE.md`) ile onlar çelişirse **`Claude/CALISMA-PRENSIBI.md`
+> geçerlidir**. 2026-08-30'da güncellenen kararlar aşağıda işaretlendi (⟳); 2026-09-21/22
+> güncellemeleri (⟲); 2026-09-23/24 kararları §14'te.
 
 ---
 
@@ -33,7 +35,7 @@ Allianz Sigorta içi proje. Şirket kodu: **045**.
 1. ⟳ OPUS'tan türetilen YSV verisi Excel olarak **`POST /api/v1/declarations/upload`**
    ucundan yüklenir; servis doğrulayıp `CUSTOMER.ALZ_SBM_DECL_PROCESS`'e `STATUS=NEW`
    ile insert eder. (Prod DB'de manuel script firma politikası gereği yasak — eski
-   "uygulama insert yapmaz" kararı geçersiz. Bkz. `CALISMA-PRENSIBI.md` §3.)
+   "uygulama insert yapmaz" kararı geçersiz. Bkz. `Claude/CALISMA-PRENSIBI.md` §3.)
 2. Bu repodaki **gönder / güncelle / sorgu** API'leri tetiklenir.
 3. Her çağrıda `alz-token-management` servisinden **taze token** alınır.
 4. İstek **ESB (OSB 12c)** üzerinden SBM'ye çıkar.
@@ -120,9 +122,10 @@ ve projeye özgü bağımlılıklar değişir.
 `spring-cloud.version` 2025.0.0, `build-packaging-type` jar,
 `maven.compiler.source/target/release` 25, `project.build.sourceEncoding` UTF-8,
 `ojdbc.version` 19.3.0.0, `springdoc-openapi-starter-webmvc-ui.version` **2.8.9**
-(2.6.0/2.7.0 Spring 6.2'de `/v3/api-docs` 500 veriyor), `prometheus-metrics-bom` 1.3.10,
-`jackson-bom.version` 2.22.0, `tomcat.version` 10.1.56, `logback.version` 1.5.35,
-`micrometer.version` 1.15.12.
+(2.6.0/2.7.0 Spring 6.2'de `/v3/api-docs` 500 veriyor), `prometheus-metrics-bom.version`
+**1.4.3**, `jackson-bom.version` 2.22.2, `tomcat.version` 10.1.59, `logback.version` 1.5.35,
+`micrometer.version` **1.16.7**, `jacoco-maven-plugin.version` **0.8.14** (plugin bu
+property'yi kullanır).
 
 ### dependencyManagement — güvenlik zafiyeti ezmeleri
 
@@ -131,7 +134,12 @@ Accounting'de bunlar **bilinçli olarak** ezilmiş; aynen taşı:
 - `spring-framework-bom` (import)
 - `jackson-bom` (import)
 - `spring-data-jpa` ve `spring-data-commons` → 3.5.12
-- `micrometer-bom` (import) → 1.15.12
+- `micrometer-bom` (import) → 1.16.7
+- `prometheus-metrics-bom` (import) → 1.4.3 — **spring-cloud importundan önce**. Yoksa
+  spring-cloud-starter-parent, Boot 3.5.0 BOM'u üzerinden `prometheus-metrics-config`'i 1.3.6'ya
+  çekiyor, uygulama açılışta `ExporterProperties.getPrometheusTimestampsInMs` hatası veriyor.
+- `micrometer-registry-prometheus` için dependencyManagement'ta **sabit sürüm yazılmaz**
+  (1.8.2 yazılıydı → Boot 3.5 prometheus ucunu oluşturmuyordu, `/actuator/prometheus` 404).
 - `spring-cloud-starter-parent` (import, `spring-boot` exclusion'ı ile)
 - `spring-cloud-dependencies` (import)
 
@@ -447,19 +455,24 @@ loglanmalı (SBM destek talebi için gerekiyor).
 
 ## 12. Bilinen açık konular
 
-Tam liste `CALISMA-PRENSIBI.md` §11'de. Öne çıkanlar:
+Tam liste `Claude/CALISMA-PRENSIBI.md` §11'de. Öne çıkanlar:
 
 - ⟳ Firma politikası: birim test kapsamı **≥ %90**; proje **PEN testine** girecek
   — uygulama içi `ApiGuardFilter` 2026-09-18'de **kaldırıldı**; rate limit / erişim kontrolü
-  gateway katmanında (`CALISMA-PRENSIBI.md` §14).
+  gateway katmanında (`Claude/CALISMA-PRENSIBI.md` §14).
 - ⟳ DB scriptleri tüm ortamlara deploy edilecek → `db/rollback_db.sql` eklendi.
-  Lokal test için `db/local/*` + `db/sample_data_scenarios.sql` + `application-local.yml`.
+  Lokal test: `Lokal Test/` (Bruno koleksiyonu + 2025/01 test Excel'leri); PEN: `Pen Test/`
+  (2025/02). Test verisi **geçmiş dönemlerdedir** — SBM TEST'te gerçek ayların yuvalarını
+  kilitlememesi için (bkz. §14).
 - `functionName` (default `test`) ve `userName` token ekibiyle (Hüseyin Dağ /
   Ömer Faruk Ceylan) teyit edilecek.
 - SBM REST şifresi (`koc` kullanıcısı) ve TEST/PRE/PROD için IP whitelist talebi beklemede.
 - Teknik tasarım dökümanı yeni token mimarisine göre güncellenecek.
-- Veri anomalisi (iş birimine sorulacak): 14 satır büyükşehir olmasına rağmen ilçe
-  kodlu (il 22 Edirne), 2 satır büyükşehir olmadığı halde ilçe kodu 0 (il 47 Mardin).
+- ~~Veri anomalisi (Edirne ilçeli / Mardin ilçesiz)~~ — **kapandı (2026-09-23):** Edirne
+  büyükşehir değil (ilçeli doğru), Mardin büyükşehir (ilçesiz doğru). Ağustos 2026 Excel'inde
+  ilçesiz iller tam olarak 30 büyükşehir.
+- İş birimine sorulacak: dosya no'lar her ay yeni mi üretiliyor? Belediye başına sabitse
+  sonraki ay yüklemesi "başka dönemde kayıtlı" hatası verir.
 
 ---
 
@@ -486,4 +499,38 @@ Tam liste `CALISMA-PRENSIBI.md` §11'de. Öne çıkanlar:
 - ❌ SBM cevabındaki `ysvDosyaNo`/beyanname alanlarını kök seviyede okuma — `data` içinde.
 - ⚠️ Alan tipleri: kod tipli JSON gönderir (sayısal alanlar tırnaksız); tırnaklı örnek
   JSON'a göre hepsini string yapma. VDI'da 422 gelirse ilgili alan tekil olarak string'e
-  çevrilir (bkz. `CALISMA-PRENSIBI.md` §5.2, §11/1).
+  çevrilir (bkz. `Claude/CALISMA-PRENSIBI.md` §5.2, §11/1).
+
+---
+
+## 14. 2026-09-23/24 kararları
+
+- **`POST /upload/validate`**: `upload` ile aynı kurallar (ortak `plan`), DB'ye yazmaz, SBM'ye
+  gitmez, kilit almaz (`readOnly`). Plan DB'den okunan entity'leri **değiştirmez** (JPA
+  dirty-checking ile istemsiz yazma olmasın); güncellemeleri yalnız `upload` uygular.
+  Cevapta `insertedFileNos` + `updatedFileNos`.
+- **Toplu uçlar** (`send/update/query/cancel`): `ysvDosyaNoList` **ya da** `year + month`
+  zorunlu; `{}` → 400 `ALZ-VALIDATION` (`field: filter`). `{}` tüm dönemleri işliyordu.
+- **`ysvDosyaNo` deseni** `^[A-Za-z0-9_-]+$` (`SbmMapper.YSV_DOSYA_NO_PATTERN`): tekli uçların
+  path'i ve Excel satır doğrulaması aynı sabiti kullanır (SBM sorgu URL'ine parametre eklenemesin).
+- **İl/ilçe düzeltme:** SBM'ye hiç ulaşmamış beyanname (`NEW` ya da `RISK-HAVUZU-00006..00009`
+  ile `ERROR`) düzeltilmiş Excel ile yeni il/ilçeye taşınabilir; tüm menkul satırları aynı yeni
+  il/ilçeyle dosyada olmalı, yeni yuva boş olmalı. Timeout/5xx sonrası `ERROR` hariç.
+- **Tekli güncelleme:** `vergiPrimTutari` / `odenecekVergi` negatif olabilir (SBM izin veriyor;
+  iptal > alınan). `alinanPrimTutari` / `iptalPrimTutari` ≥ 0 kalır.
+- **`/processes` sort:** izinli alan listesi dışı → 400 (DB'ye gitmeden).
+- **PROD'da Swagger kapalı** (`configs/application-prod.yml`).
+- **Config:** k8s'te `-Dspring.config.location=/app-config/,/app-config-common/` classpath
+  `application.yml`'i **okumaz**. k8s'te geçerli olması gereken her ayar
+  `helm/chart/common-configs/application.yml`'de olmalı (`hibernate.jdbc.batch_size`,
+  `order_inserts/updates`, `open-in-view: false` oraya taşındı). Global `jackson non_null`
+  kaldırıldı; zarf ve SBM/token istekleri sınıf seviyesinde `@JsonInclude(NON_NULL)` taşır.
+- **Excel yükleme performansı:** "başka dönemde kayıtlı" kontrolü satır başına değil, 1000'lik
+  gruplarla tek sorgu (`findExistingFileNos`).
+- **Bilinçli olarak yapılmayanlar** (kullanıcı kararı): `discard` ucu, Excel aralık kontrolleri
+  (DB constraint → tüm dosya 500), `application-dr.yml`, güvenlik başlığı filtresi, multipart
+  limitinin k8s'e taşınması. Tekrar önerilmez.
+- **Test verisi geçmiş dönemlerde:** SBM'de silme yok, yuva ilk dosya no'ya kalıcı bağlanır;
+  test verisi gerçek ayları kullanırsa (2026/08'de olduğu gibi) SBM TEST'te gerçek veri
+  `RISK-HAVUZU-00004` alır. Lokal: 2025/01 (`TESTDEV…`), PEN: 2025/02 (`PENTEST25…`).
+

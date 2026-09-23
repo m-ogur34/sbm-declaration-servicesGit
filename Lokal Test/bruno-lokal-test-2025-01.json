@@ -1,0 +1,1571 @@
+{
+  "name": "SBM Beyanname - Lokal Test (donem 2025-01)",
+  "version": "1",
+  "items": [
+    {
+      "type": "folder",
+      "name": "0 - Uygulama ayakta mi",
+      "items": [
+        {
+          "type": "http",
+          "name": "0.1 Saglik kontrolu - actuator health",
+          "seq": 1,
+          "request": {
+            "url": "{{baseUrl}}/actuator/health",
+            "method": "GET",
+            "headers": [],
+            "params": [],
+            "body": {
+              "mode": "none"
+            },
+            "auth": {
+              "mode": "none"
+            },
+            "script": {
+              "req": "",
+              "res": ""
+            },
+            "vars": {
+              "req": [],
+              "res": []
+            },
+            "assertions": [],
+            "tests": "",
+            "docs": "Beklenen: 200 {\"status\":\"UP\"}. UP değilse diğer adımlara geçmeyin (DB / Vault bağlantısını kontrol edin)."
+          }
+        },
+        {
+          "type": "http",
+          "name": "0.2 Prometheus metrikleri - actuator prometheus",
+          "seq": 2,
+          "request": {
+            "url": "{{baseUrl}}/actuator/prometheus",
+            "method": "GET",
+            "headers": [],
+            "params": [],
+            "body": {
+              "mode": "none"
+            },
+            "auth": {
+              "mode": "none"
+            },
+            "script": {
+              "req": "",
+              "res": ""
+            },
+            "vars": {
+              "req": [],
+              "res": []
+            },
+            "assertions": [],
+            "tests": "",
+            "docs": "Beklenen: 200, düz metin metrikler (jvm_*, http_server_requests_*). 404 ise pom'daki micrometer-registry-prometheus / prometheus-metrics-bom ayarını kontrol edin."
+          }
+        }
+      ]
+    },
+    {
+      "type": "folder",
+      "name": "1 - Excel - once kontrol et, sonra yukle",
+      "items": [
+        {
+          "type": "http",
+          "name": "1.1 Excel'i kontrol et, DB'ye yazmaz - test-lokal-2025-01",
+          "seq": 3,
+          "request": {
+            "url": "{{baseUrl}}/api/v1/declarations/upload/validate",
+            "method": "POST",
+            "headers": [
+              {
+                "name": "X-User-Name",
+                "value": "{{kullanici}}",
+                "enabled": true
+              },
+              {
+                "name": "X-Requester-Id-Type",
+                "value": "2",
+                "enabled": false
+              },
+              {
+                "name": "X-Requester-Id-No",
+                "value": "8000013270",
+                "enabled": false
+              }
+            ],
+            "params": [],
+            "body": {
+              "mode": "multipartForm",
+              "multipartForm": [
+                {
+                  "type": "file",
+                  "name": "file",
+                  "value": [
+                    "test-lokal-2025-01.xlsx"
+                  ],
+                  "enabled": true
+                }
+              ]
+            },
+            "auth": {
+              "mode": "none"
+            },
+            "script": {
+              "req": "",
+              "res": ""
+            },
+            "vars": {
+              "req": [],
+              "res": []
+            },
+            "assertions": [],
+            "tests": "",
+            "docs": "Dosya: Lokal Test/test-lokal-2025-01.xlsx (dönem 2025/01, 12 satır, 6 beyanname TESTDEV2501-01..06).\n\nDB'ye yazmaz, SBM'ye gitmez; upload ile aynı kurallar.\nBeklenen (boş DB): 200 {result:true, data:{totalRows:12, inserted:12, insertedFileNos:[6 dosya no], updated:0, failed:0}}.\nDB'de bu dönem zaten varsa inserted 0 ve updated/aynı satırlar görünür.\n\nBruno'ya aktardıktan sonra Body > Multipart > file alanından dosyayı diskinizden seçin (Bruno dosya yolunu taşımaz)."
+          }
+        },
+        {
+          "type": "http",
+          "name": "1.2 Excel'i yukle - test-lokal-2025-01 (12 satir NEW olur)",
+          "seq": 4,
+          "request": {
+            "url": "{{baseUrl}}/api/v1/declarations/upload",
+            "method": "POST",
+            "headers": [
+              {
+                "name": "X-User-Name",
+                "value": "{{kullanici}}",
+                "enabled": true
+              },
+              {
+                "name": "X-Requester-Id-Type",
+                "value": "2",
+                "enabled": false
+              },
+              {
+                "name": "X-Requester-Id-No",
+                "value": "8000013270",
+                "enabled": false
+              }
+            ],
+            "params": [],
+            "body": {
+              "mode": "multipartForm",
+              "multipartForm": [
+                {
+                  "type": "file",
+                  "name": "file",
+                  "value": [
+                    "test-lokal-2025-01.xlsx"
+                  ],
+                  "enabled": true
+                }
+              ]
+            },
+            "auth": {
+              "mode": "none"
+            },
+            "script": {
+              "req": "",
+              "res": ""
+            },
+            "vars": {
+              "req": [],
+              "res": []
+            },
+            "assertions": [],
+            "tests": "",
+            "docs": "Aynı dosya. Beklenen: 1.1 ile birebir aynı sayılar; satırlar STATUS=NEW.\nİçerik: İstanbul/Ankara/İzmir (büyükşehir, ilçe 0), Edirne 1295/1307 ve Adıyaman 1105 (ilçeli). TESTDEV2501-05 MENKUL satırında iptal > alınan, vergi tutarları negatif.\n\nBruno'ya aktardıktan sonra Body > Multipart > file alanından dosyayı diskinizden seçin (Bruno dosya yolunu taşımaz)."
+          }
+        },
+        {
+          "type": "http",
+          "name": "1.3 Ayni Excel'i tekrar yukle - degisiklik yok",
+          "seq": 5,
+          "request": {
+            "url": "{{baseUrl}}/api/v1/declarations/upload",
+            "method": "POST",
+            "headers": [
+              {
+                "name": "X-User-Name",
+                "value": "{{kullanici}}",
+                "enabled": true
+              },
+              {
+                "name": "X-Requester-Id-Type",
+                "value": "2",
+                "enabled": false
+              },
+              {
+                "name": "X-Requester-Id-No",
+                "value": "8000013270",
+                "enabled": false
+              }
+            ],
+            "params": [],
+            "body": {
+              "mode": "multipartForm",
+              "multipartForm": [
+                {
+                  "type": "file",
+                  "name": "file",
+                  "value": [
+                    "test-lokal-2025-01.xlsx"
+                  ],
+                  "enabled": true
+                }
+              ]
+            },
+            "auth": {
+              "mode": "none"
+            },
+            "script": {
+              "req": "",
+              "res": ""
+            },
+            "vars": {
+              "req": [],
+              "res": []
+            },
+            "assertions": [],
+            "tests": "",
+            "docs": "Upsert kontrolü. Beklenen: inserted:0, updated:0, failed:0 (değerler aynı olduğu için satırlara dokunulmaz).\n\nBruno'ya aktardıktan sonra Body > Multipart > file alanından dosyayı diskinizden seçin (Bruno dosya yolunu taşımaz)."
+          }
+        }
+      ]
+    },
+    {
+      "type": "folder",
+      "name": "2 - Kayitlari listele",
+      "items": [
+        {
+          "type": "http",
+          "name": "2.1 Donemin tum kayitlari - 2025-01",
+          "seq": 6,
+          "request": {
+            "url": "{{baseUrl}}/api/v1/declarations/processes?year={{yil}}&month={{ay}}&size=50&sort=sbmFileNo,asc",
+            "method": "GET",
+            "headers": [
+              {
+                "name": "X-User-Name",
+                "value": "{{kullanici}}",
+                "enabled": true
+              },
+              {
+                "name": "X-Requester-Id-Type",
+                "value": "2",
+                "enabled": false
+              },
+              {
+                "name": "X-Requester-Id-No",
+                "value": "8000013270",
+                "enabled": false
+              }
+            ],
+            "params": [
+              {
+                "name": "year",
+                "value": "{{yil}}",
+                "enabled": true
+              },
+              {
+                "name": "month",
+                "value": "{{ay}}",
+                "enabled": true
+              },
+              {
+                "name": "size",
+                "value": "50",
+                "enabled": true
+              },
+              {
+                "name": "sort",
+                "value": "sbmFileNo,asc",
+                "enabled": true
+              }
+            ],
+            "body": {
+              "mode": "none"
+            },
+            "auth": {
+              "mode": "none"
+            },
+            "script": {
+              "req": "",
+              "res": ""
+            },
+            "vars": {
+              "req": [],
+              "res": []
+            },
+            "assertions": [],
+            "tests": "",
+            "docs": "DB'deki satırlar (SBM'ye gitmez). Durum sütunu: NEW → gönderilmeyi bekliyor, SENT → SBM kabul etti, COMPLETED → SBM'den okunup doğrulandı, ERROR → SBM reddetti ya da ulaşılamadı (errorDetails sebebi söyler)."
+          }
+        },
+        {
+          "type": "http",
+          "name": "2.2 Yalniz hatali (ERROR) kayitlar",
+          "seq": 7,
+          "request": {
+            "url": "{{baseUrl}}/api/v1/declarations/processes?status=ERROR&year={{yil}}&month={{ay}}",
+            "method": "GET",
+            "headers": [
+              {
+                "name": "X-User-Name",
+                "value": "{{kullanici}}",
+                "enabled": true
+              },
+              {
+                "name": "X-Requester-Id-Type",
+                "value": "2",
+                "enabled": false
+              },
+              {
+                "name": "X-Requester-Id-No",
+                "value": "8000013270",
+                "enabled": false
+              }
+            ],
+            "params": [
+              {
+                "name": "status",
+                "value": "ERROR",
+                "enabled": true
+              },
+              {
+                "name": "year",
+                "value": "{{yil}}",
+                "enabled": true
+              },
+              {
+                "name": "month",
+                "value": "{{ay}}",
+                "enabled": true
+              }
+            ],
+            "body": {
+              "mode": "none"
+            },
+            "auth": {
+              "mode": "none"
+            },
+            "script": {
+              "req": "",
+              "res": ""
+            },
+            "vars": {
+              "req": [],
+              "res": []
+            },
+            "assertions": [],
+            "tests": "",
+            "docs": "Beklenen: gönderimden sonra boş liste (totalElements:0). Doluysa errorDetails'teki SBM koduna bakın."
+          }
+        },
+        {
+          "type": "http",
+          "name": "2.3 Gonderilmeyi bekleyen (NEW) kayitlar",
+          "seq": 8,
+          "request": {
+            "url": "{{baseUrl}}/api/v1/declarations/processes?status=NEW&year={{yil}}&month={{ay}}",
+            "method": "GET",
+            "headers": [
+              {
+                "name": "X-User-Name",
+                "value": "{{kullanici}}",
+                "enabled": true
+              },
+              {
+                "name": "X-Requester-Id-Type",
+                "value": "2",
+                "enabled": false
+              },
+              {
+                "name": "X-Requester-Id-No",
+                "value": "8000013270",
+                "enabled": false
+              }
+            ],
+            "params": [
+              {
+                "name": "status",
+                "value": "NEW",
+                "enabled": true
+              },
+              {
+                "name": "year",
+                "value": "{{yil}}",
+                "enabled": true
+              },
+              {
+                "name": "month",
+                "value": "{{ay}}",
+                "enabled": true
+              }
+            ],
+            "body": {
+              "mode": "none"
+            },
+            "auth": {
+              "mode": "none"
+            },
+            "script": {
+              "req": "",
+              "res": ""
+            },
+            "vars": {
+              "req": [],
+              "res": []
+            },
+            "assertions": [],
+            "tests": "",
+            "docs": "Yüklemeden sonra 12, gönderimden sonra 0 olmalı."
+          }
+        }
+      ]
+    },
+    {
+      "type": "folder",
+      "name": "3 - SBM'ye gonder (POST)",
+      "items": [
+        {
+          "type": "http",
+          "name": "3.1 Tek beyanname gonder - TESTDEV2501-01 Istanbul, buyuksehir (ilce gonderilmez)",
+          "seq": 9,
+          "request": {
+            "url": "{{baseUrl}}/api/v1/declarations/TESTDEV2501-01/send",
+            "method": "POST",
+            "headers": [
+              {
+                "name": "X-User-Name",
+                "value": "{{kullanici}}",
+                "enabled": true
+              },
+              {
+                "name": "X-Requester-Id-Type",
+                "value": "2",
+                "enabled": false
+              },
+              {
+                "name": "X-Requester-Id-No",
+                "value": "8000013270",
+                "enabled": false
+              }
+            ],
+            "params": [],
+            "body": {
+              "mode": "none"
+            },
+            "auth": {
+              "mode": "none"
+            },
+            "script": {
+              "req": "",
+              "res": ""
+            },
+            "vars": {
+              "req": [],
+              "res": []
+            },
+            "assertions": [],
+            "tests": "",
+            "docs": "Token alınır → ESB → SBM POST. Büyükşehir olduğu için gövdede ilceKodu YOKTUR.\nBeklenen: 201 {result:true, status:201, data:{ysvDosyaNo:\"TESTDEV2501-01\"}}; satırlar SENT.\nSBM TEST'te bu yuva önceki bir koşudan doluysa: 422 RISK-HAVUZU-00004 ve mesajdaki dosya no aynıysa satır yine SENT olur (tekrar koşulabilir)."
+          }
+        },
+        {
+          "type": "http",
+          "name": "3.2 Tek beyanname gonder - TESTDEV2501-03 Edirne ilce 1295 (ilce gonderilir)",
+          "seq": 10,
+          "request": {
+            "url": "{{baseUrl}}/api/v1/declarations/TESTDEV2501-03/send",
+            "method": "POST",
+            "headers": [
+              {
+                "name": "X-User-Name",
+                "value": "{{kullanici}}",
+                "enabled": true
+              },
+              {
+                "name": "X-Requester-Id-Type",
+                "value": "2",
+                "enabled": false
+              },
+              {
+                "name": "X-Requester-Id-No",
+                "value": "8000013270",
+                "enabled": false
+              }
+            ],
+            "params": [],
+            "body": {
+              "mode": "none"
+            },
+            "auth": {
+              "mode": "none"
+            },
+            "script": {
+              "req": "",
+              "res": ""
+            },
+            "vars": {
+              "req": [],
+              "res": []
+            },
+            "assertions": [],
+            "tests": "",
+            "docs": "Büyükşehir olmayan il: gövdede ilceKodu:1295 vardır. Beklenen: 201."
+          }
+        },
+        {
+          "type": "http",
+          "name": "3.3 Donemin kalanini toplu gonder - 2025-01",
+          "seq": 11,
+          "request": {
+            "url": "{{baseUrl}}/api/v1/declarations/send",
+            "method": "POST",
+            "headers": [
+              {
+                "name": "Content-Type",
+                "value": "application/json",
+                "enabled": true
+              },
+              {
+                "name": "X-User-Name",
+                "value": "{{kullanici}}",
+                "enabled": true
+              },
+              {
+                "name": "X-Requester-Id-Type",
+                "value": "2",
+                "enabled": false
+              },
+              {
+                "name": "X-Requester-Id-No",
+                "value": "8000013270",
+                "enabled": false
+              }
+            ],
+            "params": [],
+            "body": {
+              "mode": "json",
+              "json": "{\n  \"year\": {{yil}},\n  \"month\": {{ay}}\n}"
+            },
+            "auth": {
+              "mode": "none"
+            },
+            "script": {
+              "req": "",
+              "res": ""
+            },
+            "vars": {
+              "req": [],
+              "res": []
+            },
+            "assertions": [],
+            "tests": "",
+            "docs": "Yalnız NEW / ERROR satırlar gider (3.1 ve 3.2 atlanır). Her beyanname ayrı SBM çağrısı ve ayrı DB transaction'ıdır; biri reddedilirse diğerleri etkilenmez.\nBeklenen: 200 {result:true, data:{totalGroups:4, successCount:4, failCount:0, results:[...]}}.\nNot: {} (boş filtre) kabul edilmez → 400."
+          }
+        }
+      ]
+    },
+    {
+      "type": "folder",
+      "name": "4 - SBM'den sorgula (GET)",
+      "items": [
+        {
+          "type": "http",
+          "name": "4.1 Tek beyannameyi SBM'den oku - TESTDEV2501-01",
+          "seq": 12,
+          "request": {
+            "url": "{{baseUrl}}/api/v1/declarations/TESTDEV2501-01",
+            "method": "GET",
+            "headers": [
+              {
+                "name": "X-User-Name",
+                "value": "{{kullanici}}",
+                "enabled": true
+              },
+              {
+                "name": "X-Requester-Id-Type",
+                "value": "2",
+                "enabled": false
+              },
+              {
+                "name": "X-Requester-Id-No",
+                "value": "8000013270",
+                "enabled": false
+              }
+            ],
+            "params": [],
+            "body": {
+              "mode": "none"
+            },
+            "auth": {
+              "mode": "none"
+            },
+            "script": {
+              "req": "",
+              "res": ""
+            },
+            "vars": {
+              "req": [],
+              "res": []
+            },
+            "assertions": [],
+            "tests": "",
+            "docs": "SBM'ye GET ?sigortaSirketKodu=045&ysvDosyaNo=... gider; SBM'nin cevabı aynen döner. SBM doğrularsa satırlar COMPLETED olur.\nBeklenen: 200 {result:true, data:{ilKodu:34, ay:1, yil:2025, ysvTutarList:[...]}}."
+          }
+        },
+        {
+          "type": "http",
+          "name": "4.2 Tek beyanname sorgula - islemi yapanin kimligiyle (VKN)",
+          "seq": 13,
+          "request": {
+            "url": "{{baseUrl}}/api/v1/declarations/TESTDEV2501-03",
+            "method": "GET",
+            "headers": [
+              {
+                "name": "X-User-Name",
+                "value": "{{kullanici}}",
+                "enabled": true
+              },
+              {
+                "name": "X-Requester-Id-Type",
+                "value": "2",
+                "enabled": true
+              },
+              {
+                "name": "X-Requester-Id-No",
+                "value": "8000013270",
+                "enabled": true
+              }
+            ],
+            "params": [],
+            "body": {
+              "mode": "none"
+            },
+            "auth": {
+              "mode": "none"
+            },
+            "script": {
+              "req": "",
+              "res": ""
+            },
+            "vars": {
+              "req": [],
+              "res": []
+            },
+            "assertions": [],
+            "tests": "",
+            "docs": "X-Requester-Id-Type/No açık: token isteğine clientIdentityType/No olarak gider, SBM'ye Requester-ID-Type/No olarak iletilir. Uygulama logunda 'requester=2/8000013270' görünür.\nKimlik başlıkları kapalıyken token servisi şirket VKN'sini döner (toplu işlem yolu)."
+          }
+        },
+        {
+          "type": "http",
+          "name": "4.3 Donemi toplu sorgula - dogrulananlar COMPLETED olur",
+          "seq": 14,
+          "request": {
+            "url": "{{baseUrl}}/api/v1/declarations/query",
+            "method": "POST",
+            "headers": [
+              {
+                "name": "Content-Type",
+                "value": "application/json",
+                "enabled": true
+              },
+              {
+                "name": "X-User-Name",
+                "value": "{{kullanici}}",
+                "enabled": true
+              },
+              {
+                "name": "X-Requester-Id-Type",
+                "value": "2",
+                "enabled": false
+              },
+              {
+                "name": "X-Requester-Id-No",
+                "value": "8000013270",
+                "enabled": false
+              }
+            ],
+            "params": [],
+            "body": {
+              "mode": "json",
+              "json": "{\n  \"year\": {{yil}},\n  \"month\": {{ay}}\n}"
+            },
+            "auth": {
+              "mode": "none"
+            },
+            "script": {
+              "req": "",
+              "res": ""
+            },
+            "vars": {
+              "req": [],
+              "res": []
+            },
+            "assertions": [],
+            "tests": "",
+            "docs": "SBM'de kaydı olan (SENT/COMPLETED) her beyanname sorgulanır. Beklenen: successCount 6, failCount 0. Sonra 2.1 → hepsi COMPLETED."
+          }
+        }
+      ]
+    },
+    {
+      "type": "folder",
+      "name": "5 - Guncelle (PUT)",
+      "items": [
+        {
+          "type": "http",
+          "name": "5.1 Guncelleme Excel'ini kontrol et - 3 satir degisecek, 1 beyanname eklenecek",
+          "seq": 15,
+          "request": {
+            "url": "{{baseUrl}}/api/v1/declarations/upload/validate",
+            "method": "POST",
+            "headers": [
+              {
+                "name": "X-User-Name",
+                "value": "{{kullanici}}",
+                "enabled": true
+              },
+              {
+                "name": "X-Requester-Id-Type",
+                "value": "2",
+                "enabled": false
+              },
+              {
+                "name": "X-Requester-Id-No",
+                "value": "8000013270",
+                "enabled": false
+              }
+            ],
+            "params": [],
+            "body": {
+              "mode": "multipartForm",
+              "multipartForm": [
+                {
+                  "type": "file",
+                  "name": "file",
+                  "value": [
+                    "test-lokal-2025-01-guncelleme.xlsx"
+                  ],
+                  "enabled": true
+                }
+              ]
+            },
+            "auth": {
+              "mode": "none"
+            },
+            "script": {
+              "req": "",
+              "res": ""
+            },
+            "vars": {
+              "req": [],
+              "res": []
+            },
+            "assertions": [],
+            "tests": "",
+            "docs": "Dosya: Lokal Test/test-lokal-2025-01-guncelleme.xlsx. TESTDEV2501-01 MENKUL ve TESTDEV2501-03'ün iki satırının tutarı değişti, TESTDEV2501-07 (Edirne 1464) yeni.\nBeklenen: updated:3, updatedFileNos:[TESTDEV2501-01, TESTDEV2501-03], inserted:2, insertedFileNos:[TESTDEV2501-07].\n\nBruno'ya aktardıktan sonra Body > Multipart > file alanından dosyayı diskinizden seçin (Bruno dosya yolunu taşımaz)."
+          }
+        },
+        {
+          "type": "http",
+          "name": "5.2 Guncelleme Excel'ini yukle",
+          "seq": 16,
+          "request": {
+            "url": "{{baseUrl}}/api/v1/declarations/upload",
+            "method": "POST",
+            "headers": [
+              {
+                "name": "X-User-Name",
+                "value": "{{kullanici}}",
+                "enabled": true
+              },
+              {
+                "name": "X-Requester-Id-Type",
+                "value": "2",
+                "enabled": false
+              },
+              {
+                "name": "X-Requester-Id-No",
+                "value": "8000013270",
+                "enabled": false
+              }
+            ],
+            "params": [],
+            "body": {
+              "mode": "multipartForm",
+              "multipartForm": [
+                {
+                  "type": "file",
+                  "name": "file",
+                  "value": [
+                    "test-lokal-2025-01-guncelleme.xlsx"
+                  ],
+                  "enabled": true
+                }
+              ]
+            },
+            "auth": {
+              "mode": "none"
+            },
+            "script": {
+              "req": "",
+              "res": ""
+            },
+            "vars": {
+              "req": [],
+              "res": []
+            },
+            "assertions": [],
+            "tests": "",
+            "docs": "Aynı dosya. Değişen satırlar DB'de güncellenir (COMPLETED → SENT), öncesi/sonrası ALZ_SBM_DECL_LOG'a LOCAL_UPDATE olarak yazılır. SBM'ye henüz GİTMEZ; 5.3 ile taşınır.\n\nBruno'ya aktardıktan sonra Body > Multipart > file alanından dosyayı diskinizden seçin (Bruno dosya yolunu taşımaz)."
+          }
+        },
+        {
+          "type": "http",
+          "name": "5.3 Degisenleri SBM'ye tasi - toplu PUT (upload cevabindaki updatedFileNos)",
+          "seq": 17,
+          "request": {
+            "url": "{{baseUrl}}/api/v1/declarations/update",
+            "method": "PUT",
+            "headers": [
+              {
+                "name": "Content-Type",
+                "value": "application/json",
+                "enabled": true
+              },
+              {
+                "name": "X-User-Name",
+                "value": "{{kullanici}}",
+                "enabled": true
+              },
+              {
+                "name": "X-Requester-Id-Type",
+                "value": "2",
+                "enabled": false
+              },
+              {
+                "name": "X-Requester-Id-No",
+                "value": "8000013270",
+                "enabled": false
+              }
+            ],
+            "params": [],
+            "body": {
+              "mode": "json",
+              "json": "{\n  \"ysvDosyaNoList\": [\n    \"TESTDEV2501-01\",\n    \"TESTDEV2501-03\"\n  ]\n}"
+            },
+            "auth": {
+              "mode": "none"
+            },
+            "script": {
+              "req": "",
+              "res": ""
+            },
+            "vars": {
+              "req": [],
+              "res": []
+            },
+            "assertions": [],
+            "tests": "",
+            "docs": "DB'deki güncel değerler SBM'ye PUT edilir (il/ilçe/ay/yıl PUT'ta gönderilmez). Beklenen: successCount 2."
+          }
+        },
+        {
+          "type": "http",
+          "name": "5.4 Yeni eklenen beyannameyi gonder - TESTDEV2501-07",
+          "seq": 18,
+          "request": {
+            "url": "{{baseUrl}}/api/v1/declarations/TESTDEV2501-07/send",
+            "method": "POST",
+            "headers": [
+              {
+                "name": "X-User-Name",
+                "value": "{{kullanici}}",
+                "enabled": true
+              },
+              {
+                "name": "X-Requester-Id-Type",
+                "value": "2",
+                "enabled": false
+              },
+              {
+                "name": "X-Requester-Id-No",
+                "value": "8000013270",
+                "enabled": false
+              }
+            ],
+            "params": [],
+            "body": {
+              "mode": "none"
+            },
+            "auth": {
+              "mode": "none"
+            },
+            "script": {
+              "req": "",
+              "res": ""
+            },
+            "vars": {
+              "req": [],
+              "res": []
+            },
+            "assertions": [],
+            "tests": "",
+            "docs": "5.2 ile eklenen beyanname. Beklenen: 201."
+          }
+        },
+        {
+          "type": "http",
+          "name": "5.5 Tek beyannamenin tutarini degistir (DB + SBM tek cagrida) - TESTDEV2501-04",
+          "seq": 19,
+          "request": {
+            "url": "{{baseUrl}}/api/v1/declarations/TESTDEV2501-04",
+            "method": "PUT",
+            "headers": [
+              {
+                "name": "Content-Type",
+                "value": "application/json",
+                "enabled": true
+              },
+              {
+                "name": "X-User-Name",
+                "value": "{{kullanici}}",
+                "enabled": true
+              },
+              {
+                "name": "X-Requester-Id-Type",
+                "value": "2",
+                "enabled": false
+              },
+              {
+                "name": "X-Requester-Id-No",
+                "value": "8000013270",
+                "enabled": false
+              }
+            ],
+            "params": [],
+            "body": {
+              "mode": "json",
+              "json": "{\n  \"sonOdemeTarihi\": \"2025-02-20\",\n  \"ysvTutarList\": [\n    {\n      \"menkulTipi\": \"MENKUL\",\n      \"alinanPrimTutari\": 12000.0,\n      \"iptalPrimTutari\": 300.0,\n      \"odenecekVergi\": 1170.0,\n      \"vergiOrani\": 10,\n      \"vergiPrimTutari\": 11700.0\n    },\n    {\n      \"menkulTipi\": \"GAYRIMENKUL\",\n      \"alinanPrimTutari\": 19500.0,\n      \"iptalPrimTutari\": 500.0,\n      \"odenecekVergi\": 1900.0,\n      \"vergiOrani\": 10,\n      \"vergiPrimTutari\": 19000.0\n    }\n  ]\n}"
+            },
+            "auth": {
+              "mode": "none"
+            },
+            "script": {
+              "req": "",
+              "res": ""
+            },
+            "vars": {
+              "req": [],
+              "res": []
+            },
+            "assertions": [],
+            "tests": "",
+            "docs": "Yeni tutarlar DB'ye yazılır; beyanname SBM'deyse aynı çağrıda PUT edilir ve SBM'nin cevabı aynen döner. Henüz gönderilmemişse yalnız DB güncellenir (data.sentToSbm:false).\nvergiPrimTutari / odenecekVergi negatif olabilir; alinanPrimTutari / iptalPrimTutari negatif olamaz.\nBeklenen: 200 {result:true, data:true}."
+          }
+        }
+      ]
+    },
+    {
+      "type": "folder",
+      "name": "6 - Iptal (tutarlar 0)",
+      "items": [
+        {
+          "type": "http",
+          "name": "6.1 Tek beyannameyi iptal et - TESTDEV2501-06 (SBM'de silme yok, tutarlar 0)",
+          "seq": 20,
+          "request": {
+            "url": "{{baseUrl}}/api/v1/declarations/TESTDEV2501-06/cancel",
+            "method": "POST",
+            "headers": [
+              {
+                "name": "X-User-Name",
+                "value": "{{kullanici}}",
+                "enabled": true
+              },
+              {
+                "name": "X-Requester-Id-Type",
+                "value": "2",
+                "enabled": false
+              },
+              {
+                "name": "X-Requester-Id-No",
+                "value": "8000013270",
+                "enabled": false
+              }
+            ],
+            "params": [],
+            "body": {
+              "mode": "none"
+            },
+            "auth": {
+              "mode": "none"
+            },
+            "script": {
+              "req": "",
+              "res": ""
+            },
+            "vars": {
+              "req": [],
+              "res": []
+            },
+            "assertions": [],
+            "tests": "",
+            "docs": "SBM'de silme yoktur: tüm tutarlar 0 ile PUT edilir, SBM kabul ederse DB'deki tutarlar da 0 olur. Yuva bu dosya no'da kalır.\nBeklenen: 200 {result:true, data:true}."
+          }
+        },
+        {
+          "type": "http",
+          "name": "6.2 Iptal edileni geri getir - guncelleme Excel'ini tekrar yukle",
+          "seq": 21,
+          "request": {
+            "url": "{{baseUrl}}/api/v1/declarations/upload",
+            "method": "POST",
+            "headers": [
+              {
+                "name": "X-User-Name",
+                "value": "{{kullanici}}",
+                "enabled": true
+              },
+              {
+                "name": "X-Requester-Id-Type",
+                "value": "2",
+                "enabled": false
+              },
+              {
+                "name": "X-Requester-Id-No",
+                "value": "8000013270",
+                "enabled": false
+              }
+            ],
+            "params": [],
+            "body": {
+              "mode": "multipartForm",
+              "multipartForm": [
+                {
+                  "type": "file",
+                  "name": "file",
+                  "value": [
+                    "test-lokal-2025-01-guncelleme.xlsx"
+                  ],
+                  "enabled": true
+                }
+              ]
+            },
+            "auth": {
+              "mode": "none"
+            },
+            "script": {
+              "req": "",
+              "res": ""
+            },
+            "vars": {
+              "req": [],
+              "res": []
+            },
+            "assertions": [],
+            "tests": "",
+            "docs": "Excel'deki tutarlar DB'ye geri yazılır. Beklenen: updatedFileNos:[TESTDEV2501-04, TESTDEV2501-06] — 5.5'te API ile değiştirilen TESTDEV2501-04 de Excel'deki değerine döner (Excel her zaman DB'yi Excel'e eşitler).\n\nBruno'ya aktardıktan sonra Body > Multipart > file alanından dosyayı diskinizden seçin (Bruno dosya yolunu taşımaz)."
+          }
+        },
+        {
+          "type": "http",
+          "name": "6.3 Geri getirilen tutarlari SBM'ye tasi - TESTDEV2501-04 ve -06",
+          "seq": 22,
+          "request": {
+            "url": "{{baseUrl}}/api/v1/declarations/update",
+            "method": "PUT",
+            "headers": [
+              {
+                "name": "Content-Type",
+                "value": "application/json",
+                "enabled": true
+              },
+              {
+                "name": "X-User-Name",
+                "value": "{{kullanici}}",
+                "enabled": true
+              },
+              {
+                "name": "X-Requester-Id-Type",
+                "value": "2",
+                "enabled": false
+              },
+              {
+                "name": "X-Requester-Id-No",
+                "value": "8000013270",
+                "enabled": false
+              }
+            ],
+            "params": [],
+            "body": {
+              "mode": "json",
+              "json": "{\n  \"ysvDosyaNoList\": [\n    \"TESTDEV2501-04\",\n    \"TESTDEV2501-06\"\n  ]\n}"
+            },
+            "auth": {
+              "mode": "none"
+            },
+            "script": {
+              "req": "",
+              "res": ""
+            },
+            "vars": {
+              "req": [],
+              "res": []
+            },
+            "assertions": [],
+            "tests": "",
+            "docs": "Beklenen: successCount 2."
+          }
+        }
+      ]
+    },
+    {
+      "type": "folder",
+      "name": "7 - Beklenen hatalar (400 - 404 - 409)",
+      "items": [
+        {
+          "type": "http",
+          "name": "7.1 Bos filtreyle toplu gonder - 400 (tum donemleri islememesi icin)",
+          "seq": 23,
+          "request": {
+            "url": "{{baseUrl}}/api/v1/declarations/send",
+            "method": "POST",
+            "headers": [
+              {
+                "name": "Content-Type",
+                "value": "application/json",
+                "enabled": true
+              },
+              {
+                "name": "X-User-Name",
+                "value": "{{kullanici}}",
+                "enabled": true
+              },
+              {
+                "name": "X-Requester-Id-Type",
+                "value": "2",
+                "enabled": false
+              },
+              {
+                "name": "X-Requester-Id-No",
+                "value": "8000013270",
+                "enabled": false
+              }
+            ],
+            "params": [],
+            "body": {
+              "mode": "json",
+              "json": "{}"
+            },
+            "auth": {
+              "mode": "none"
+            },
+            "script": {
+              "req": "",
+              "res": ""
+            },
+            "vars": {
+              "req": [],
+              "res": []
+            },
+            "assertions": [],
+            "tests": "",
+            "docs": "Beklenen: 400 ALZ-VALIDATION, field:\"filter\", mesaj 'year ve month birlikte ya da ysvDosyaNoList verilmelidir.'. SBM'ye ve DB'ye hiçbir şey gitmez."
+          }
+        },
+        {
+          "type": "http",
+          "name": "7.2 DB'de olmayan beyannameyi gonder - 404",
+          "seq": 24,
+          "request": {
+            "url": "{{baseUrl}}/api/v1/declarations/TESTDEV-YOK/send",
+            "method": "POST",
+            "headers": [
+              {
+                "name": "X-User-Name",
+                "value": "{{kullanici}}",
+                "enabled": true
+              },
+              {
+                "name": "X-Requester-Id-Type",
+                "value": "2",
+                "enabled": false
+              },
+              {
+                "name": "X-Requester-Id-No",
+                "value": "8000013270",
+                "enabled": false
+              }
+            ],
+            "params": [],
+            "body": {
+              "mode": "none"
+            },
+            "auth": {
+              "mode": "none"
+            },
+            "script": {
+              "req": "",
+              "res": ""
+            },
+            "vars": {
+              "req": [],
+              "res": []
+            },
+            "assertions": [],
+            "tests": "",
+            "docs": "Beklenen: 404 ALZ-NOT-FOUND. SBM çağrılmaz.\nNot: tekli SORGU (GET /{no}) DB'de olmasa da SBM'ye gider — SBM'de kayıt var mı diye bakmak içindir."
+          }
+        },
+        {
+          "type": "http",
+          "name": "7.3 Zaten gonderilmis beyannameyi tekrar gonder - 409",
+          "seq": 25,
+          "request": {
+            "url": "{{baseUrl}}/api/v1/declarations/TESTDEV2501-01/send",
+            "method": "POST",
+            "headers": [
+              {
+                "name": "X-User-Name",
+                "value": "{{kullanici}}",
+                "enabled": true
+              },
+              {
+                "name": "X-Requester-Id-Type",
+                "value": "2",
+                "enabled": false
+              },
+              {
+                "name": "X-Requester-Id-No",
+                "value": "8000013270",
+                "enabled": false
+              }
+            ],
+            "params": [],
+            "body": {
+              "mode": "none"
+            },
+            "auth": {
+              "mode": "none"
+            },
+            "script": {
+              "req": "",
+              "res": ""
+            },
+            "vars": {
+              "req": [],
+              "res": []
+            },
+            "assertions": [],
+            "tests": "",
+            "docs": "Beklenen: 409 ALZ-STATUS-CONFLICT (durum SENT/COMPLETED). SBM çağrılmaz; mükerrer gönderim olmaz."
+          }
+        },
+        {
+          "type": "http",
+          "name": "7.4 Dosya no'da izin verilmeyen karakter - 400",
+          "seq": 26,
+          "request": {
+            "url": "{{baseUrl}}/api/v1/declarations/TEST%26x%3D1",
+            "method": "GET",
+            "headers": [
+              {
+                "name": "X-User-Name",
+                "value": "{{kullanici}}",
+                "enabled": true
+              },
+              {
+                "name": "X-Requester-Id-Type",
+                "value": "2",
+                "enabled": false
+              },
+              {
+                "name": "X-Requester-Id-No",
+                "value": "8000013270",
+                "enabled": false
+              }
+            ],
+            "params": [],
+            "body": {
+              "mode": "none"
+            },
+            "auth": {
+              "mode": "none"
+            },
+            "script": {
+              "req": "",
+              "res": ""
+            },
+            "vars": {
+              "req": [],
+              "res": []
+            },
+            "assertions": [],
+            "tests": "",
+            "docs": "Dosya no yalnız harf, rakam, '-' ve '_' içerebilir. Beklenen: 400 ALZ-VALIDATION."
+          }
+        },
+        {
+          "type": "http",
+          "name": "7.5 Bilinmeyen siralama alani - 400",
+          "seq": 27,
+          "request": {
+            "url": "{{baseUrl}}/api/v1/declarations/processes?sort=olmayanAlan",
+            "method": "GET",
+            "headers": [
+              {
+                "name": "X-User-Name",
+                "value": "{{kullanici}}",
+                "enabled": true
+              },
+              {
+                "name": "X-Requester-Id-Type",
+                "value": "2",
+                "enabled": false
+              },
+              {
+                "name": "X-Requester-Id-No",
+                "value": "8000013270",
+                "enabled": false
+              }
+            ],
+            "params": [
+              {
+                "name": "sort",
+                "value": "olmayanAlan",
+                "enabled": true
+              }
+            ],
+            "body": {
+              "mode": "none"
+            },
+            "auth": {
+              "mode": "none"
+            },
+            "script": {
+              "req": "",
+              "res": ""
+            },
+            "vars": {
+              "req": [],
+              "res": []
+            },
+            "assertions": [],
+            "tests": "",
+            "docs": "Beklenen: 400 ALZ-VALIDATION (DB'ye gitmeden). Mesaj izinli alanları listeler."
+          }
+        },
+        {
+          "type": "http",
+          "name": "7.6 Hatali kimlik basligi - 400",
+          "seq": 28,
+          "request": {
+            "url": "{{baseUrl}}/api/v1/declarations/TESTDEV2501-01",
+            "method": "GET",
+            "headers": [
+              {
+                "name": "X-User-Name",
+                "value": "{{kullanici}}",
+                "enabled": true
+              },
+              {
+                "name": "X-Requester-Id-Type",
+                "value": "3",
+                "enabled": true
+              },
+              {
+                "name": "X-Requester-Id-No",
+                "value": "12345678901",
+                "enabled": true
+              }
+            ],
+            "params": [],
+            "body": {
+              "mode": "none"
+            },
+            "auth": {
+              "mode": "none"
+            },
+            "script": {
+              "req": "",
+              "res": ""
+            },
+            "vars": {
+              "req": [],
+              "res": []
+            },
+            "assertions": [],
+            "tests": "",
+            "docs": "X-Requester-Id-Type yalnız 1 (TCKN), 2 (VKN), 4 (YKN) olabilir. Beklenen: 400 ALZ-VALIDATION; token servisine ve SBM'ye istek gitmez."
+          }
+        },
+        {
+          "type": "http",
+          "name": "7.7 .xlsx olmayan dosya yukle - 400",
+          "seq": 29,
+          "request": {
+            "url": "{{baseUrl}}/api/v1/declarations/upload/validate",
+            "method": "POST",
+            "headers": [
+              {
+                "name": "X-User-Name",
+                "value": "{{kullanici}}",
+                "enabled": true
+              },
+              {
+                "name": "X-Requester-Id-Type",
+                "value": "2",
+                "enabled": false
+              },
+              {
+                "name": "X-Requester-Id-No",
+                "value": "8000013270",
+                "enabled": false
+              }
+            ],
+            "params": [],
+            "body": {
+              "mode": "multipartForm",
+              "multipartForm": [
+                {
+                  "type": "file",
+                  "name": "file",
+                  "value": [],
+                  "enabled": true
+                }
+              ]
+            },
+            "auth": {
+              "mode": "none"
+            },
+            "script": {
+              "req": "",
+              "res": ""
+            },
+            "vars": {
+              "req": [],
+              "res": []
+            },
+            "assertions": [],
+            "tests": "",
+            "docs": "Herhangi bir .csv / .txt dosyası seçin. Beklenen: 400 ALZ-VALIDATION 'Sadece .xlsx dosyası yüklenebilir'.\n\nBruno'ya aktardıktan sonra Body > Multipart > file alanından dosyayı diskinizden seçin (Bruno dosya yolunu taşımaz)."
+          }
+        }
+      ]
+    }
+  ],
+  "environments": [
+    {
+      "name": "local",
+      "variables": [
+        {
+          "name": "baseUrl",
+          "value": "http://localhost:8081/sbm-declaration-services",
+          "enabled": true,
+          "secret": false,
+          "type": "text"
+        },
+        {
+          "name": "kullanici",
+          "value": "gelistirici",
+          "enabled": true,
+          "secret": false,
+          "type": "text"
+        },
+        {
+          "name": "yil",
+          "value": "2025",
+          "enabled": true,
+          "secret": false,
+          "type": "text"
+        },
+        {
+          "name": "ay",
+          "value": "1",
+          "enabled": true,
+          "secret": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "sc-test",
+      "variables": [
+        {
+          "name": "baseUrl",
+          "value": "https://int-sc-test-elementer.allianz.com.tr/sbm-declaration-services",
+          "enabled": true,
+          "secret": false,
+          "type": "text"
+        },
+        {
+          "name": "kullanici",
+          "value": "gelistirici",
+          "enabled": true,
+          "secret": false,
+          "type": "text"
+        },
+        {
+          "name": "yil",
+          "value": "2025",
+          "enabled": true,
+          "secret": false,
+          "type": "text"
+        },
+        {
+          "name": "ay",
+          "value": "1",
+          "enabled": true,
+          "secret": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "sc-uat",
+      "variables": [
+        {
+          "name": "baseUrl",
+          "value": "https://int-sc-uat-elementer.allianz.com.tr/sbm-declaration-services",
+          "enabled": true,
+          "secret": false,
+          "type": "text"
+        },
+        {
+          "name": "kullanici",
+          "value": "gelistirici",
+          "enabled": true,
+          "secret": false,
+          "type": "text"
+        },
+        {
+          "name": "yil",
+          "value": "2025",
+          "enabled": true,
+          "secret": false,
+          "type": "text"
+        },
+        {
+          "name": "ay",
+          "value": "1",
+          "enabled": true,
+          "secret": false,
+          "type": "text"
+        }
+      ]
+    }
+  ],
+  "brunoConfig": {
+    "version": "1",
+    "name": "SBM Beyanname - Lokal Test (donem 2025-01)",
+    "type": "collection",
+    "ignore": [
+      "node_modules",
+      ".git"
+    ]
+  }
+}

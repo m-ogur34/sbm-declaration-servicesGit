@@ -16,8 +16,8 @@ Kaynak dosya: `SBM ve Allianz Dökümanları/sbm_tsb veri gönderme çalışmas�
 > boşaltmaz. Yanlış dosya no ile gönderilen yuva bir daha yalnızca o dosya no ile
 > güncellenebilir. Bu yüzden **§2 (doğrulama) ve §4 (pilot) atlanmaz.**
 
-- PROD'a **hiçbir zaman test verisi** yüklenmez ve gönderilmez (`PENTEST…`, `test-gelistirici.xlsx`
-  vb.). SC-TEST/SC-UAT'ta yaşanan mükerrer yuva sorununun tek sebebi buydu.
+- PROD'a **hiçbir zaman test verisi** yüklenmez ve gönderilmez (`PENTEST…`, `TESTDEV…`,
+  `Lokal Test/` ve `Pen Test/` klasörlerindeki Excel'ler).. SC-TEST/SC-UAT'ta yaşanan mükerrer yuva sorununun tek sebebi buydu.
 - PROD DB'de elle script çalıştırmak firma politikası gereği yasaktır; bir hata DB'den elle
   düzeltilemez. Doğrulama bu yüzden yüklemeden **önce** yapılır.
 - Tüm istekler `X-User-Name` başlığıyla atılır (DB'deki `*_BY_USER` kolonlarına yazılır; yoksa
