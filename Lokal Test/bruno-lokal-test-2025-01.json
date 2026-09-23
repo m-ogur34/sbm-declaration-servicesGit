@@ -264,22 +264,26 @@
               {
                 "name": "year",
                 "value": "{{yil}}",
-                "enabled": true
+                "enabled": true,
+                "type": "query"
               },
               {
                 "name": "month",
                 "value": "{{ay}}",
-                "enabled": true
+                "enabled": true,
+                "type": "query"
               },
               {
                 "name": "size",
                 "value": "50",
-                "enabled": true
+                "enabled": true,
+                "type": "query"
               },
               {
                 "name": "sort",
                 "value": "sbmFileNo,asc",
-                "enabled": true
+                "enabled": true,
+                "type": "query"
               }
             ],
             "body": {
@@ -329,17 +333,20 @@
               {
                 "name": "status",
                 "value": "ERROR",
-                "enabled": true
+                "enabled": true,
+                "type": "query"
               },
               {
                 "name": "year",
                 "value": "{{yil}}",
-                "enabled": true
+                "enabled": true,
+                "type": "query"
               },
               {
                 "name": "month",
                 "value": "{{ay}}",
-                "enabled": true
+                "enabled": true,
+                "type": "query"
               }
             ],
             "body": {
@@ -389,17 +396,20 @@
               {
                 "name": "status",
                 "value": "NEW",
-                "enabled": true
+                "enabled": true,
+                "type": "query"
               },
               {
                 "name": "year",
                 "value": "{{yil}}",
-                "enabled": true
+                "enabled": true,
+                "type": "query"
               },
               {
                 "name": "month",
                 "value": "{{ay}}",
-                "enabled": true
+                "enabled": true,
+                "type": "query"
               }
             ],
             "body": {
@@ -1337,7 +1347,8 @@
               {
                 "name": "sort",
                 "value": "olmayanAlan",
-                "enabled": true
+                "enabled": true,
+                "type": "query"
               }
             ],
             "body": {
