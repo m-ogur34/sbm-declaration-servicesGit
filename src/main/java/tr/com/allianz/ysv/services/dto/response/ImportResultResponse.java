@@ -4,11 +4,13 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
 
 
-@Schema(description = "Excel yükleme sonucu")
+@Schema(description = "Excel yükleme / doğrulama sonucu")
 public record ImportResultResponse(String sourceFileName,
                                    int totalRows,
                                    int inserted,
                                    int updated,
+                                   @Schema(description = "Yeni eklenen (doğrulamada: eklenecek) beyannameler.")
+                                   List<String> insertedFileNos,
                                    @Schema(description = "Tutarı değişen beyannameler; SBM'ye taşımak için "
                                            + "PUT /update gövdesinde ysvDosyaNoList olarak verilebilir.")
                                    List<String> updatedFileNos,
@@ -16,9 +18,14 @@ public record ImportResultResponse(String sourceFileName,
                                    List<ExcelRowError> errors) {
 
     public static ImportResultResponse of(String sourceFileName, int totalRows, int inserted, int updated,
-                                          List<String> updatedFileNos, List<ExcelRowError> errors) {
+                                          List<String> insertedFileNos, List<String> updatedFileNos,
+                                          List<ExcelRowError> errors) {
         List<ExcelRowError> safe = errors == null ? List.of() : List.copyOf(errors);
-        List<String> fileNos = updatedFileNos == null ? List.of() : List.copyOf(updatedFileNos);
-        return new ImportResultResponse(sourceFileName, totalRows, inserted, updated, fileNos, safe.size(), safe);
+        return new ImportResultResponse(sourceFileName, totalRows, inserted, updated,
+                copy(insertedFileNos), copy(updatedFileNos), safe.size(), safe);
+    }
+
+    private static List<String> copy(List<String> fileNos) {
+        return fileNos == null ? List.of() : List.copyOf(fileNos);
     }
 }

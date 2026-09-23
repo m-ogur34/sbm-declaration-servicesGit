@@ -65,6 +65,63 @@ public class DeclarationImportService {
      */
     @Transactional
     public ImportResultResponse importFile(MultipartFile file, String user) {
+        ImportPlan plan = plan(file, true);
+
+        LocalDateTime now = LocalDateTime.now();
+        Map<Long, String> beforeById = new HashMap<>();
+        List<DeclarationProcess> updated = new ArrayList<>(plan.updates().size());
+        for (PlannedUpdate update : plan.updates()) {
+            DeclarationProcess target = update.target();
+            beforeById.put(target.getId(), jsonUtil.toJson(processMapper.toView(target)));
+            apply(target, update.row(), now, user);
+            updated.add(target);
+        }
+        List<DeclarationProcess> toInsert = plan.inserts().stream()
+                .map(row -> toEntity(row, plan.fileName(), user))
+                .toList();
+
+        if (!plan.isEmpty()) {
+            repository.saveAll(updated);
+            repository.saveAll(toInsert);
+        }
+        for (DeclarationProcess row : updated) {
+            declarationLogService.logCall(List.of(row.getId()), OperationType.LOCAL_UPDATE, LogLevel.INFO,
+                    "Excel ile güncellendi (" + plan.fileName() + "). Dosya no: " + row.getSbmFileNo()
+                            + ", menkul tipi: " + row.getMovableType() + ", kullanıcı: " + user,
+                    beforeById.get(row.getId()), jsonUtil.toJson(processMapper.toView(row)));
+        }
+
+        ImportResultResponse result = plan.toResponse();
+        log.info("Excel import: file={}, user={}, totalRows={}, inserted={}, updated={}, failed={}",
+                plan.fileName(), user, result.totalRows(), result.inserted(), result.updated(), result.failed());
+        return result;
+    }
+
+    /**
+     * Yüklemeden önce kontrol: {@link #importFile} ile <b>aynı</b> kurallar çalışır, ama DB'ye
+     * yazılmaz, log tablosuna kayıt düşülmez ve SBM çağrılmaz. Cevap, aynı dosya yüklenseydi
+     * {@code upload}'ın döneceği sonuçtur (eklenecek / güncellenecek / hatalı satırlar).
+     *
+     * <p>Salt okunur transaction'da çalışır ve dönemin satırlarını kilitlemez. Plan DB'den okunan
+     * nesneleri değiştirmediği için transaction sonunda DB'ye bir şey yazılmaz.</p>
+     */
+    @Transactional(readOnly = true)
+    public ImportResultResponse validate(MultipartFile file) {
+        ImportPlan plan = plan(file, false);
+        ImportResultResponse result = plan.toResponse();
+        log.info("Excel validate: file={}, totalRows={}, toInsert={}, toUpdate={}, failed={}",
+                plan.fileName(), result.totalRows(), result.inserted(), result.updated(), result.failed());
+        return result;
+    }
+
+    /**
+     * Excel'i okuyup DB ile karşılaştırır; hangi satırın ekleneceğine, hangisinin güncelleneceğine
+     * ve hangisinin hatalı olduğuna karar verir. <b>Hiçbir şey kaydetmez ve DB'den okunan
+     * nesneleri değiştirmez</b> — güncellemeler {@link PlannedUpdate} olarak döner.
+     *
+     * @param lock {@code true} ise dönemin satırları kilitlenerek okunur (yükleme)
+     */
+    private ImportPlan plan(MultipartFile file, boolean lock) {
         String fileName = file.getOriginalFilename();
         ParsedSheet sheet;
         try (InputStream in = file.getInputStream()) {
@@ -77,25 +134,26 @@ public class DeclarationImportService {
         List<ExcelRowError> errors = new ArrayList<>(sheet.errors());
         int totalRows = rows.size() + sheet.errors().size();
         requireSinglePeriod(rows);
+        List<ParsedRow> inserts = new ArrayList<>();
+        List<PlannedUpdate> updates = new ArrayList<>();
         if (rows.isEmpty()) {
-            return ImportResultResponse.of(fileName, totalRows, 0, 0, List.of(), errors);
+            return new ImportPlan(fileName, totalRows, inserts, updates, errors);
         }
 
+        Integer year = rows.get(0).yil();
+        Integer month = rows.get(0).ay();
+        List<DeclarationProcess> period = lock
+                ? repository.lockByPeriod(year, month)
+                : repository.findByPeriod(year, month);
         Map<String, List<DeclarationProcess>> existingByFileNo = new HashMap<>();
         // SBM il-ilçe-dönem başına tek beyanname kabul eder (RISK-HAVUZU-00004): yuva -> dosya no
         Map<String, String> slotOwners = new HashMap<>();
-        for (DeclarationProcess existing : repository.lockByPeriod(rows.get(0).yil(), rows.get(0).ay())) {
+        for (DeclarationProcess existing : period) {
             existingByFileNo.computeIfAbsent(existing.getSbmFileNo(), k -> new ArrayList<>()).add(existing);
             slotOwners.putIfAbsent(slotKey(existing.getCityCode(), existing.getDistrictCode()), existing.getSbmFileNo());
         }
 
         Set<String> seenKeys = new HashSet<>();
-        List<DeclarationProcess> toInsert = new ArrayList<>();
-        List<DeclarationProcess> updated = new ArrayList<>();
-        Map<Long, String> beforeById = new HashMap<>();
-        Set<String> updatedFileNos = new LinkedHashSet<>();
-        LocalDateTime now = LocalDateTime.now();
-
         for (ParsedRow row : rows) {
             if (!seenKeys.add(row.ysvDosyaNo() + "|" + row.menkulTipi())) {
                 errors.add(error(row, DUPLICATE_CODE, "Dosyada aynı ysvDosyaNo + menkulTipi iki kez var."));
@@ -112,10 +170,7 @@ public class DeclarationImportService {
                 if (problem != null) {
                     errors.add(error(row, problem.startsWith("Satır şu anda") ? BUSY_CODE : CONFLICT_CODE, problem));
                 } else if (changes(match, row)) {
-                    beforeById.put(match.getId(), jsonUtil.toJson(processMapper.toView(match)));
-                    apply(match, row, now, user);
-                    updated.add(match);
-                    updatedFileNos.add(row.ysvDosyaNo());
+                    updates.add(new PlannedUpdate(match, row));
                 }
                 continue;
             }
@@ -132,22 +187,34 @@ public class DeclarationImportService {
                 continue;
             }
             slotOwners.putIfAbsent(slot, row.ysvDosyaNo());
-            toInsert.add(toEntity(row, fileName, user));
+            inserts.add(row);
+        }
+        return new ImportPlan(fileName, totalRows, inserts, updates, errors);
+    }
+
+    /** Değiştirilecek mevcut satır ve onu değiştirecek Excel satırı. */
+    private record PlannedUpdate(DeclarationProcess target, ParsedRow row) {
+    }
+
+    /** {@link #plan} sonucu: yükleme bunu uygular, doğrulama yalnızca raporlar. */
+    private record ImportPlan(String fileName,
+                              int totalRows,
+                              List<ParsedRow> inserts,
+                              List<PlannedUpdate> updates,
+                              List<ExcelRowError> errors) {
+
+        boolean isEmpty() {
+            return inserts.isEmpty() && updates.isEmpty();
         }
 
-        repository.saveAll(updated);
-        repository.saveAll(toInsert);
-        for (DeclarationProcess row : updated) {
-            declarationLogService.logCall(List.of(row.getId()), OperationType.LOCAL_UPDATE, LogLevel.INFO,
-                    "Excel ile güncellendi (" + fileName + "). Dosya no: " + row.getSbmFileNo()
-                            + ", menkul tipi: " + row.getMovableType() + ", kullanıcı: " + user,
-                    beforeById.get(row.getId()), jsonUtil.toJson(processMapper.toView(row)));
+        ImportResultResponse toResponse() {
+            Set<String> insertedFileNos = new LinkedHashSet<>();
+            inserts.forEach(row -> insertedFileNos.add(row.ysvDosyaNo()));
+            Set<String> updatedFileNos = new LinkedHashSet<>();
+            updates.forEach(update -> updatedFileNos.add(update.row().ysvDosyaNo()));
+            return ImportResultResponse.of(fileName, totalRows, inserts.size(), updates.size(),
+                    List.copyOf(insertedFileNos), List.copyOf(updatedFileNos), errors);
         }
-
-        log.info("Excel import: file={}, user={}, totalRows={}, inserted={}, updated={}, failed={}",
-                fileName, user, totalRows, toInsert.size(), updated.size(), errors.size());
-        return ImportResultResponse.of(fileName, totalRows, toInsert.size(), updated.size(),
-                List.copyOf(updatedFileNos), errors);
     }
 
     /** @return mevcut satır bu Excel satırıyla güncellenemiyorsa sebebi, yoksa {@code null} */

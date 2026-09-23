@@ -58,6 +58,14 @@ public interface DeclarationProcessRepository extends JpaRepository<DeclarationP
             """)
     List<DeclarationProcess> lockByPeriod(@Param("year") Integer year, @Param("month") Integer month);
 
+    /** Excel doğrulamada dönemin mevcut satırları, kilitsiz (yükleme {@link #lockByPeriod} kullanır). */
+    @Query("""
+            select p from DeclarationProcess p
+            where p.declarationYear = :year and p.declarationMonth = :month
+            order by p.id
+            """)
+    List<DeclarationProcess> findByPeriod(@Param("year") Integer year, @Param("month") Integer month);
+
     /** Excel yüklemede mükerrer dosya numarası kontrolü için. */
     boolean existsBySbmFileNo(String sbmFileNo);
     @Query("""

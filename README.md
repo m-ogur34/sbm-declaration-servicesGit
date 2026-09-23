@@ -235,6 +235,7 @@ Entegrasyon Dokümanı §5.1'in toplu işlemler için tarif ettiği yol. Üçü 
 | İşlem | Toplu (filtre gövdesi) | Tekli |
 |---|---|---|
 | Excel yükle (upsert) | `POST /upload` (multipart, `file`) | — |
+| Excel'i yüklemeden kontrol et | `POST /upload/validate` (multipart, `file`) — `upload` ile aynı kurallar; DB'ye yazmaz, SBM'ye gitmez. Cevapta eklenecek (`insertedFileNos`) / güncellenecek (`updatedFileNos`) beyannameler ve hatalı satırlar | — |
 | Gönder | `POST /send` | `POST /{ysvDosyaNo}/send` |
 | Güncelle | `PUT /update` — DB'deki değerleri SBM'ye PUT eder | `PUT /{ysvDosyaNo}` — yeni tutarları DB'ye yazar, beyanname SBM'deyse aynı çağrıda PUT eder |
 | Sorgula | `POST /query` — SBM'den doğrular, `COMPLETED` yapar | `GET /{ysvDosyaNo}` — SBM cevabını döner |

@@ -30,6 +30,22 @@ public class DeclarationImportController {
             @RequestParam("file") MultipartFile file,
             RequestContext context) {
 
+        requireXlsx(file);
+        ImportResultResponse result = declarationImportService.importFile(file, context.userName());
+        return ResponseEntity.ok(ApiResponse.of(result.failed() == 0, 200, result));
+    }
+
+    @PostMapping(path = "/upload/validate", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Excel'i yüklemeden kontrol eder: upload ile aynı kurallar, DB'ye yazmaz, SBM'ye gitmez",
+            description = "Cevap, aynı dosya /upload ile yüklenseydi dönecek sonuçtur: eklenecek "
+                    + "(insertedFileNos) ve güncellenecek (updatedFileNos) beyannameler ile hatalı satırlar.")
+    public ResponseEntity<ApiResponse<ImportResultResponse>> validate(@RequestParam("file") MultipartFile file) {
+        requireXlsx(file);
+        ImportResultResponse result = declarationImportService.validate(file);
+        return ResponseEntity.ok(ApiResponse.of(result.failed() == 0, 200, result));
+    }
+
+    private static void requireXlsx(MultipartFile file) {
         if (file == null || file.isEmpty()) {
             throw new IllegalArgumentException("Yüklenecek dosya boş.");
         }
@@ -37,7 +53,5 @@ public class DeclarationImportController {
         if (name == null || !name.toLowerCase(Locale.ROOT).endsWith(".xlsx")) {
             throw new IllegalArgumentException("Sadece .xlsx dosyası yüklenebilir. Gelen: " + name);
         }
-        ImportResultResponse result = declarationImportService.importFile(file, context.userName());
-        return ResponseEntity.ok(ApiResponse.of(result.failed() == 0, 200, result));
     }
 }
