@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.regex.Pattern;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
@@ -21,6 +22,7 @@ import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.springframework.stereotype.Component;
 import tr.com.allianz.ysv.services.dto.response.ExcelRowError;
 import tr.com.allianz.ysv.services.enums.MovableType;
+import tr.com.allianz.ysv.services.mapper.SbmMapper;
 
 @Slf4j
 @Component
@@ -28,6 +30,8 @@ public class ExcelDeclarationParser {
 
     /** Bir dosyada işlenecek en fazla veri satırı (kaba kuvvet / bellek koruması). */
     static final int MAX_DATA_ROWS = 20_000;
+
+    private static final Pattern FILE_NO = Pattern.compile(SbmMapper.YSV_DOSYA_NO_PATTERN);
 
     private static final int SCALE = 2;
     private static final List<DateTimeFormatter> DATE_FORMATS = List.of(
@@ -119,6 +123,8 @@ public class ExcelDeclarationParser {
             err.add("ysvDosyaNo boş olamaz");
         } else if (ysvDosyaNo.length() > 36) {
             err.add("ysvDosyaNo en fazla 36 karakter olabilir");
+        } else if (!FILE_NO.matcher(ysvDosyaNo).matches()) {
+            err.add(SbmMapper.YSV_DOSYA_NO_MESSAGE);
         }
 
         Integer ay = readInt(row, columns, COL_AY, err, "ay");

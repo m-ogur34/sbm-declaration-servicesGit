@@ -23,6 +23,13 @@ import tr.com.allianz.ysv.services.util.DistrictCodeResolver;
 public class SbmMapper {
 
     static final int SBM_FILE_NO_MAX_LENGTH = 36;
+    /**
+     * Dosya no'da izin verilen karakterler. SBM "serbest" diyor; biz sorgu URL'ine
+     * ({@code ?ysvDosyaNo=...}) parametre eklenemesin diye harf, rakam, '-' ve '_' ile sınırlıyoruz.
+     * Controller (path) ve Excel doğrulaması aynı sabiti kullanır.
+     */
+    public static final String YSV_DOSYA_NO_PATTERN = "^[A-Za-z0-9_-]+$";
+    public static final String YSV_DOSYA_NO_MESSAGE = "ysvDosyaNo yalnızca harf, rakam, '-' ve '_' içerebilir";
 
     static final int COMPANY_CODE_MAX_LENGTH = 3;
 

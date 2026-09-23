@@ -1,5 +1,8 @@
 package tr.com.allianz.ysv.services.controller;
 
+import static tr.com.allianz.ysv.services.mapper.SbmMapper.YSV_DOSYA_NO_MESSAGE;
+import static tr.com.allianz.ysv.services.mapper.SbmMapper.YSV_DOSYA_NO_PATTERN;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -39,8 +42,6 @@ import tr.com.allianz.ysv.services.service.DeclarationService;
 @Tag(name = "Declarations", description = "SBM YSV beyanname gönderim, güncelleme ve sorgulama servisleri")
 public class DeclarationController {
 
-    private static final String YSV_DOSYA_NO_PATTERN = "^[A-Za-z0-9_-]+$";
-    private static final String YSV_DOSYA_NO_MESSAGE = "ysvDosyaNo yalnızca harf, rakam, '-' ve '_' içerebilir";
 
     private final DeclarationService declarationService;
 

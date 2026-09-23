@@ -133,6 +133,24 @@ class ExcelDeclarationParserTest {
     }
 
     @Test
+    @DisplayName("ysvDosyaNo yalnız harf, rakam, '-' ve '_' içerebilir (SBM sorgu URL'ine parametre eklenemesin)")
+    void parse_fileNoWithUrlCharacters_isRowError() throws IOException {
+        byte[] xlsx = workbook(rows -> {
+            fullValidRow(rows.createRow(1), "YSV2027776");
+            fullValidRow(rows.createRow(2), "X&sigortaSirketKodu=999");
+            fullValidRow(rows.createRow(3), "YSV 1");
+            fullValidRow(rows.createRow(4), "YSV_2027-A");
+        });
+
+        ParsedSheet sheet = parser.parse(new ByteArrayInputStream(xlsx));
+
+        assertThat(sheet.rows()).extracting(ParsedRow::ysvDosyaNo).containsExactly("YSV2027776", "YSV_2027-A");
+        assertThat(sheet.errors()).extracting(e -> e.rowNumber()).containsExactly(3, 4);
+        assertThat(sheet.errors()).allSatisfy(e ->
+                assertThat(e.message()).contains("yalnızca harf, rakam, '-' ve '_'"));
+    }
+
+    @Test
     void parse_missingRequiredHeader_rejectsWholeFile() throws IOException {
         String[] shortHeaders = {"ay", "ilKodu", "yil", "ysvDosyaNo"};
         byte[] xlsx = workbook(shortHeaders, rows -> rows.createRow(1).createCell(0).setCellValue(1));
