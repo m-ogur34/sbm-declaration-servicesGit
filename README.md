@@ -249,6 +249,8 @@ Filtre gövdesi (toplu uçlar):
 ```
 
 `ysvDosyaNoList` doluysa diğer alanlar dikkate alınmaz (en fazla 1000 — Oracle `IN` sınırı).
+**`ysvDosyaNoList` ya da `year` + `month` zorunludur**; boş filtre (`{}`), yalnız `year` ya da yalnız
+`cityCode` → 400 `ALZ-VALIDATION` (`field: "filter"`). Boş filtre tüm dönemlerin kayıtlarını işlerdi.
 
 Tekli güncelleme gövdesi — SBM'nin PUT gövdesiyle aynı yapıda:
 

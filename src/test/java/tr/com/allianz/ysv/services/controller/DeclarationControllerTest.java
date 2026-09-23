@@ -19,6 +19,8 @@ import java.math.BigDecimal;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.data.domain.Pageable;
@@ -44,6 +46,8 @@ class DeclarationControllerTest {
     private static final String BASE = "/api/v1/declarations";
     private static final ObjectMapper JSON = new ObjectMapper();
     private static final RequestContext USER_ONLY = RequestContext.of("WDA2422", null, null);
+    private static final String PERIOD_BODY = "{\"year\":2026,\"month\":8}";
+
     private static final String UPDATE_BODY = """
             {"sonOdemeTarihi":"2026-09-20","ysvTutarList":[{"menkulTipi":"MENKUL",
              "alinanPrimTutari":1000.00,"iptalPrimTutari":100.00,"odenecekVergi":90.00,
@@ -87,7 +91,7 @@ class DeclarationControllerTest {
     void send_withoutHeaders_runsAsSystem() throws Exception {
         when(declarationService.send(any(), any())).thenReturn(batch(0, 0));
 
-        mockMvc.perform(post(BASE + "/send").contentType(MediaType.APPLICATION_JSON).content("{}"))
+        mockMvc.perform(post(BASE + "/send").contentType(MediaType.APPLICATION_JSON).content(PERIOD_BODY))
                 .andExpect(status().isOk());
 
         verify(declarationService).send(any(DeclarationFilterRequest.class), eq(RequestContext.system()));
@@ -98,7 +102,7 @@ class DeclarationControllerTest {
     void send_forwardsTheRequesterIdentity() throws Exception {
         when(declarationService.send(any(), any())).thenReturn(batch(0, 0));
 
-        mockMvc.perform(post(BASE + "/send").contentType(MediaType.APPLICATION_JSON).content("{}")
+        mockMvc.perform(post(BASE + "/send").contentType(MediaType.APPLICATION_JSON).content(PERIOD_BODY)
                         .header("X-User-Name", "muhammed.ogur")
                         .header("X-Requester-Id-Type", "1")
                         .header("X-Requester-Id-No", "12345678901"))
@@ -110,7 +114,7 @@ class DeclarationControllerTest {
     @Test
     @DisplayName("a malformed requester identity is refused in SBM's error shape before any work starts")
     void send_invalidRequester_returns400() throws Exception {
-        mockMvc.perform(post(BASE + "/send").contentType(MediaType.APPLICATION_JSON).content("{}")
+        mockMvc.perform(post(BASE + "/send").contentType(MediaType.APPLICATION_JSON).content(PERIOD_BODY)
                         .header("X-Requester-Id-Type", "3")
                         .header("X-Requester-Id-No", "12345678901"))
                 .andExpect(status().isBadRequest())
@@ -124,7 +128,7 @@ class DeclarationControllerTest {
 
     @Test
     void send_requesterTypeWithoutNumber_returns400() throws Exception {
-        mockMvc.perform(post(BASE + "/send").contentType(MediaType.APPLICATION_JSON).content("{}")
+        mockMvc.perform(post(BASE + "/send").contentType(MediaType.APPLICATION_JSON).content(PERIOD_BODY)
                         .header("X-Requester-Id-Type", "2"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error.reasons[0].message").value(org.hamcrest.Matchers.containsString("birlikte")));
@@ -156,7 +160,7 @@ class DeclarationControllerTest {
     void cancel_delegatesToTheBulkCancel() throws Exception {
         when(declarationService.cancel(any(), any())).thenReturn(batch(1, 0));
 
-        mockMvc.perform(post(BASE + "/cancel").contentType(MediaType.APPLICATION_JSON).content("{}"))
+        mockMvc.perform(post(BASE + "/cancel").contentType(MediaType.APPLICATION_JSON).content(PERIOD_BODY))
                 .andExpect(status().isOk());
 
         verify(declarationService).cancel(any(), any());
@@ -165,11 +169,50 @@ class DeclarationControllerTest {
     @Test
     @DisplayName("an out of range month is rejected field by field in SBM's error shape")
     void send_invalidMonth_returns400() throws Exception {
-        mockMvc.perform(post(BASE + "/send").contentType(MediaType.APPLICATION_JSON).content("{\"month\":13}"))
+        mockMvc.perform(post(BASE + "/send").contentType(MediaType.APPLICATION_JSON).content("{\"year\":2026,\"month\":13}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error.reasons[0].field").value("month"))
                 .andExpect(jsonPath("$.error.reasons[0].code").value("ALZ-VALIDATION"))
                 .andExpect(jsonPath("$.error.reasons[0].rejectedValue").doesNotExist());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"/send", "/query", "/cancel"})
+    @DisplayName("an empty filter ({}) is refused: it would touch every period")
+    void batch_emptyFilter_returns400(String path) throws Exception {
+        mockMvc.perform(post(BASE + path).contentType(MediaType.APPLICATION_JSON).content("{}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error.reasons[0].field").value("filter"))
+                .andExpect(jsonPath("$.error.reasons[0].code").value("ALZ-VALIDATION"));
+
+        verifyNoInteractions(declarationService);
+    }
+
+    @Test
+    void update_emptyFilter_returns400() throws Exception {
+        mockMvc.perform(put(BASE + "/update").contentType(MediaType.APPLICATION_JSON).content("{\"ysvDosyaNoList\":[]}"))
+                .andExpect(status().isBadRequest());
+
+        verifyNoInteractions(declarationService);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"{\"year\":2026}", "{\"month\":8}", "{\"cityCode\":34}"})
+    @DisplayName("year without month (or the reverse, or only cityCode) is not a period")
+    void send_partialPeriod_returns400(String body) throws Exception {
+        mockMvc.perform(post(BASE + "/send").contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error.reasons[0].message")
+                        .value("year ve month birlikte ya da ysvDosyaNoList verilmelidir."));
+    }
+
+    @Test
+    void send_fileNoListAlone_isEnough() throws Exception {
+        when(declarationService.send(any(), any())).thenReturn(batch(1, 0));
+
+        mockMvc.perform(post(BASE + "/send").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"ysvDosyaNoList\":[\"YSV1\"]}"))
+                .andExpect(status().isOk());
     }
 
     @Test
