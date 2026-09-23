@@ -12,3 +12,10 @@ logging:
     root: INFO
     tr.com.allianz.ysv.services: INFO
     org.springframework.web: INFO
+
+# PROD'da API dokümantasyonu kapalı (PEN): /swagger-ui ve api-docs 404 döner.
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
