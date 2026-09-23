@@ -353,6 +353,27 @@ class DeclarationControllerTest {
                 .andExpect(jsonPath("$.data.size").value(50));
     }
 
+    @Test
+    void processes_sortByAListedField_isAccepted() throws Exception {
+        when(declarationService.search(any(), any(), any(), any(), any(Pageable.class)))
+                .thenReturn(new PageResponse<>(List.of(), 0, 50, 0, 0));
+
+        mockMvc.perform(get(BASE + "/processes").param("sort", "sbmFileNo,asc").param("sort", "dateSent,desc"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("an unknown sort field is a 400 before the database is touched (was a 500)")
+    void processes_unknownSortField_returns400() throws Exception {
+        mockMvc.perform(get(BASE + "/processes").param("sort", "olmayanAlan"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error.reasons[0].code").value("ALZ-VALIDATION"))
+                .andExpect(jsonPath("$.error.reasons[0].message").value(org.hamcrest.Matchers.not(
+                        org.hamcrest.Matchers.containsString("olmayanAlan"))));
+
+        verifyNoInteractions(declarationService);
+    }
+
     // --- hata karsiliklari ------------------------------------------------------------------
 
     @Test

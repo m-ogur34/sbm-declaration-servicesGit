@@ -9,6 +9,9 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -42,6 +45,12 @@ import tr.com.allianz.ysv.services.service.DeclarationService;
 @Tag(name = "Declarations", description = "SBM YSV beyanname gönderim, güncelleme ve sorgulama servisleri")
 public class DeclarationController {
 
+
+    /** {@code /processes} için sıralanabilir alanlar (listede görünen alanlar + kayıt tarihleri). */
+    private static final Set<String> SORTABLE = new LinkedHashSet<>(List.of(
+            "id", "declarationYear", "declarationMonth", "cityCode", "districtCode", "sbmFileNo",
+            "movableType", "status", "paymentDate", "receivedPremiumAmount", "cancelledPremiumAmount",
+            "taxAmount", "taxPremiumAmount", "taxRatio", "dateSent", "dateCreated", "dateUpdated"));
 
     private final DeclarationService declarationService;
 
@@ -114,7 +123,20 @@ public class DeclarationController {
             @RequestParam(required = false) Integer month,
             @RequestParam(required = false) Integer cityCode,
             @PageableDefault(size = 50, sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
+        requireSortable(pageable.getSort());
         return ResponseEntity.ok(ApiResponse.ok(200, declarationService.search(status, year, month, cityCode, pageable)));
+    }
+
+    /**
+     * Sıralama alanı sorguya olduğu gibi eklenir; bilinmeyen bir alan DB'de hata verip 500 dönerdi.
+     * İstek DB'ye gitmeden 400 ile reddedilir (gelen değer mesajda geri dönmez).
+     */
+    private static void requireSortable(Sort sort) {
+        for (Sort.Order order : sort) {
+            if (!SORTABLE.contains(order.getProperty())) {
+                throw new IllegalArgumentException("sort yalnızca şu alanlarla yapılabilir: " + String.join(", ", SORTABLE));
+            }
+        }
     }
 
     private static ResponseEntity<JsonNode> toResponse(SbmReply reply) {
