@@ -170,7 +170,7 @@ mvn spring-boot:run
 ```sql
 -- 1) Şema (ilk kurulum; tablolar varsa önce db/rollback_db.sql)
 @"db/DB güncel.sql"
--- Test verisi: Lokal Test/test-lokal-2015-01.xlsx (geliştirici) veya Pen Test/pentest-2025-02-yukleme.xlsx (PEN) /upload ile yüklenir.
+-- Test verisi: Lokal Test/test-lokal-2015-01.xlsx (geliştirici) veya Pen Test/pentest-2014-02-yukleme.xlsx (PEN) /upload ile yüklenir.
 -- Test verisini temizlemek: Lokal Test/temizle-test-verisi.sql (yalnız test verisi) ya da db/cleanup_test_data.sql (tümü)
 ```
 
@@ -547,7 +547,7 @@ src/main/java/tr/com/allianz/ysv/services/
 
 db/         DB güncel.sql (kurulum), rollback_db.sql, cleanup_test_data.sql
 Lokal Test/ geliştirici Bruno koleksiyonu + Excel'ler (2015/01), temizle-test-verisi.sql
-Pen Test/   PEN-TEST-REHBERI.md, PEN koleksiyonu ve Excel'leri (2025/02)
+Pen Test/   PEN-TEST-REHBERI.md, PEN koleksiyonu ve Excel'leri (2014/02)
 Claude/     CALISMA-PRENSIBI, PROJE-REHBERI, SISTEM-NASIL-CALISIR, CANLI-GONDERIM-AKISI, TEST-PLAN
 ```
 
@@ -644,7 +644,7 @@ Vault yolları: `sc-test → kv/data/TEST`, `sc-uat → kv/data/UAT`, `prep → 
 
 ## 7.1 Test ve PEN test paketi
 
-Test verisi **geçmiş dönemlerdedir** (lokal 2015/01, PEN 2025/02): SBM'de silme yoktur ve her
+Test verisi **geçmiş dönemlerdedir** (lokal 2015/01, PEN 2014/02): SBM'de silme yoktur ve her
 il-ilçe-dönem yuvası ilk gönderilen dosya no'ya kalıcı bağlanır; test verisi gerçek bir ayı
 kullanırsa o ayın gerçek verisi SBM TEST'te `RISK-HAVUZU-00004` alır.
 
@@ -654,13 +654,13 @@ kullanırsa o ayın gerçek verisi SBM TEST'te `RISK-HAVUZU-00004` alır.
 | `Lokal Test/bruno-lokal-test-2015-01.json` | Geliştirici koleksiyonu — 8 klasör / 29 istek; ortamlar `local`, `sc-test`, `sc-uat` |
 | `Lokal Test/test-lokal-2015-01.xlsx` | 12 satır / 6 beyanname (`TESTDEV1501-01..06`) |
 | `Lokal Test/test-lokal-2015-01-guncelleme.xlsx` | Upsert testi: 3 satır değişik, 1 yeni beyanname |
-| `Lokal Test/temizle-test-verisi.sql` | `TESTDEV1501-%` ve `PENTEST2502-%` satırlarını siler (yalnız test DB'si) |
+| `Lokal Test/temizle-test-verisi.sql` | `TESTDEV1501-%` ve `PENTEST1402-%` satırlarını siler (yalnız test DB'si) |
 | `Pen Test/PEN-TEST-REHBERI.md` | PEN ekibi için kısa adımlar, beklenen davranış, bilinen durumlar |
-| `Pen Test/bruno-pentest-2025-02-basit.json` | PEN basit senaryo — 5 istek: yükle → gönder → sorgula → güncelle → tekrar sorgula |
-| `Pen Test/bruno-pentest-2025-02.json` | PEN koleksiyonu — 7 klasör / 38 istek; ortamlar `sc-uat`, `sc-test` |
-| `Pen Test/pentest-2025-02-yukleme.xlsx` | 12 satır / 6 beyanname (`PENTEST2502-01..06`) |
-| `Pen Test/pentest-2025-02-hatali-satirlar.xlsx` | Her satırda bir hata türü |
-| `Pen Test/pentest-2025-iki-donem.xlsx` | İki dönem — tüm dosya reddedilir |
+| `Pen Test/bruno-pentest-2014-02-basit.json` | PEN basit senaryo — 5 istek: yükle → gönder → sorgula → güncelle → tekrar sorgula |
+| `Pen Test/bruno-pentest-2014-02.json` | PEN koleksiyonu — 7 klasör / 38 istek; ortamlar `sc-uat`, `sc-test` |
+| `Pen Test/pentest-2014-02-yukleme.xlsx` | 12 satır / 6 beyanname (`PENTEST1402-01..06`) |
+| `Pen Test/pentest-2014-02-hatali-satirlar.xlsx` | Her satırda bir hata türü |
+| `Pen Test/pentest-2014-iki-donem.xlsx` | İki dönem — tüm dosya reddedilir |
 | `Claude/SISTEM-NASIL-CALISIR.md` | Her uçta arka planda ne olduğu (şemalar + koleksiyon eşlemesi) |
 
 Koleksiyonlarda PROD / PREP ortamı **yoktur** (test verisi canlıya gitmesin).

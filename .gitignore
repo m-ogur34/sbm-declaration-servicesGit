@@ -4,3 +4,7 @@ target/
 .DS_Store
 docs/
 docs/sbm/
+
+# Uygulama loglari repoya girmesin
+Loglar*.txt
+*.log

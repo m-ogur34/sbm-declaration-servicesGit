@@ -14,7 +14,7 @@ Projeyi kendi makinende (ya da SC-TEST / SC-UAT'ta) uçtan uca denemek için.
 SBM'de silme yoktur ve her il-ilçe-dönem yuvası ona **ilk gönderilen dosya no'ya kalıcı olarak
 bağlanır**. Test verisi gerçek bir ayı kullanırsa (2026/08'de olduğu gibi) o ayın gerçek verisi SBM
 TEST'te `RISK-HAVUZU-00004 mükerrer beyanname` alır. Test verisi bu yüzden gerçek verinin hiç
-gönderilmeyeceği geçmiş bir dönemdedir. PEN verisi ayrı dönemdedir (2025/02), ikisi çakışmaz.
+gönderilmeyeceği geçmiş bir dönemdedir. PEN verisi ayrı dönemdedir (2014/02), ikisi çakışmaz.
 
 > Geçmiş ay SBM TEST'te "veri girişine kapalı" (`RISK-HAVUZU-00003`) dönerse: Bruno ortamındaki
 > `yil`/`ay` değişkenlerini ve Excel'deki `ay`/`yil`/dosya no'yu başka bir geçmiş aya çevirin.

@@ -462,7 +462,7 @@ Tam liste `Claude/CALISMA-PRENSIBI.md` §11'de. Öne çıkanlar:
   gateway katmanında (`Claude/CALISMA-PRENSIBI.md` §14).
 - ⟳ DB scriptleri tüm ortamlara deploy edilecek → `db/rollback_db.sql` eklendi.
   Lokal test: `Lokal Test/` (Bruno koleksiyonu + 2015/01 test Excel'leri); PEN: `Pen Test/`
-  (2025/02). Test verisi **geçmiş dönemlerdedir** — SBM TEST'te gerçek ayların yuvalarını
+  (2014/02). Test verisi **geçmiş dönemlerdedir** — SBM TEST'te gerçek ayların yuvalarını
   kilitlememesi için (bkz. §14).
 - `functionName` (default `test`) ve `userName` token ekibiyle (Hüseyin Dağ /
   Ömer Faruk Ceylan) teyit edilecek.
@@ -532,5 +532,5 @@ Tam liste `Claude/CALISMA-PRENSIBI.md` §11'de. Öne çıkanlar:
   limitinin k8s'e taşınması. Tekrar önerilmez.
 - **Test verisi geçmiş dönemlerde:** SBM'de silme yok, yuva ilk dosya no'ya kalıcı bağlanır;
   test verisi gerçek ayları kullanırsa (2026/08'de olduğu gibi) SBM TEST'te gerçek veri
-  `RISK-HAVUZU-00004` alır. Lokal: 2015/01 (`TESTDEV…`), PEN: 2025/02 (`PENTEST25…`).
+  `RISK-HAVUZU-00004` alır. Lokal: 2015/01 (`TESTDEV…`), PEN: 2014/02 (`PENTEST25…`).
 

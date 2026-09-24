@@ -3,7 +3,7 @@
 -- =============================================================================
 -- YALNIZ SC-TEST / SC-UAT. PROD'DA CALISTIRILMAZ (firma politikasi: prod'da elle script yasak).
 --
--- Silinen: dosya no'su TESTDEV1501-% (lokal test, donem 2015/01) ve PENTEST2502-% (PEN, 2025/02)
+-- Silinen: dosya no'su TESTDEV1501-% (lokal test, donem 2015/01) ve PENTEST1402-% (PEN, 2014/02)
 -- olan satirlar ve loglari. Gercek veriye ve baska donemlere dokunmaz.
 --
 -- Not: SBM tarafinda silme yoktur. Temizleyip tekrar yukler ve gonderirseniz SBM TEST
@@ -17,15 +17,15 @@ SELECT sys_context('USERENV','DB_NAME') AS db_name, sys_context('USERENV','SESSI
 -- 1) ONCE: silinecekler
 SELECT SBM_FILE_NO, MOVABLE_TYPE, DECLARATION_YEAR, DECLARATION_MONTH, STATUS
   FROM CUSTOMER.ALZ_SBM_DECL_PROCESS
- WHERE SBM_FILE_NO LIKE 'TESTDEV1501-%' OR SBM_FILE_NO LIKE 'PENTEST2502-%'
+ WHERE SBM_FILE_NO LIKE 'TESTDEV1501-%' OR SBM_FILE_NO LIKE 'PENTEST1402-%'
  ORDER BY SBM_FILE_NO, MOVABLE_TYPE;
 
 -- 2) SIL (once log, sonra surec tablosu — FK)
 DELETE FROM CUSTOMER.ALZ_SBM_DECL_LOG
  WHERE PROCESS_ID IN (SELECT ID FROM CUSTOMER.ALZ_SBM_DECL_PROCESS
-                       WHERE SBM_FILE_NO LIKE 'TESTDEV1501-%' OR SBM_FILE_NO LIKE 'PENTEST2502-%');
+                       WHERE SBM_FILE_NO LIKE 'TESTDEV1501-%' OR SBM_FILE_NO LIKE 'PENTEST1402-%');
 DELETE FROM CUSTOMER.ALZ_SBM_DECL_PROCESS
- WHERE SBM_FILE_NO LIKE 'TESTDEV1501-%' OR SBM_FILE_NO LIKE 'PENTEST2502-%';
+ WHERE SBM_FILE_NO LIKE 'TESTDEV1501-%' OR SBM_FILE_NO LIKE 'PENTEST1402-%';
 
 -- Sayilar beklendigi gibiyse:
 COMMIT;
