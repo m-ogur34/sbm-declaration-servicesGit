@@ -1,5 +1,5 @@
 {
-  "name": "SBM Beyanname - Lokal Test (donem 2025-01)",
+  "name": "SBM Beyanname - Lokal Test (donem 2015-01)",
   "version": "1",
   "items": [
     {
@@ -70,7 +70,7 @@
       "items": [
         {
           "type": "http",
-          "name": "1.1 Excel'i kontrol et, DB'ye yazmaz - test-lokal-2025-01",
+          "name": "1.1 Excel'i kontrol et, DB'ye yazmaz - test-lokal-2015-01",
           "seq": 3,
           "request": {
             "url": "{{baseUrl}}/api/v1/declarations/upload/validate",
@@ -100,7 +100,7 @@
                   "type": "file",
                   "name": "file",
                   "value": [
-                    "test-lokal-2025-01.xlsx"
+                    "test-lokal-2015-01.xlsx"
                   ],
                   "enabled": true
                 }
@@ -119,12 +119,12 @@
             },
             "assertions": [],
             "tests": "",
-            "docs": "Dosya: Lokal Test/test-lokal-2025-01.xlsx (dönem 2025/01, 12 satır, 6 beyanname TESTDEV2501-01..06).\n\nDB'ye yazmaz, SBM'ye gitmez; upload ile aynı kurallar.\nBeklenen (boş DB): 200 {result:true, data:{totalRows:12, inserted:12, insertedFileNos:[6 dosya no], updated:0, failed:0}}.\nDB'de bu dönem zaten varsa inserted 0 ve updated/aynı satırlar görünür.\n\nBruno'ya aktardıktan sonra Body > Multipart > file alanından dosyayı diskinizden seçin (Bruno dosya yolunu taşımaz)."
+            "docs": "Dosya: Lokal Test/test-lokal-2015-01.xlsx (dönem 2015/01, 12 satır, 6 beyanname TESTDEV1501-01..06).\n\nDB'ye yazmaz, SBM'ye gitmez; upload ile aynı kurallar.\nBeklenen (boş DB): 200 {result:true, data:{totalRows:12, inserted:12, insertedFileNos:[6 dosya no], updated:0, failed:0}}.\nDB'de bu dönem zaten varsa inserted 0 ve updated/aynı satırlar görünür.\n\nBruno'ya aktardıktan sonra Body > Multipart > file alanından dosyayı diskinizden seçin (Bruno dosya yolunu taşımaz)."
           }
         },
         {
           "type": "http",
-          "name": "1.2 Excel'i yukle - test-lokal-2025-01 (12 satir NEW olur)",
+          "name": "1.2 Excel'i yukle - test-lokal-2015-01 (12 satir NEW olur)",
           "seq": 4,
           "request": {
             "url": "{{baseUrl}}/api/v1/declarations/upload",
@@ -154,7 +154,7 @@
                   "type": "file",
                   "name": "file",
                   "value": [
-                    "test-lokal-2025-01.xlsx"
+                    "test-lokal-2015-01.xlsx"
                   ],
                   "enabled": true
                 }
@@ -173,7 +173,7 @@
             },
             "assertions": [],
             "tests": "",
-            "docs": "Aynı dosya. Beklenen: 1.1 ile birebir aynı sayılar; satırlar STATUS=NEW.\nİçerik: İstanbul/Ankara/İzmir (büyükşehir, ilçe 0), Edirne 1295/1307 ve Adıyaman 1105 (ilçeli). TESTDEV2501-05 MENKUL satırında iptal > alınan, vergi tutarları negatif.\n\nBruno'ya aktardıktan sonra Body > Multipart > file alanından dosyayı diskinizden seçin (Bruno dosya yolunu taşımaz)."
+            "docs": "Aynı dosya. Beklenen: 1.1 ile birebir aynı sayılar; satırlar STATUS=NEW.\nİçerik: İstanbul/Ankara/İzmir (büyükşehir, ilçe 0), Edirne 1295/1307 ve Adıyaman 1105 (ilçeli). TESTDEV1501-05 MENKUL satırında iptal > alınan, vergi tutarları negatif.\n\nBruno'ya aktardıktan sonra Body > Multipart > file alanından dosyayı diskinizden seçin (Bruno dosya yolunu taşımaz)."
           }
         },
         {
@@ -208,7 +208,7 @@
                   "type": "file",
                   "name": "file",
                   "value": [
-                    "test-lokal-2025-01.xlsx"
+                    "test-lokal-2015-01.xlsx"
                   ],
                   "enabled": true
                 }
@@ -238,7 +238,7 @@
       "items": [
         {
           "type": "http",
-          "name": "2.1 Donemin tum kayitlari - 2025-01",
+          "name": "2.1 Donemin tum kayitlari - 2015-01",
           "seq": 6,
           "request": {
             "url": "{{baseUrl}}/api/v1/declarations/processes?year={{yil}}&month={{ay}}&size=50&sort=sbmFileNo,asc",
@@ -439,10 +439,10 @@
       "items": [
         {
           "type": "http",
-          "name": "3.1 Tek beyanname gonder - TESTDEV2501-01 Istanbul, buyuksehir (ilce gonderilmez)",
+          "name": "3.1 Tek beyanname gonder - TESTDEV1501-01 Istanbul, buyuksehir (ilce gonderilmez)",
           "seq": 9,
           "request": {
-            "url": "{{baseUrl}}/api/v1/declarations/TESTDEV2501-01/send",
+            "url": "{{baseUrl}}/api/v1/declarations/TESTDEV1501-01/send",
             "method": "POST",
             "headers": [
               {
@@ -478,15 +478,15 @@
             },
             "assertions": [],
             "tests": "",
-            "docs": "Token alınır → ESB → SBM POST. Büyükşehir olduğu için gövdede ilceKodu YOKTUR.\nBeklenen: 201 {result:true, status:201, data:{ysvDosyaNo:\"TESTDEV2501-01\"}}; satırlar SENT.\nSBM TEST'te bu yuva önceki bir koşudan doluysa: 422 RISK-HAVUZU-00004 ve mesajdaki dosya no aynıysa satır yine SENT olur (tekrar koşulabilir)."
+            "docs": "Token alınır → ESB → SBM POST. Büyükşehir olduğu için gövdede ilceKodu YOKTUR.\nBeklenen: 201 {result:true, status:201, data:{ysvDosyaNo:\"TESTDEV1501-01\"}}; satırlar SENT.\nSBM TEST'te bu yuva önceki bir koşudan doluysa: 422 RISK-HAVUZU-00004 ve mesajdaki dosya no aynıysa satır yine SENT olur (tekrar koşulabilir)."
           }
         },
         {
           "type": "http",
-          "name": "3.2 Tek beyanname gonder - TESTDEV2501-03 Edirne ilce 1295 (ilce gonderilir)",
+          "name": "3.2 Tek beyanname gonder - TESTDEV1501-03 Edirne ilce 1295 (ilce gonderilir)",
           "seq": 10,
           "request": {
-            "url": "{{baseUrl}}/api/v1/declarations/TESTDEV2501-03/send",
+            "url": "{{baseUrl}}/api/v1/declarations/TESTDEV1501-03/send",
             "method": "POST",
             "headers": [
               {
@@ -527,7 +527,7 @@
         },
         {
           "type": "http",
-          "name": "3.3 Donemin kalanini toplu gonder - 2025-01",
+          "name": "3.3 Donemin kalanini toplu gonder - 2015-01",
           "seq": 11,
           "request": {
             "url": "{{baseUrl}}/api/v1/declarations/send",
@@ -583,10 +583,10 @@
       "items": [
         {
           "type": "http",
-          "name": "4.1 Tek beyannameyi SBM'den oku - TESTDEV2501-01",
+          "name": "4.1 Tek beyannameyi SBM'den oku - TESTDEV1501-01",
           "seq": 12,
           "request": {
-            "url": "{{baseUrl}}/api/v1/declarations/TESTDEV2501-01",
+            "url": "{{baseUrl}}/api/v1/declarations/TESTDEV1501-01",
             "method": "GET",
             "headers": [
               {
@@ -622,7 +622,7 @@
             },
             "assertions": [],
             "tests": "",
-            "docs": "SBM'ye GET ?sigortaSirketKodu=045&ysvDosyaNo=... gider; SBM'nin cevabı aynen döner. SBM doğrularsa satırlar COMPLETED olur.\nBeklenen: 200 {result:true, data:{ilKodu:34, ay:1, yil:2025, ysvTutarList:[...]}}."
+            "docs": "SBM'ye GET ?sigortaSirketKodu=045&ysvDosyaNo=... gider; SBM'nin cevabı aynen döner. SBM doğrularsa satırlar COMPLETED olur.\nBeklenen: 200 {result:true, data:{ilKodu:34, ay:1, yil:2015, ysvTutarList:[...]}}."
           }
         },
         {
@@ -630,7 +630,7 @@
           "name": "4.2 Tek beyanname sorgula - islemi yapanin kimligiyle (VKN)",
           "seq": 13,
           "request": {
-            "url": "{{baseUrl}}/api/v1/declarations/TESTDEV2501-03",
+            "url": "{{baseUrl}}/api/v1/declarations/TESTDEV1501-03",
             "method": "GET",
             "headers": [
               {
@@ -757,7 +757,7 @@
                   "type": "file",
                   "name": "file",
                   "value": [
-                    "test-lokal-2025-01-guncelleme.xlsx"
+                    "test-lokal-2015-01-guncelleme.xlsx"
                   ],
                   "enabled": true
                 }
@@ -776,7 +776,7 @@
             },
             "assertions": [],
             "tests": "",
-            "docs": "Dosya: Lokal Test/test-lokal-2025-01-guncelleme.xlsx. TESTDEV2501-01 MENKUL ve TESTDEV2501-03'ün iki satırının tutarı değişti, TESTDEV2501-07 (Edirne 1464) yeni.\nBeklenen: updated:3, updatedFileNos:[TESTDEV2501-01, TESTDEV2501-03], inserted:2, insertedFileNos:[TESTDEV2501-07].\n\nBruno'ya aktardıktan sonra Body > Multipart > file alanından dosyayı diskinizden seçin (Bruno dosya yolunu taşımaz)."
+            "docs": "Dosya: Lokal Test/test-lokal-2015-01-guncelleme.xlsx. TESTDEV1501-01 MENKUL ve TESTDEV1501-03'ün iki satırının tutarı değişti, TESTDEV1501-07 (Edirne 1464) yeni.\nBeklenen: updated:3, updatedFileNos:[TESTDEV1501-01, TESTDEV1501-03], inserted:2, insertedFileNos:[TESTDEV1501-07].\n\nBruno'ya aktardıktan sonra Body > Multipart > file alanından dosyayı diskinizden seçin (Bruno dosya yolunu taşımaz)."
           }
         },
         {
@@ -811,7 +811,7 @@
                   "type": "file",
                   "name": "file",
                   "value": [
-                    "test-lokal-2025-01-guncelleme.xlsx"
+                    "test-lokal-2015-01-guncelleme.xlsx"
                   ],
                   "enabled": true
                 }
@@ -865,7 +865,7 @@
             "params": [],
             "body": {
               "mode": "json",
-              "json": "{\n  \"ysvDosyaNoList\": [\n    \"TESTDEV2501-01\",\n    \"TESTDEV2501-03\"\n  ]\n}"
+              "json": "{\n  \"ysvDosyaNoList\": [\n    \"TESTDEV1501-01\",\n    \"TESTDEV1501-03\"\n  ]\n}"
             },
             "auth": {
               "mode": "none"
@@ -885,10 +885,10 @@
         },
         {
           "type": "http",
-          "name": "5.4 Yeni eklenen beyannameyi gonder - TESTDEV2501-07",
+          "name": "5.4 Yeni eklenen beyannameyi gonder - TESTDEV1501-07",
           "seq": 18,
           "request": {
-            "url": "{{baseUrl}}/api/v1/declarations/TESTDEV2501-07/send",
+            "url": "{{baseUrl}}/api/v1/declarations/TESTDEV1501-07/send",
             "method": "POST",
             "headers": [
               {
@@ -929,10 +929,10 @@
         },
         {
           "type": "http",
-          "name": "5.5 Tek beyannamenin tutarini degistir (DB + SBM tek cagrida) - TESTDEV2501-04",
+          "name": "5.5 Tek beyannamenin tutarini degistir (DB + SBM tek cagrida) - TESTDEV1501-04",
           "seq": 19,
           "request": {
-            "url": "{{baseUrl}}/api/v1/declarations/TESTDEV2501-04",
+            "url": "{{baseUrl}}/api/v1/declarations/TESTDEV1501-04",
             "method": "PUT",
             "headers": [
               {
@@ -959,7 +959,7 @@
             "params": [],
             "body": {
               "mode": "json",
-              "json": "{\n  \"sonOdemeTarihi\": \"2025-02-20\",\n  \"ysvTutarList\": [\n    {\n      \"menkulTipi\": \"MENKUL\",\n      \"alinanPrimTutari\": 12000.0,\n      \"iptalPrimTutari\": 300.0,\n      \"odenecekVergi\": 1170.0,\n      \"vergiOrani\": 10,\n      \"vergiPrimTutari\": 11700.0\n    },\n    {\n      \"menkulTipi\": \"GAYRIMENKUL\",\n      \"alinanPrimTutari\": 19500.0,\n      \"iptalPrimTutari\": 500.0,\n      \"odenecekVergi\": 1900.0,\n      \"vergiOrani\": 10,\n      \"vergiPrimTutari\": 19000.0\n    }\n  ]\n}"
+              "json": "{\n  \"sonOdemeTarihi\": \"2015-02-20\",\n  \"ysvTutarList\": [\n    {\n      \"menkulTipi\": \"MENKUL\",\n      \"alinanPrimTutari\": 12000.0,\n      \"iptalPrimTutari\": 300.0,\n      \"odenecekVergi\": 1170.0,\n      \"vergiOrani\": 10,\n      \"vergiPrimTutari\": 11700.0\n    },\n    {\n      \"menkulTipi\": \"GAYRIMENKUL\",\n      \"alinanPrimTutari\": 19500.0,\n      \"iptalPrimTutari\": 500.0,\n      \"odenecekVergi\": 1900.0,\n      \"vergiOrani\": 10,\n      \"vergiPrimTutari\": 19000.0\n    }\n  ]\n}"
             },
             "auth": {
               "mode": "none"
@@ -985,10 +985,10 @@
       "items": [
         {
           "type": "http",
-          "name": "6.1 Tek beyannameyi iptal et - TESTDEV2501-06 (SBM'de silme yok, tutarlar 0)",
+          "name": "6.1 Tek beyannameyi iptal et - TESTDEV1501-06 (SBM'de silme yok, tutarlar 0)",
           "seq": 20,
           "request": {
-            "url": "{{baseUrl}}/api/v1/declarations/TESTDEV2501-06/cancel",
+            "url": "{{baseUrl}}/api/v1/declarations/TESTDEV1501-06/cancel",
             "method": "POST",
             "headers": [
               {
@@ -1059,7 +1059,7 @@
                   "type": "file",
                   "name": "file",
                   "value": [
-                    "test-lokal-2025-01-guncelleme.xlsx"
+                    "test-lokal-2015-01-guncelleme.xlsx"
                   ],
                   "enabled": true
                 }
@@ -1078,12 +1078,12 @@
             },
             "assertions": [],
             "tests": "",
-            "docs": "Excel'deki tutarlar DB'ye geri yazılır. Beklenen: updatedFileNos:[TESTDEV2501-04, TESTDEV2501-06] — 5.5'te API ile değiştirilen TESTDEV2501-04 de Excel'deki değerine döner (Excel her zaman DB'yi Excel'e eşitler).\n\nBruno'ya aktardıktan sonra Body > Multipart > file alanından dosyayı diskinizden seçin (Bruno dosya yolunu taşımaz)."
+            "docs": "Excel'deki tutarlar DB'ye geri yazılır. Beklenen: updatedFileNos:[TESTDEV1501-04, TESTDEV1501-06] — 5.5'te API ile değiştirilen TESTDEV1501-04 de Excel'deki değerine döner (Excel her zaman DB'yi Excel'e eşitler).\n\nBruno'ya aktardıktan sonra Body > Multipart > file alanından dosyayı diskinizden seçin (Bruno dosya yolunu taşımaz)."
           }
         },
         {
           "type": "http",
-          "name": "6.3 Geri getirilen tutarlari SBM'ye tasi - TESTDEV2501-04 ve -06",
+          "name": "6.3 Geri getirilen tutarlari SBM'ye tasi - TESTDEV1501-04 ve -06",
           "seq": 22,
           "request": {
             "url": "{{baseUrl}}/api/v1/declarations/update",
@@ -1113,7 +1113,7 @@
             "params": [],
             "body": {
               "mode": "json",
-              "json": "{\n  \"ysvDosyaNoList\": [\n    \"TESTDEV2501-04\",\n    \"TESTDEV2501-06\"\n  ]\n}"
+              "json": "{\n  \"ysvDosyaNoList\": [\n    \"TESTDEV1501-04\",\n    \"TESTDEV1501-06\"\n  ]\n}"
             },
             "auth": {
               "mode": "none"
@@ -1236,7 +1236,7 @@
           "name": "7.3 Zaten gonderilmis beyannameyi tekrar gonder - 409",
           "seq": 25,
           "request": {
-            "url": "{{baseUrl}}/api/v1/declarations/TESTDEV2501-01/send",
+            "url": "{{baseUrl}}/api/v1/declarations/TESTDEV1501-01/send",
             "method": "POST",
             "headers": [
               {
@@ -1375,7 +1375,7 @@
           "name": "7.6 Hatali kimlik basligi - 400",
           "seq": 28,
           "request": {
-            "url": "{{baseUrl}}/api/v1/declarations/TESTDEV2501-01",
+            "url": "{{baseUrl}}/api/v1/declarations/TESTDEV1501-01",
             "method": "GET",
             "headers": [
               {
@@ -1489,7 +1489,7 @@
         },
         {
           "name": "yil",
-          "value": "2025",
+          "value": "2015",
           "enabled": true,
           "secret": false,
           "type": "text"
@@ -1522,7 +1522,7 @@
         },
         {
           "name": "yil",
-          "value": "2025",
+          "value": "2015",
           "enabled": true,
           "secret": false,
           "type": "text"
@@ -1555,7 +1555,7 @@
         },
         {
           "name": "yil",
-          "value": "2025",
+          "value": "2015",
           "enabled": true,
           "secret": false,
           "type": "text"
@@ -1572,7 +1572,7 @@
   ],
   "brunoConfig": {
     "version": "1",
-    "name": "SBM Beyanname - Lokal Test (donem 2025-01)",
+    "name": "SBM Beyanname - Lokal Test (donem 2015-01)",
     "type": "collection",
     "ignore": [
       "node_modules",
