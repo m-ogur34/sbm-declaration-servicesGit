@@ -36,8 +36,14 @@ API kökü: `/api/v1/declarations`. **PROD'da test yapılmaz** (koleksiyonda PRO
 
 ### 4.1 Basit senaryo (`bruno-pentest-2014-02-basit.json`)
 
-Bruno'ya aktar, ortam `sc-uat`, 1. istekte **Body → file** ile `pentest-2014-02-yukleme.xlsx`'i seç
-ve istekleri sırayla çalıştır:
+Koleksiyon hazırdır: adres (SC-UAT), kullanıcı (`allianz`) ve dönem (2014/02) isteklerin içinde
+yazılıdır; **ortam seçmeye gerek yoktur.**
+
+1. Bruno → **Import Collection → Bruno Collection** → `bruno-pentest-2014-02-basit.json`. Bruno
+   koleksiyonu kaydetmek için bir klasör sorar.
+2. `pentest-2014-02-yukleme.xlsx`'i **o klasöre** kopyalayın (1. istek dosyayı oradan otomatik alır;
+   bulamazsa Body → file alanından seçin).
+3. İstekleri 1'den 5'e sırayla çalıştırın:
 
 | # | İstek | Beklenen |
 |---|---|---|
@@ -51,8 +57,10 @@ Tekrar çalıştırılabilir: 1. adım `inserted: 0`, 2. adım `totalGroups: 0` 
 
 ### 4.2 Kapsamlı koleksiyon (`bruno-pentest-2014-02.json`)
 
-1. Bruno → **Import Collection → Bruno Collection** → `bruno-pentest-2014-02.json`; ortam `sc-uat`.
-2. Excel gönderen isteklerde **Body → file** alanından ilgili dosyayı seçin.
+1. Bruno → **Import Collection → Bruno Collection** → `bruno-pentest-2014-02.json` (ortam seçmeye
+   gerek yok; adres, kullanıcı ve dönem isteklerde yazılı).
+2. Üç Excel'i Bruno'nun koleksiyonu kaydettiği klasöre kopyalayın; `.xlsx` olmayan / sahte dosya
+   gerektiren isteklerde (2.3, 2.4) dosyayı Body → file alanından seçin.
 3. **Klasör 0 — Hazırlık:** sağlık kontrolü, test verisini kontrol et, yükle, gönder.
 4. **Klasör 1 — Normal akış:** doğru cevapların biçimini görün (referans).
 5. **Klasör 2 — Dosya yükleme:** hatalı satırlar, iki dönem, uzantı, sahte `.xlsx`, dosyasız istek.

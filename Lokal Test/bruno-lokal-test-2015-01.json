@@ -119,7 +119,7 @@
             },
             "assertions": [],
             "tests": "",
-            "docs": "Dosya: Lokal Test/test-lokal-2015-01.xlsx (dönem 2015/01, 12 satır, 6 beyanname TESTDEV1501-01..06).\n\nDB'ye yazmaz, SBM'ye gitmez; upload ile aynı kurallar.\nBeklenen (boş DB): 200 {result:true, data:{totalRows:12, inserted:12, insertedFileNos:[6 dosya no], updated:0, failed:0}}.\nDB'de bu dönem zaten varsa inserted 0 ve updated/aynı satırlar görünür.\n\nBruno'ya aktardıktan sonra Body > Multipart > file alanından dosyayı diskinizden seçin (Bruno dosya yolunu taşımaz)."
+            "docs": "Dosya: Lokal Test/test-lokal-2015-01.xlsx (dönem 2015/01, 12 satır, 6 beyanname TESTDEV1501-01..06).\n\nDB'ye yazmaz, SBM'ye gitmez; upload ile aynı kurallar.\nBeklenen (boş DB): 200 {result:true, data:{totalRows:12, inserted:12, insertedFileNos:[6 dosya no], updated:0, failed:0}}.\nDB'de bu dönem zaten varsa inserted 0 ve updated/aynı satırlar görünür.\n\nExcel'i Bruno'nun koleksiyonu kaydettiği klasöre kopyalarsanız dosya otomatik bulunur. Bulunamazsa Body > file alanından diskinizden seçin."
           }
         },
         {
@@ -173,7 +173,7 @@
             },
             "assertions": [],
             "tests": "",
-            "docs": "Aynı dosya. Beklenen: 1.1 ile birebir aynı sayılar; satırlar STATUS=NEW.\nİçerik: İstanbul/Ankara/İzmir (büyükşehir, ilçe 0), Edirne 1295/1307 ve Adıyaman 1105 (ilçeli). TESTDEV1501-05 MENKUL satırında iptal > alınan, vergi tutarları negatif.\n\nBruno'ya aktardıktan sonra Body > Multipart > file alanından dosyayı diskinizden seçin (Bruno dosya yolunu taşımaz)."
+            "docs": "Aynı dosya. Beklenen: 1.1 ile birebir aynı sayılar; satırlar STATUS=NEW.\nİçerik: İstanbul/Ankara/İzmir (büyükşehir, ilçe 0), Edirne 1295/1307 ve Adıyaman 1105 (ilçeli). TESTDEV1501-05 MENKUL satırında iptal > alınan, vergi tutarları negatif.\n\nExcel'i Bruno'nun koleksiyonu kaydettiği klasöre kopyalarsanız dosya otomatik bulunur. Bulunamazsa Body > file alanından diskinizden seçin."
           }
         },
         {
@@ -227,7 +227,7 @@
             },
             "assertions": [],
             "tests": "",
-            "docs": "Upsert kontrolü. Beklenen: inserted:0, updated:0, failed:0 (değerler aynı olduğu için satırlara dokunulmaz).\n\nBruno'ya aktardıktan sonra Body > Multipart > file alanından dosyayı diskinizden seçin (Bruno dosya yolunu taşımaz)."
+            "docs": "Upsert kontrolü. Beklenen: inserted:0, updated:0, failed:0 (değerler aynı olduğu için satırlara dokunulmaz).\n\nExcel'i Bruno'nun koleksiyonu kaydettiği klasöre kopyalarsanız dosya otomatik bulunur. Bulunamazsa Body > file alanından diskinizden seçin."
           }
         }
       ]
@@ -776,7 +776,7 @@
             },
             "assertions": [],
             "tests": "",
-            "docs": "Dosya: Lokal Test/test-lokal-2015-01-guncelleme.xlsx. TESTDEV1501-01 MENKUL ve TESTDEV1501-03'ün iki satırının tutarı değişti, TESTDEV1501-07 (Edirne 1464) yeni.\nBeklenen: updated:3, updatedFileNos:[TESTDEV1501-01, TESTDEV1501-03], inserted:2, insertedFileNos:[TESTDEV1501-07].\n\nBruno'ya aktardıktan sonra Body > Multipart > file alanından dosyayı diskinizden seçin (Bruno dosya yolunu taşımaz)."
+            "docs": "Dosya: Lokal Test/test-lokal-2015-01-guncelleme.xlsx. TESTDEV1501-01 MENKUL ve TESTDEV1501-03'ün iki satırının tutarı değişti, TESTDEV1501-07 (Edirne 1464) yeni.\nBeklenen: updated:3, updatedFileNos:[TESTDEV1501-01, TESTDEV1501-03], inserted:2, insertedFileNos:[TESTDEV1501-07].\n\nExcel'i Bruno'nun koleksiyonu kaydettiği klasöre kopyalarsanız dosya otomatik bulunur. Bulunamazsa Body > file alanından diskinizden seçin."
           }
         },
         {
@@ -830,7 +830,7 @@
             },
             "assertions": [],
             "tests": "",
-            "docs": "Aynı dosya. Değişen satırlar DB'de güncellenir (COMPLETED → SENT), öncesi/sonrası ALZ_SBM_DECL_LOG'a LOCAL_UPDATE olarak yazılır. SBM'ye henüz GİTMEZ; 5.3 ile taşınır.\n\nBruno'ya aktardıktan sonra Body > Multipart > file alanından dosyayı diskinizden seçin (Bruno dosya yolunu taşımaz)."
+            "docs": "Aynı dosya. Değişen satırlar DB'de güncellenir (COMPLETED → SENT), öncesi/sonrası ALZ_SBM_DECL_LOG'a LOCAL_UPDATE olarak yazılır. SBM'ye henüz GİTMEZ; 5.3 ile taşınır.\n\nExcel'i Bruno'nun koleksiyonu kaydettiği klasöre kopyalarsanız dosya otomatik bulunur. Bulunamazsa Body > file alanından diskinizden seçin."
           }
         },
         {
@@ -1078,7 +1078,7 @@
             },
             "assertions": [],
             "tests": "",
-            "docs": "Excel'deki tutarlar DB'ye geri yazılır. Beklenen: updatedFileNos:[TESTDEV1501-04, TESTDEV1501-06] — 5.5'te API ile değiştirilen TESTDEV1501-04 de Excel'deki değerine döner (Excel her zaman DB'yi Excel'e eşitler).\n\nBruno'ya aktardıktan sonra Body > Multipart > file alanından dosyayı diskinizden seçin (Bruno dosya yolunu taşımaz)."
+            "docs": "Excel'deki tutarlar DB'ye geri yazılır. Beklenen: updatedFileNos:[TESTDEV1501-04, TESTDEV1501-06] — 5.5'te API ile değiştirilen TESTDEV1501-04 de Excel'deki değerine döner (Excel her zaman DB'yi Excel'e eşitler).\n\nExcel'i Bruno'nun koleksiyonu kaydettiği klasöre kopyalarsanız dosya otomatik bulunur. Bulunamazsa Body > file alanından diskinizden seçin."
           }
         },
         {
@@ -1463,7 +1463,7 @@
             },
             "assertions": [],
             "tests": "",
-            "docs": "Herhangi bir .csv / .txt dosyası seçin. Beklenen: 400 ALZ-VALIDATION 'Sadece .xlsx dosyası yüklenebilir'.\n\nBruno'ya aktardıktan sonra Body > Multipart > file alanından dosyayı diskinizden seçin (Bruno dosya yolunu taşımaz)."
+            "docs": "Herhangi bir .csv / .txt dosyası seçin. Beklenen: 400 ALZ-VALIDATION 'Sadece .xlsx dosyası yüklenebilir'.\n\nExcel'i Bruno'nun koleksiyonu kaydettiği klasöre kopyalarsanız dosya otomatik bulunur. Bulunamazsa Body > file alanından diskinizden seçin."
           }
         }
       ]
