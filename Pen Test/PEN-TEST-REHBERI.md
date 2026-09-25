@@ -12,6 +12,7 @@ servisi. Bu rehber PEN ekibinin testi kısa adımlarla yürütmesi içindir.
 | `pentest-2014-02-yukleme.xlsx` | Geçerli test verisi: 12 satır / 6 beyanname (`PENTEST1402-01..06`), dönem **2014/02** |
 | `pentest-2014-02-hatali-satirlar.xlsx` | Her satırda bir hata türü (boş alan, `&`/`=`, formül, `<script>`, 37 karakter, tekrar…) |
 | `pentest-2014-iki-donem.xlsx` | İki dönem içeren dosya — tümü reddedilmeli |
+| `pentest-2012-01-yukleme.xlsx` / `pentest-2012-02-yukleme.xlsx` | Ek geçerli veri: her biri 12 satır / 6 beyanname (`PENTEST1201-..`, `PENTEST1202-..`), dönem 2012/01 ve 2012/02 — ayrı ayrı yüklenir, gönderimde `{"year":2012,"month":1}` / `2` |
 
 ## 2. Ortam
 
@@ -99,6 +100,6 @@ Raporda "bilinen" olarak işaretlenebilir; kararları geliştirici ekiptedir:
 
 ## 7. Test sonrası
 
-Test verisi (`PENTEST1402-…`) DB'den geliştirici tarafından silinir
+Test verisi (`PENTEST1402-…`, `PENTEST12…`) DB'den geliştirici tarafından silinir
 (`Lokal Test/temizle-test-verisi.sql`). SBM TEST'teki kayıtlar silinemez; geçmiş bir dönemde
 (2014/02) oldukları için gerçek aylara etki etmez.
