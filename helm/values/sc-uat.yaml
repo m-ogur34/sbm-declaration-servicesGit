@@ -29,6 +29,7 @@ springboot-deployment:
             export TOKEN_MANAGEMENT_CLIENT_NAME="{{ .Data.data.tokenManagementClientName }}"
             export TOKEN_MANAGEMENT_COMPANY_CODE="{{ .Data.data.tokenManagementCompanyCode }}"
             export SBM_COMPANY_CODE="{{ .Data.data.sbmCompanyCode }}"
+            export SBM_DECLARATION_API_KEY="{{ .Data.data.apiKey }}"
           {{- end }}
   autoscale:
     cpu:

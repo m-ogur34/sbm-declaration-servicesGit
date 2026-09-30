@@ -10,11 +10,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.List;
+import tr.com.allianz.ysv.services.testsupport.ApiKeyTestConfig;
 import tr.com.allianz.ysv.services.dto.response.ExcelRowError;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
@@ -22,6 +24,7 @@ import tr.com.allianz.ysv.services.dto.response.ImportResultResponse;
 import tr.com.allianz.ysv.services.service.DeclarationImportService;
 
 @WebMvcTest(controllers = DeclarationImportController.class)
+@Import(ApiKeyTestConfig.class)
 class DeclarationImportControllerTest {
 
     @Autowired
@@ -65,9 +68,10 @@ class DeclarationImportControllerTest {
 
     @Test
     void upload_nonXlsx_returns400() throws Exception {
-        mockMvc.perform(multipart("/api/v1/declarations/upload").file(xlsx("beyanname.csv")))
+        mockMvc.perform(multipart("/api/v1/declarations/upload").file(xlsx("x<script>alert(1)</script>.csv")))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error.reasons[0].code").value("ALZ-VALIDATION"));
+                .andExpect(jsonPath("$.error.reasons[0].code").value("ALZ-VALIDATION"))
+                .andExpect(jsonPath("$.error.reasons[0].message").value("Sadece .xlsx dosyası yüklenebilir."));
     }
 
     @Test

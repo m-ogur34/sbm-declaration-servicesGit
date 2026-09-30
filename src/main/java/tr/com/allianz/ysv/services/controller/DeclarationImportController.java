@@ -14,9 +14,11 @@ import org.springframework.web.multipart.MultipartFile;
 import tr.com.allianz.ysv.services.dto.request.RequestContext;
 import tr.com.allianz.ysv.services.dto.response.ApiResponse;
 import tr.com.allianz.ysv.services.dto.response.ImportResultResponse;
+import tr.com.allianz.ysv.services.security.ApiKeySecurityAnnotation;
 import tr.com.allianz.ysv.services.service.DeclarationImportService;
 
 @RestController
+@ApiKeySecurityAnnotation
 @RequestMapping("/api/v1/declarations")
 @RequiredArgsConstructor
 @Tag(name = "Declaration Import", description = "YSV beyanname Excel yükleme (1. aşama)")
@@ -51,7 +53,7 @@ public class DeclarationImportController {
         }
         String name = file.getOriginalFilename();
         if (name == null || !name.toLowerCase(Locale.ROOT).endsWith(".xlsx")) {
-            throw new IllegalArgumentException("Sadece .xlsx dosyası yüklenebilir. Gelen: " + name);
+            throw new IllegalArgumentException("Sadece .xlsx dosyası yüklenebilir.");
         }
     }
 }

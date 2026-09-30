@@ -23,10 +23,13 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import tr.com.allianz.ysv.services.security.ApiKeySecurityInterceptor;
+import tr.com.allianz.ysv.services.testsupport.ApiKeyTestConfig;
 import tr.com.allianz.ysv.services.dto.internal.SbmReply;
 import tr.com.allianz.ysv.services.dto.request.DeclarationFilterRequest;
 import tr.com.allianz.ysv.services.dto.request.RequestContext;
@@ -41,6 +44,7 @@ import tr.com.allianz.ysv.services.exception.TokenException;
 import tr.com.allianz.ysv.services.service.DeclarationService;
 
 @WebMvcTest(controllers = DeclarationController.class)
+@Import(ApiKeyTestConfig.class)
 class DeclarationControllerTest {
 
     private static final String BASE = "/api/v1/declarations";
@@ -66,6 +70,23 @@ class DeclarationControllerTest {
 
     private static SbmReply sbm(int status, String body) throws Exception {
         return new SbmReply(status, JSON.readTree(body));
+    }
+
+    // --- PEN 2.2: API anahtari ------------------------------------------------------------
+
+    @Test
+    @DisplayName("yanlış X-ApiKey: gövde doğrulanmadan 401, servis çağrılmaz")
+    void wrongApiKey_returns401BeforeValidation() throws Exception {
+        mockMvc.perform(post(BASE + "/send")
+                        .header(ApiKeySecurityInterceptor.API_KEY_HEADER, "wrong-key")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.result").value(false))
+                .andExpect(jsonPath("$.status").value(401))
+                .andExpect(jsonPath("$.error.reasons[0].code").value("ALZ-UNAUTHORIZED"));
+
+        verifyNoInteractions(declarationService);
     }
 
     // --- toplu: {result, status, data} zarfi -----------------------------------------------

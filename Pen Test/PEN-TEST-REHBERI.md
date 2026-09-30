@@ -30,8 +30,9 @@ API kökü: `/api/v1/declarations`. **PROD'da test yapılmaz** (koleksiyonda PRO
   `ysvDosyaNoList` ile dar bir kümede yapın.
 - Yük / DoS testi yapılacaksa önce geliştiriciyle koordine edin (her istek SBM'ye ve token
   servisine gider).
-- Kimlik doğrulama **uygulamada yoktur**; gateway'e bırakılmıştır. `X-User-Name` ve
-  `X-Requester-Id-Type/No` başlıklarının gateway tarafından konması beklenir (bkz. §5).
+- Tüm `/api/v1` uçları **`X-ApiKey`** başlığı ister. UAT anahtarı PEN ekibine ayrı kanaldan
+  iletilir; koleksiyonlarda `API_KEY_BURAYA` yazan değer, import'tan **önce** JSON dosyasında
+  metin editörüyle (Tümünü değiştir) anahtarla değiştirilir.
 
 ## 4. Adımlar
 
@@ -40,8 +41,9 @@ API kökü: `/api/v1/declarations`. **PROD'da test yapılmaz** (koleksiyonda PRO
 Koleksiyon hazırdır: adres (SC-UAT), kullanıcı (`allianz`) ve dönem (2014/02) isteklerin içinde
 yazılıdır; **ortam seçmeye gerek yoktur.**
 
-1. Bruno → **Import Collection → Bruno Collection** → `bruno-pentest-2014-02-basit.json`. Bruno
-   koleksiyonu kaydetmek için bir klasör sorar.
+1. `bruno-pentest-2014-02-basit.json` içindeki `API_KEY_BURAYA` metnini API anahtarıyla değiştirin,
+   sonra Bruno → **Import Collection → Bruno Collection**. Bruno koleksiyonu kaydetmek için bir
+   klasör sorar.
 2. `pentest-2014-02-yukleme.xlsx`'i **o klasöre** kopyalayın (1. istek dosyayı oradan otomatik alır;
    bulamazsa Body → file alanından seçin).
 3. İstekleri 1'den 5'e sırayla çalıştırın:
@@ -58,8 +60,8 @@ Tekrar çalıştırılabilir: 1. adım `inserted: 0`, 2. adım `totalGroups: 0` 
 
 ### 4.2 Kapsamlı koleksiyon (`bruno-pentest-2014-02.json`)
 
-1. Bruno → **Import Collection → Bruno Collection** → `bruno-pentest-2014-02.json` (ortam seçmeye
-   gerek yok; adres, kullanıcı ve dönem isteklerde yazılı).
+1. `API_KEY_BURAYA` metnini anahtarla değiştirip Bruno → **Import Collection → Bruno Collection** →
+   `bruno-pentest-2014-02.json` (ortam seçmeye gerek yok; adres, kullanıcı ve dönem isteklerde yazılı).
 2. Üç Excel'i Bruno'nun koleksiyonu kaydettiği klasöre kopyalayın; `.xlsx` olmayan / sahte dosya
    gerektiren isteklerde (2.3, 2.4) dosyayı Body → file alanından seçin.
 3. **Klasör 0 — Hazırlık:** sağlık kontrolü, test verisini kontrol et, yükle, gönder.
@@ -68,9 +70,9 @@ Tekrar çalıştırılabilir: 1. adım `inserted: 0`, 2. adım `totalGroups: 0` 
 6. **Klasör 3 — API girdileri:** boş filtre, eksik dönem, ay 13, bozuk JSON, URL karakterli dosya
    no, SQL enjeksiyonu (`sort`), yanlış metot / içerik tipi.
 7. **Klasör 4 — Başlık ve kimlik:** geçersiz kimlik tipi/numarası, uzun kullanıcı adı, başlık
-   sahteciliği (gateway davranışı).
+   sahteciliği, API anahtarı olmadan / yanlış anahtarla istek (401).
 8. **Klasör 5 — İş kuralları:** mükerrer gönderim (409), olmayan kayıt (404).
-9. **Klasör 6 — Bilgi ifşası:** kapalı actuator uçları, Swagger.
+9. **Klasör 6 — Bilgi ifşası:** kapalı actuator uçları, kapalı Swagger (404).
 
 ## 5. Beklenen genel davranış
 
@@ -78,7 +80,9 @@ Tekrar çalıştırılabilir: 1. adım `inserted: 0`, 2. adım `totalGroups: 0` 
   `{result:false, status, error:{timestamp, reasons:[{field, code, message}]}}`.
 - Hiçbir girdi **500** üretmemeli; cevapta stack trace, sınıf adı, iç adres, SQL ya da kütüphane
   mesajı olmamalı. Beklenmeyen hata: `500 ALZ-INTERNAL "Beklenmeyen bir hata oluştu."`.
-- Hata kodları: `400 ALZ-VALIDATION` (alan/başlık), `400/405/413/415 ALZ-REQUEST`,
+- Hata mesajları gönderilen değeri (dosya adı, hücre içeriği) geri yazmaz.
+- Tomcat seviyesinde reddedilen istekler de (ör. URL'de `%2f`) HTML değil, aynı JSON biçimde döner.
+- Hata kodları: `401 ALZ-UNAUTHORIZED` (API anahtarı), `400 ALZ-VALIDATION` (alan/başlık), `400/405/413/415 ALZ-REQUEST`,
   `404 ALZ-NOT-FOUND`, `409 ALZ-STATUS-CONFLICT`, `422` SBM kodu, `502 CORE-00000`,
   `503 SEC-00001`.
 - Excel: satır hataları dosyanın geri kalanını engellemez (`errors[]`); dosya diske yazılmaz,
@@ -91,10 +95,9 @@ Raporda "bilinen" olarak işaretlenebilir; kararları geliştirici ekiptedir:
 
 | Durum | Açıklama |
 |---|---|
-| Uygulamada kimlik doğrulama / rate limit yok | Gateway katmanında olması bekleniyor. Uç doğrudan erişilebiliyorsa **bulgu** |
-| `X-User-Name`, `X-Requester-Id-*` istemciden geliyor | Gateway başlıkları silip kendisi koymalı. Koymuyorsa **bulgu** |
+| Rate limit uygulamada yok | Gateway / altyapı katmanına bırakıldı |
+| `X-User-Name`, `X-Requester-Id-*` istemciden geliyor | Yalnız geçerli API anahtarını taşıyan çağıran (UI backend) koyar |
 | `/actuator/prometheus` ve `/actuator/health` açık | İzleme için. Dışarıdan erişim ingress'te kısıtlanmalı |
-| Swagger test ortamlarında açık | PROD'da kapalı (404) |
 | Güvenlik başlıkları (`X-Content-Type-Options`, `X-Frame-Options`) | Gateway'e bırakıldı |
 | Dosya boyutu sınırı | k8s'te Spring varsayılanı (1MB) |
 

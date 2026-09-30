@@ -23,7 +23,9 @@ gönderilmeyeceği geçmiş bir dönemdedir. PEN verisi ayrı dönemdedir (2014/
 
 1. Uygulamayı başlat (README §2.5). `local` ortamı `http://localhost:8081` kullanır.
 2. Bruno → **Import Collection → Bruno Collection** → `bruno-lokal-test-2015-01.json`.
-3. Sağ üstten ortamı seç (`local`, `sc-test` ya da `sc-uat`).
+3. Sağ üstten ortamı seç (`local`, `sc-test` ya da `sc-uat`) ve ortamın **`apiKey`**
+   değişkenine o ortamın API anahtarını gir (Vault: `apps/sbm-declaration-services` → `apiKey`).
+   Anahtar koleksiyon dosyasına kaydedilmez; boş kalırsa `/api/v1` istekleri 401 döner.
 4. Excel gönderen isteklerde (1.x, 5.1, 5.2, 6.2, 7.7) **Body → file** alanından dosyayı seç
    (Bruno içe aktarırken dosya yolunu taşımaz).
 5. Klasörleri **sırayla** çalıştır: 0 → 7. Her isteğin **Docs** sekmesinde beklenen sonuç yazılı.

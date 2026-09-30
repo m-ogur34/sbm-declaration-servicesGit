@@ -59,8 +59,10 @@ public class ExcelDeclarationParser {
             COL_ALINAN, COL_IPTAL, COL_MENKUL, COL_VERGI, COL_ORAN, COL_VERGI_PRIM);
 
 
+    static final String UNREADABLE = "Excel dosyası okunamadı.";
+
     public ParsedSheet parse(InputStream in) {
-        try (Workbook workbook = WorkbookFactory.create(in)) {
+        try (Workbook workbook = open(in)) {
             if (workbook.getNumberOfSheets() == 0) {
                 throw new IllegalArgumentException("Excel dosyasında sheet bulunamadı.");
             }
@@ -89,7 +91,16 @@ public class ExcelDeclarationParser {
             }
             return new ParsedSheet(rows, errors);
         } catch (IOException ex) {
-            throw new IllegalArgumentException("Excel dosyası okunamadı: " + ex.getMessage(), ex);
+            throw new IllegalArgumentException(UNREADABLE, ex);
+        }
+    }
+
+    /** POI'nin istisna mesajı (sınıf/format ayrıntısı) istemciye gitmez; yalnız loga (cause). */
+    private static Workbook open(InputStream in) {
+        try {
+            return WorkbookFactory.create(in);
+        } catch (IOException | RuntimeException ex) {
+            throw new IllegalArgumentException(UNREADABLE, ex);
         }
     }
 
@@ -153,7 +164,7 @@ public class ExcelDeclarationParser {
         BigDecimal gecmisAyIade = readAmount(row, columns, COL_GECMIS, err, "gecmisAyIadeTutari", false);
 
         if (err.hasErrors()) {
-            errors.add(new ExcelRowError(rowNumber, ysvDosyaNo, "ALZ-EXCEL-FIELD", err.message()));
+            errors.add(new ExcelRowError(rowNumber, safeFileNo(ysvDosyaNo), "ALZ-EXCEL-FIELD", err.message()));
             return;
         }
         rows.add(new ParsedRow(rowNumber, ay, ilKodu, ilceKodu, yil, ysvDosyaNo, sonOdemeTarihi,
@@ -178,7 +189,7 @@ public class ExcelDeclarationParser {
         try {
             return Integer.valueOf(normalizeInt(raw));
         } catch (NumberFormatException ex) {
-            err.add(label + " sayısal değil: " + raw);
+            err.add(label + " sayısal değil");
             return null;
         }
     }
@@ -195,7 +206,7 @@ public class ExcelDeclarationParser {
         try {
             return Integer.valueOf(normalizeInt(raw));
         } catch (NumberFormatException ex) {
-            err.add("ilceKodu sayısal değil: " + raw);
+            err.add("ilceKodu sayısal değil");
             return null;
         }
     }
@@ -213,7 +224,7 @@ public class ExcelDeclarationParser {
         try {
             return new BigDecimal(raw.replace(',', '.')).setScale(SCALE, java.math.RoundingMode.HALF_UP);
         } catch (NumberFormatException ex) {
-            err.add(label + " sayısal değil: " + raw);
+            err.add(label + " sayısal değil");
             return null;
         }
     }
@@ -242,8 +253,14 @@ public class ExcelDeclarationParser {
                 }
             }
         }
-        err.add("sonOdemeTarihi çözümlenemedi: " + text);
+        err.add("sonOdemeTarihi çözümlenemedi");
         return null;
+    }
+
+    /** Hatalı satırda dosya no yalnız desene uyuyorsa geri verilir (girdi cevaba yansımasın). */
+    private static String safeFileNo(String ysvDosyaNo) {
+        return ysvDosyaNo != null && ysvDosyaNo.length() <= 36 && FILE_NO.matcher(ysvDosyaNo).matches()
+                ? ysvDosyaNo : null;
     }
 
     private static String asRawString(Cell cell) {

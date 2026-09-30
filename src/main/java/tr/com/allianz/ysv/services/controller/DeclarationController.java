@@ -36,10 +36,12 @@ import tr.com.allianz.ysv.services.dto.response.BatchResult;
 import tr.com.allianz.ysv.services.dto.response.PageResponse;
 import tr.com.allianz.ysv.services.dto.response.ProcessView;
 import tr.com.allianz.ysv.services.enums.ProcessStatus;
+import tr.com.allianz.ysv.services.security.ApiKeySecurityAnnotation;
 import tr.com.allianz.ysv.services.service.DeclarationService;
 
 
 @RestController
+@ApiKeySecurityAnnotation
 @RequestMapping("/api/v1/declarations")
 @RequiredArgsConstructor
 @Tag(name = "Declarations", description = "SBM YSV beyanname gönderim, güncelleme ve sorgulama servisleri")

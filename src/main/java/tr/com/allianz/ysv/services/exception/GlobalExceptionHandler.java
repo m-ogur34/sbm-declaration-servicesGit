@@ -37,6 +37,13 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     static final String REQUEST_CODE = "ALZ-REQUEST";
     static final String INTERNAL_CODE = "ALZ-INTERNAL";
     static final String NOT_FOUND_CODE = "ALZ-NOT-FOUND";
+    static final String UNAUTHORIZED_CODE = "ALZ-UNAUTHORIZED";
+
+    /** {@code X-ApiKey} eksik ya da geçersiz (ayrıntı interceptor'da loglanır). */
+    @ExceptionHandler(ApiKeyException.class)
+    public ResponseEntity<ApiResponse<Void>> handleApiKey(ApiKeyException ex) {
+        return respond(HttpStatus.UNAUTHORIZED, UNAUTHORIZED_CODE, ex.getMessage());
+    }
 
     /** SBM'ye gitmeden, SBM kodlu ön doğrulama (ör. ysvDosyaNo 36 karakteri aşıyor). */
     @ExceptionHandler(SbmIntegrationException.class)
@@ -64,7 +71,8 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ApiResponse<Void>> handleIllegalArgument(IllegalArgumentException ex,
                                                                    HttpServletRequest request) {
-        log.warn("Bad request on {}: {}", request.getRequestURI(), ex.getMessage());
+        log.warn("Bad request on {}: {}{}", request.getRequestURI(), ex.getMessage(),
+                ex.getCause() == null ? "" : " (cause: " + ex.getCause() + ")");
         return respond(HttpStatus.BAD_REQUEST, VALIDATION_CODE, String.valueOf(ex.getMessage()));
     }
 

@@ -46,6 +46,8 @@ public class DeclarationImportService {
     static final int IN_LIMIT = 1000;
     /** SBM'nin il/ilçe gerekçeli redleri: il yok, büyükşehirde ilçe, büyükşehir değilse ilçe yok, ilçe yok. */
     private static final Pattern LOCATION_REJECTION = Pattern.compile("RISK-HAVUZU-0000[6-9]");
+    static final int MAX_FILE_NAME = 255;
+    private static final Pattern UNSAFE_FILE_NAME_CHARS = Pattern.compile("[^\\p{L}\\p{N} ._()-]");
 
     private final ExcelDeclarationParser parser;
     private final DeclarationProcessRepository repository;
@@ -133,7 +135,7 @@ public class DeclarationImportService {
      * @param lock {@code true} ise dönemin satırları kilitlenerek okunur (yükleme)
      */
     private ImportPlan plan(MultipartFile file, boolean lock) {
-        String fileName = file.getOriginalFilename();
+        String fileName = safeFileName(file.getOriginalFilename());
         ParsedSheet sheet;
         try (InputStream in = file.getInputStream()) {
             sheet = parser.parse(in);
@@ -283,6 +285,20 @@ public class DeclarationImportService {
     }
 
     /** {@link #plan} sonucu: yükleme bunu uygular, doğrulama yalnızca raporlar. */
+    /**
+     * İstemcinin verdiği dosya adı DB'ye ve cevaba temizlenerek yazılır: yol kısmı atılır
+     * ({@code ./../x.xlsx} → {@code x.xlsx}), harf/rakam/boşluk/{@code ._()-} dışı karakterler
+     * {@code _} olur ({@code <script>} gibi girdiler yansımaz), en fazla {@value #MAX_FILE_NAME} karakter.
+     */
+    static String safeFileName(String original) {
+        if (original == null) {
+            return null;
+        }
+        String base = original.substring(Math.max(original.lastIndexOf('/'), original.lastIndexOf('\\')) + 1);
+        String clean = UNSAFE_FILE_NAME_CHARS.matcher(base).replaceAll("_").strip();
+        return clean.length() > MAX_FILE_NAME ? clean.substring(0, MAX_FILE_NAME) : clean;
+    }
+
     private record ImportPlan(String fileName,
                               int totalRows,
                               List<ParsedRow> inserts,

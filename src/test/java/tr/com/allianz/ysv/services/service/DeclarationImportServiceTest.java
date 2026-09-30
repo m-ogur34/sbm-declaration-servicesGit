@@ -620,4 +620,18 @@ class DeclarationImportServiceTest {
         assertThat(result.updated()).isEqualTo(1);
         assertThat(result.inserted()).isEqualTo(1);
     }
+
+    @Test
+    @DisplayName("PEN 2.1: dosya adı yol ve özel karakterlerden temizlenir")
+    void safeFileName_stripsPathAndUnsafeCharacters() {
+        assertThat(DeclarationImportService.safeFileName(null)).isNull();
+        assertThat(DeclarationImportService.safeFileName("./../../../pentest-2012-01 (2).xlsx"))
+                .isEqualTo("pentest-2012-01 (2).xlsx");
+        assertThat(DeclarationImportService.safeFileName("C:\\Users\\x\\Beyan Ağustos.xlsx"))
+                .isEqualTo("Beyan Ağustos.xlsx");
+        assertThat(DeclarationImportService.safeFileName("a<img src=x onerror=alert(1)>.xlsx"))
+                .isEqualTo("a_img src_x onerror_alert(1)_.xlsx");
+        assertThat(DeclarationImportService.safeFileName("x".repeat(300) + ".xlsx"))
+                .hasSize(DeclarationImportService.MAX_FILE_NAME);
+    }
 }

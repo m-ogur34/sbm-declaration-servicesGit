@@ -58,11 +58,20 @@ management:
     prometheus:
       enabled: true
 
+# PEN 2.2: controller uçları X-ApiKey başlığı ister. Değer Vault'tan (apps/sbm-declaration-services,
+# anahtar adı apiKey) SBM_DECLARATION_API_KEY olarak gelir; default yok (eksikse uygulama açılmaz).
+api-key-security:
+  api-keys:
+    - api-key: ${SBM_DECLARATION_API_KEY}
+
+# API dokümantasyonu tüm k8s ortamlarında kapalı (PEN 2.3): /swagger-ui ve api-docs 404 döner.
+# Swagger yalnız lokalde (dev profili, src/main/resources) açıktır.
 springdoc:
   api-docs:
-    enabled: true
+    enabled: false
     path: /swagger-ui/api/api-docs
   swagger-ui:
+    enabled: false
     path: /swagger-ui
     doc-expansion: none
     display-request-duration: true

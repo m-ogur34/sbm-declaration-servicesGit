@@ -162,7 +162,8 @@ set SPRING_DATASOURCE_PASSWORD=<sifre>
 mvn spring-boot:run
 ```
 
-- Swagger UI: <http://localhost:8080/sbm-declaration-services/swagger-ui.html>
+- Swagger UI (yalnız lokal; k8s ortamlarında kapalı): <http://localhost:8080/sbm-declaration-services/swagger-ui.html>
+- Lokal çalıştırmak için DEV Vault'ta (`DEV/apps/sbm-declaration-services`) `apiKey` tanımlı olmalı.
 - Health: <http://localhost:8080/sbm-declaration-services/actuator/health>
 
 ### 2.6 Veritabanı
@@ -227,8 +228,12 @@ isteğine kimlik konmaz, token servisi `companyCode`'a göre **Allianz VKN'sini*
 Entegrasyon Dokümanı §5.1'in toplu işlemler için tarif ettiği yol. Üçü de tek bir
 `RequestContext` nesnesinde toplanır (`RequestContextArgumentResolver`).
 
-> Uygulamada kimlik doğrulama yoktur; bu başlıkların güvenilir bir kaynaktan (gateway /
-> UI backend) gelmesi beklenir. Uygulama yalnızca biçimi doğrular.
+> **API anahtarı (PEN 2.2):** `/api/v1/**` uçlarının tümü `X-ApiKey` başlığı ister
+> (`@ApiKeySecurityAnnotation`, `ApiKeySecurityInterceptor`). Eksik ya da yanlışsa gövde
+> doğrulanmadan **401 `ALZ-UNAUTHORIZED`** döner. `actuator/health` ve `actuator/prometheus`
+> anahtarsızdır (k8s probe'ları / izleme). Kullanıcı kimliği başlıkları (`X-User-Name`,
+> `X-Requester-Id-*`) anahtarı taşıyan çağırandan (UI backend) gelir; uygulama yalnızca biçimi
+> doğrular.
 
 ### Uçlar
 
@@ -352,7 +357,8 @@ Hepsi SBM'nin hata biçimindedir; kod `error.reasons[].code`'da:
 | HTTP | `code` | Ne zaman |
 |---|---|---|
 | 400 | `ALZ-VALIDATION` | Alan/parametre/başlık doğrulaması (`field` alanı hangi alan olduğunu söyler) |
-| 400/405/413/415 | `ALZ-REQUEST` | Bozuk JSON, eksik parametre, yanlış metot, dosya >10MB, içerik tipi |
+| 401 | `ALZ-UNAUTHORIZED` | `X-ApiKey` eksik ya da geçersiz |
+| 400/405/413/415 | `ALZ-REQUEST` | Bozuk JSON, eksik parametre, yanlış metot, dosya >10MB, içerik tipi; Tomcat'in reddettiği URL (ör. `%2f`) da aynı JSON biçimde döner |
 | 404 | `ALZ-NOT-FOUND` | Dosya no DB'de yok |
 | 409 | `ALZ-STATUS-CONFLICT` | Beyannamenin durumu işleme uygun değil (ör. zaten gönderilmiş) |
 | 422 | SBM kodu | SBM reddetti (SBM'nin gövdesi aynen) ya da SBM kuralına aykırı olduğu için gönderilmedi |
@@ -468,6 +474,12 @@ token-management:
 | `${TOKEN_MANAGEMENT_USER_NAME}` | `TOKEN_MANAGEMENT_USER_NAME` | `tokenManagementUserName` |
 | `${TOKEN_MANAGEMENT_COMPANY_CODE}` | `TOKEN_MANAGEMENT_COMPANY_CODE` | `tokenManagementCompanyCode` |
 | `${SBM_COMPANY_CODE}` | `SBM_COMPANY_CODE` | `tokenManagementCompanyCode` |
+| `${SBM_DECLARATION_API_KEY}` (`api-key-security.api-keys[0].api-key`) | `SBM_DECLARATION_API_KEY` | `apiKey` |
+
+`api-key-security` bloğu `common-configs/application.yml`'dedir (DR'ın kendi config dosyası
+olmadığından ortam dosyalarına değil ortak dosyaya yazıldı); değer her ortamda Vault'tan gelir,
+default yoktur — `apiKey` Vault'ta yoksa uygulama açılmaz. **API anahtarları repoya yazılmaz**
+(repo erişimi geniştir); yalnız Vault'ta tutulur.
 
 `sbm.company-code` (SBM sözleşmesindeki `sigortaSirketKodu` ve DB'deki `COMPANY_CODE`) ile
 `token-management.company-code` (token isteğinin alanı) **ayrı alanlardır**; bugün aynı

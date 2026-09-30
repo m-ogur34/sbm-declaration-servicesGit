@@ -33,6 +33,10 @@ token-management:
   connect-timeout: 5s
   read-timeout: 30s
 
+api-key-security:
+  api-keys:
+    - api-key: ${apiKey}
+
 sbm:
   company-code: ${sbmCompanyCode}
   retry:

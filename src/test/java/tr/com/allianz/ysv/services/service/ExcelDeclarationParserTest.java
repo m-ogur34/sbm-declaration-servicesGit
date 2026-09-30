@@ -8,6 +8,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.CreationHelper;
@@ -148,6 +150,29 @@ class ExcelDeclarationParserTest {
         assertThat(sheet.errors()).extracting(e -> e.rowNumber()).containsExactly(3, 4);
         assertThat(sheet.errors()).allSatisfy(e ->
                 assertThat(e.message()).contains("yalnızca harf, rakam, '-' ve '_'"));
+        assertThat(sheet.errors()).allSatisfy(e -> assertThat(e.ysvDosyaNo()).isNull());
+    }
+
+    @Test
+    @DisplayName("PEN 2.1: hücre değeri hata mesajına ve cevaba yansımaz")
+    void parse_cellValuesAreNotEchoed() throws IOException {
+        String script = "<script>alert(1)</script>";
+        byte[] xlsx = workbook(rows -> {
+            Row row = rows.createRow(1);
+            fullValidRow(row, "YSV-OK-1");
+            text(row, 0, script);                   // ay
+            text(row, 2, script);                   // ilceKodu
+            text(row, 4, script);                   // sonOdemeTarihi
+            text(row, 7, script);                   // alinanPrimTutari
+            text(row, 9, script);                   // menkulTipi
+            Row other = rows.createRow(2);
+            fullValidRow(other, script);            // ysvDosyaNo
+        });
+
+        ParsedSheet sheet = parser.parse(new ByteArrayInputStream(xlsx));
+
+        assertThat(sheet.errors()).hasSize(2).allSatisfy(e -> assertThat(e.message()).doesNotContain("script"));
+        assertThat(sheet.errors()).extracting(e -> e.ysvDosyaNo()).containsExactly("YSV-OK-1", null);
     }
 
     @Test
@@ -163,7 +188,24 @@ class ExcelDeclarationParserTest {
     @Test
     void parse_notAnXlsx_isRejected() {
         assertThatThrownBy(() -> parser.parse(new ByteArrayInputStream("bu bir excel değil".getBytes())))
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage(ExcelDeclarationParser.UNREADABLE)
+                .hasCauseInstanceOf(IOException.class);
+    }
+
+    @Test
+    @DisplayName("PEN 2.1: .xlsx adlı zip dosyasında POI'nin mesajı istemciye gitmez")
+    void parse_zipThatIsNotOoxml_hidesPoiMessage() throws IOException {
+        ByteArrayOutputStream zip = new ByteArrayOutputStream();
+        try (ZipOutputStream out = new ZipOutputStream(zip)) {
+            out.putNextEntry(new ZipEntry("readme.md"));
+            out.write("x".getBytes());
+            out.closeEntry();
+        }
+
+        assertThatThrownBy(() -> parser.parse(new ByteArrayInputStream(zip.toByteArray())))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage(ExcelDeclarationParser.UNREADABLE);
     }
 
     @Test

@@ -539,8 +539,8 @@ token cache yok; her çağrıda taze token; `Transaction-Id` loglanıyor;
 7. **`mvn clean verify`** — ilk kez VDI'da (iç Nexus'lu) derlenecek.
 8. **Excel `menkulTipi` formatı:** iş biriminden `MENKUL`/`GAYRIMENKUL` metniyle
    istenecek (§3.2). Sayısal `1`/`2` gelmeye devam ederse parser dönüştürür.
-9. **PEN test kapsamı** (§14): rate limit + erişim kontrolü gateway/altyapı
-   katmanında; uygulama içi ApiGuard kaldırıldı (2026-09-18).
+9. **PEN test kapsamı** (§14): 2026-09-30'da PEN raporu sonrası `X-ApiKey` eklendi;
+   rate limit gateway/altyapı katmanında.
 
 ---
 
@@ -602,16 +602,19 @@ hem `GAYRIMENKUL` satırı içerir → `ysvTutarList` 2 elemanlı POST/PUT üret
 
 Proje penetrasyon testine girecek. En az şu iki başlıktan geçmeli:
 
-### 14.1 Rate limiting / API key — **uygulamada YOK (2026-09-18 kararı)**
+### 14.1 API key — **uygulamada VAR (2026-09-30, PEN bulgusu 2.2)**
 
-Uygulama içi `ApiGuardFilter` (token-bucket rate limit + `X-Api-Key`) kaldırıldı.
-Rate limit ve kimlik doğrulama iç gateway / altyapı katmanına bırakıldı; servis bu
-konuda kod veya `api-guard.*` config taşımaz.
+Controller'lar `@ApiKeySecurityAnnotation` taşır; `ApiKeySecurityInterceptor` `X-ApiKey`
+başlığını `api-key-security.api-keys[].api-key` listesiyle sabit sürede karşılaştırır. Eksik /
+yanlış → 401 `ALZ-UNAUTHORIZED` (ayrım verilmez). Interceptor gövde okunmadan çalışır, bu yüzden
+anahtarsız istek hiçbir doğrulama mesajı görmez. Değer Vault'tan: `apps/sbm-declaration-services`
+→ `apiKey` → `SBM_DECLARATION_API_KEY`. DEV-TEST / UAT / PREP aynı, PROD (ve DR) ayrı anahtar.
+Anahtar repoya yazılmaz. Rate limit uygulamada yok; gateway/altyapıya bırakıldı (2026-09-18).
 
 ### 14.2 Broken access control
 
 Uygulama uçlarına **kimlik doğrulaması olmadan doğrudan istek** atılamamalı.
-`/api/v1/declarations/**` uçlarında kimlik kontrolü iç gateway'e bırakıldı (§14.1).
+`/api/v1/declarations/**` uçları `X-ApiKey` ister (§14.1).
 Servis tarafında kalanlar:
 - Actuator: sadece `health`, `info`, `metrics`, `prometheus` açık; `env`,
   `beans`, `mappings`, `heapdump`, `threaddump` **kapalı**.
@@ -619,7 +622,12 @@ Servis tarafında kalanlar:
 - `Authorization`, token, `Requester-ID-No` **loglara yazılmaz** (maskeli).
 - Güvenlik başlıkları (`X-Content-Type-Options`, `X-Frame-Options` vb.) — **uygulamada yok**,
   gateway'e bırakıldı (2026-09-23 kararı).
-- PROD'da Swagger / api-docs kapalı (`configs/application-prod.yml`).
+- Swagger / api-docs **tüm k8s ortamlarında kapalı** (`common-configs/application.yml`, PEN 2.3);
+  yalnız lokalde (dev profili) açık.
+- Hata mesajları kullanıcı girdisini geri yansıtmaz (PEN 2.1): dosya adı, Excel hücre değeri,
+  POI mesajı cevaba girmez; `sourceFileName` yol/özel karakterden temizlenir.
+- Tomcat'in reddettiği istekler (ör. URL'de `%2f`) HTML yerine SBM hata biçiminde JSON döner
+  (`JsonErrorReportValve`, PEN 2.4).
 - Toplu uçlar boş filtreyle (`{}`) çalışmaz: `ysvDosyaNoList` ya da `year + month` zorunlu.
 - `ysvDosyaNo` deseni `^[A-Za-z0-9_-]+$` (path + Excel) — SBM sorgu URL'ine parametre eklenemez.
 - `/processes` `sort` yalnız izinli alanlarla; aksi 400.

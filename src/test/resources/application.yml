@@ -22,6 +22,10 @@ token-management:
   connect-timeout: 1s
   read-timeout: 2s
 
+api-key-security:
+  api-keys:
+    - api-key: test-api-key-0123456789abcdef0123
+
 sbm:
   company-code: "045"
   retry:

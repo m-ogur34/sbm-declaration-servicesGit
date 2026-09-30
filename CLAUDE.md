@@ -12,7 +12,7 @@ Kod yazmadan önce bu dosyanın tamamını oku. Bir çelişki görürsen kod de�
 > **`README.md` §5**. SBM/token dokümanlarının asılları `SBM ve Allianz Dökümanları/`
 > altındadır. Bu dosya (`CLAUDE.md`) ile onlar çelişirse **`Claude/CALISMA-PRENSIBI.md`
 > geçerlidir**. 2026-08-30'da güncellenen kararlar aşağıda işaretlendi (⟳); 2026-09-21/22
-> güncellemeleri (⟲); 2026-09-23/24 kararları §14'te.
+> güncellemeleri (⟲); 2026-09-23/24 kararları §14'te; PEN bulguları (2026-09-30) §15'te.
 
 ---
 
@@ -457,9 +457,8 @@ loglanmalı (SBM destek talebi için gerekiyor).
 
 Tam liste `Claude/CALISMA-PRENSIBI.md` §11'de. Öne çıkanlar:
 
-- ⟳ Firma politikası: birim test kapsamı **≥ %90**; proje **PEN testine** girecek
-  — uygulama içi `ApiGuardFilter` 2026-09-18'de **kaldırıldı**; rate limit / erişim kontrolü
-  gateway katmanında (`Claude/CALISMA-PRENSIBI.md` §14).
+- ⟳ Firma politikası: birim test kapsamı **≥ %90**; PEN testi 2026-09-25'te yapıldı, 4 bulgu
+  2026-09-30'da çözüldü (§15). Rate limit gateway katmanında (`Claude/CALISMA-PRENSIBI.md` §14).
 - ⟳ DB scriptleri tüm ortamlara deploy edilecek → `db/rollback_db.sql` eklendi.
   Lokal test: `Lokal Test/` (Bruno koleksiyonu + 2015/01 test Excel'leri); PEN: `Pen Test/`
   (2014/02). Test verisi **geçmiş dönemlerdedir** — SBM TEST'te gerçek ayların yuvalarını
@@ -489,6 +488,8 @@ Tam liste `Claude/CALISMA-PRENSIBI.md` §11'de. Öne çıkanlar:
 - ❌ helm `templates/*configmap.yaml`'da `range` gövdesini girintileme — 0. kolonda olmalı, yoksa ConfigMap geçersiz olur.
 - ❌ `.editorconfig`, `Jenkinsfile`, `lombok.config` gibi ek dosyalar bırakma.
 - ❌ Token cache'i ekleme.
+- ❌ API anahtarını (ya da herhangi bir sırrı) repoya, yml'e, Bruno koleksiyonuna yazma — yalnız Vault.
+- ❌ Hata mesajına kullanıcının gönderdiği değeri (dosya adı, hücre, başlık) ekleme (PEN 2.1).
 - ❌ `Requester-ID-Type` / `Requester-ID-No` header'larını hardcode etme.
 - ❌ `ilceKodu`'yu büyükşehir için `0` gönderme — alanı tamamen çıkar.
 - ❌ ESB için pom'a dependency ekleme (`ysv-services-rest-client` dâhil).
@@ -533,4 +534,26 @@ Tam liste `Claude/CALISMA-PRENSIBI.md` §11'de. Öne çıkanlar:
 - **Test verisi geçmiş dönemlerde:** SBM'de silme yok, yuva ilk dosya no'ya kalıcı bağlanır;
   test verisi gerçek ayları kullanırsa (2026/08'de olduğu gibi) SBM TEST'te gerçek veri
   `RISK-HAVUZU-00004` alır. Lokal: 2015/01 (`TESTDEV…`), PEN: 2014/02 (`PENTEST25…`).
+
+---
+
+## 15. 2026-09-30 — PEN raporu bulguları (Cyberwise, 25.09.2026)
+
+| Bulgu | Çözüm |
+|---|---|
+| 2.1 Yüksek — hata mesajında girdi yansıması (XSS) | Mesajlarda kullanıcı değeri yok (dosya adı, Excel hücresi, POI mesajı); `sourceFileName` temizlenir (`DeclarationImportService.safeFileName`) |
+| 2.2 Orta — kimlik doğrulamasız erişim (6 uç) | `X-ApiKey` (`security/ApiKeySecurity*`), controller sınıf seviyesinde `@ApiKeySecurityAnnotation`; interceptor (AOP değil) → gövde doğrulamasından önce 401 `ALZ-UNAUTHORIZED` |
+| 2.3 Orta — Swagger erişimi | Tüm k8s ortamlarında kapalı (`common-configs`), yalnız lokal açık |
+| 2.4 Düşük — Tomcat varsayılan hata sayfası | `JsonErrorReportValve` + `TomcatConfig`: Tomcat seviyesindeki hatalar da SBM hata biçiminde JSON |
+
+- API anahtarı Vault'ta: `kv/data/<ORTAM>/apps/sbm-declaration-services` → `apiKey` → env
+  `SBM_DECLARATION_API_KEY`; lokal `DEV/apps/sbm-declaration-services` → `apiKey`. DEV-TEST/UAT/PREP
+  ortak anahtar, PROD/DR ayrı. Default yok (anahtar yoksa uygulama açılmaz) → **deploy'dan önce Vault**.
+- `api-key-security` config'i ortak dosyadadır: DR'ın `application-dr.yml`'i yok (bilinçli), ortam
+  dosyasına yazılsaydı DR açılmazdı.
+- Örnekteki `permittedUrls` / `allowedIps` alınmadı: pod'da `remoteAddr` istemcinin değil
+  ingress/istio'nun adresi; `contains` ile URL eşleşmesi atlatılabilir. IP kısıtı gerekiyorsa ingress'te.
+- `actuator/health` ve `actuator/prometheus` anahtarsız (probe / izleme).
+- Bruno: PEN koleksiyonlarında `X-ApiKey: API_KEY_BURAYA` (import öncesi değiştirilir); lokal
+  koleksiyonda ortam değişkeni `apiKey`.
 

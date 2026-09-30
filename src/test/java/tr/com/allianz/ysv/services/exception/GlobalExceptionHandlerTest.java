@@ -75,6 +75,25 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
+    @DisplayName("PEN 2.2: missing/invalid API key is a 401 without telling which")
+    void handleApiKey_returns401() {
+        ResponseEntity<ApiResponse<Void>> response = handler.handleApiKey(new ApiKeyException());
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        assertSbmShape(response.getBody(), 401, GlobalExceptionHandler.UNAUTHORIZED_CODE);
+    }
+
+    @Test
+    @DisplayName("the cause (e.g. POI detail) goes to the log only, never to the client")
+    void handleIllegalArgument_withCause_returnsOnlyOurMessage() {
+        ResponseEntity<ApiResponse<Void>> response = handler.handleIllegalArgument(
+                new IllegalArgumentException("Excel dosyası okunamadı.", new IllegalStateException("poi detail")),
+                request);
+
+        assertThat(response.getBody().error().reasons().get(0).message()).isEqualTo("Excel dosyası okunamadı.");
+    }
+
+    @Test
     @DisplayName("a type mismatch names the field but never echoes the rejected value")
     void handleTypeMismatch_namesOnlyTheField() throws Exception {
         MethodParameter parameter = new MethodParameter(Object.class.getMethod("equals", Object.class), 0);

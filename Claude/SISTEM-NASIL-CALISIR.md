@@ -292,6 +292,7 @@ sequenceDiagram
 | HTTP | Kod | Ne zaman | SBM'ye gitti mi? |
 |---|---|---|---|
 | 400 | `ALZ-VALIDATION` | Alan / başlık / filtre / desen / sort | Hayır |
+| 401 | `ALZ-UNAUTHORIZED` | `X-ApiKey` eksik / geçersiz | Hayır |
 | 400/405/413/415 | `ALZ-REQUEST` | Bozuk JSON, yanlış metot, içerik tipi, dosya boyutu | Hayır |
 | 404 | `ALZ-NOT-FOUND` | Dosya no DB'de yok | Hayır |
 | 409 | `ALZ-STATUS-CONFLICT` | Durum işleme uygun değil (ör. zaten gönderilmiş) | Hayır |

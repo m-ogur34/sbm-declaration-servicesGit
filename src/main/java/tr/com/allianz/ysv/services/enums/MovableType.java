@@ -46,7 +46,6 @@ public enum MovableType {
                 }
             }
         }
-        throw new IllegalArgumentException("Geçersiz menkulTipi değeri: " + raw
-                + " (beklenen: 1/2 veya MENKUL/GAYRIMENKUL)");
+        throw new IllegalArgumentException("Geçersiz menkulTipi (beklenen: 1/2 veya MENKUL/GAYRIMENKUL)");
     }
 }

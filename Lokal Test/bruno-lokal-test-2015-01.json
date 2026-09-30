@@ -77,6 +77,11 @@
             "method": "POST",
             "headers": [
               {
+                "name": "X-ApiKey",
+                "value": "{{apiKey}}",
+                "enabled": true
+              },
+              {
                 "name": "X-User-Name",
                 "value": "{{kullanici}}",
                 "enabled": true
@@ -131,6 +136,11 @@
             "method": "POST",
             "headers": [
               {
+                "name": "X-ApiKey",
+                "value": "{{apiKey}}",
+                "enabled": true
+              },
+              {
                 "name": "X-User-Name",
                 "value": "{{kullanici}}",
                 "enabled": true
@@ -184,6 +194,11 @@
             "url": "{{baseUrl}}/api/v1/declarations/upload",
             "method": "POST",
             "headers": [
+              {
+                "name": "X-ApiKey",
+                "value": "{{apiKey}}",
+                "enabled": true
+              },
               {
                 "name": "X-User-Name",
                 "value": "{{kullanici}}",
@@ -244,6 +259,11 @@
             "url": "{{baseUrl}}/api/v1/declarations/processes?year={{yil}}&month={{ay}}&size=50&sort=sbmFileNo,asc",
             "method": "GET",
             "headers": [
+              {
+                "name": "X-ApiKey",
+                "value": "{{apiKey}}",
+                "enabled": true
+              },
               {
                 "name": "X-User-Name",
                 "value": "{{kullanici}}",
@@ -314,6 +334,11 @@
             "method": "GET",
             "headers": [
               {
+                "name": "X-ApiKey",
+                "value": "{{apiKey}}",
+                "enabled": true
+              },
+              {
                 "name": "X-User-Name",
                 "value": "{{kullanici}}",
                 "enabled": true
@@ -376,6 +401,11 @@
             "url": "{{baseUrl}}/api/v1/declarations/processes?status=NEW&year={{yil}}&month={{ay}}",
             "method": "GET",
             "headers": [
+              {
+                "name": "X-ApiKey",
+                "value": "{{apiKey}}",
+                "enabled": true
+              },
               {
                 "name": "X-User-Name",
                 "value": "{{kullanici}}",
@@ -446,6 +476,11 @@
             "method": "POST",
             "headers": [
               {
+                "name": "X-ApiKey",
+                "value": "{{apiKey}}",
+                "enabled": true
+              },
+              {
                 "name": "X-User-Name",
                 "value": "{{kullanici}}",
                 "enabled": true
@@ -490,6 +525,11 @@
             "method": "POST",
             "headers": [
               {
+                "name": "X-ApiKey",
+                "value": "{{apiKey}}",
+                "enabled": true
+              },
+              {
                 "name": "X-User-Name",
                 "value": "{{kullanici}}",
                 "enabled": true
@@ -533,6 +573,11 @@
             "url": "{{baseUrl}}/api/v1/declarations/send",
             "method": "POST",
             "headers": [
+              {
+                "name": "X-ApiKey",
+                "value": "{{apiKey}}",
+                "enabled": true
+              },
               {
                 "name": "Content-Type",
                 "value": "application/json",
@@ -590,6 +635,11 @@
             "method": "GET",
             "headers": [
               {
+                "name": "X-ApiKey",
+                "value": "{{apiKey}}",
+                "enabled": true
+              },
+              {
                 "name": "X-User-Name",
                 "value": "{{kullanici}}",
                 "enabled": true
@@ -634,6 +684,11 @@
             "method": "GET",
             "headers": [
               {
+                "name": "X-ApiKey",
+                "value": "{{apiKey}}",
+                "enabled": true
+              },
+              {
                 "name": "X-User-Name",
                 "value": "{{kullanici}}",
                 "enabled": true
@@ -677,6 +732,11 @@
             "url": "{{baseUrl}}/api/v1/declarations/query",
             "method": "POST",
             "headers": [
+              {
+                "name": "X-ApiKey",
+                "value": "{{apiKey}}",
+                "enabled": true
+              },
               {
                 "name": "Content-Type",
                 "value": "application/json",
@@ -734,6 +794,11 @@
             "method": "POST",
             "headers": [
               {
+                "name": "X-ApiKey",
+                "value": "{{apiKey}}",
+                "enabled": true
+              },
+              {
                 "name": "X-User-Name",
                 "value": "{{kullanici}}",
                 "enabled": true
@@ -787,6 +852,11 @@
             "url": "{{baseUrl}}/api/v1/declarations/upload",
             "method": "POST",
             "headers": [
+              {
+                "name": "X-ApiKey",
+                "value": "{{apiKey}}",
+                "enabled": true
+              },
               {
                 "name": "X-User-Name",
                 "value": "{{kullanici}}",
@@ -842,6 +912,11 @@
             "method": "PUT",
             "headers": [
               {
+                "name": "X-ApiKey",
+                "value": "{{apiKey}}",
+                "enabled": true
+              },
+              {
                 "name": "Content-Type",
                 "value": "application/json",
                 "enabled": true
@@ -892,6 +967,11 @@
             "method": "POST",
             "headers": [
               {
+                "name": "X-ApiKey",
+                "value": "{{apiKey}}",
+                "enabled": true
+              },
+              {
                 "name": "X-User-Name",
                 "value": "{{kullanici}}",
                 "enabled": true
@@ -935,6 +1015,11 @@
             "url": "{{baseUrl}}/api/v1/declarations/TESTDEV1501-04",
             "method": "PUT",
             "headers": [
+              {
+                "name": "X-ApiKey",
+                "value": "{{apiKey}}",
+                "enabled": true
+              },
               {
                 "name": "Content-Type",
                 "value": "application/json",
@@ -992,6 +1077,11 @@
             "method": "POST",
             "headers": [
               {
+                "name": "X-ApiKey",
+                "value": "{{apiKey}}",
+                "enabled": true
+              },
+              {
                 "name": "X-User-Name",
                 "value": "{{kullanici}}",
                 "enabled": true
@@ -1035,6 +1125,11 @@
             "url": "{{baseUrl}}/api/v1/declarations/upload",
             "method": "POST",
             "headers": [
+              {
+                "name": "X-ApiKey",
+                "value": "{{apiKey}}",
+                "enabled": true
+              },
               {
                 "name": "X-User-Name",
                 "value": "{{kullanici}}",
@@ -1089,6 +1184,11 @@
             "url": "{{baseUrl}}/api/v1/declarations/update",
             "method": "PUT",
             "headers": [
+              {
+                "name": "X-ApiKey",
+                "value": "{{apiKey}}",
+                "enabled": true
+              },
               {
                 "name": "Content-Type",
                 "value": "application/json",
@@ -1146,6 +1246,11 @@
             "method": "POST",
             "headers": [
               {
+                "name": "X-ApiKey",
+                "value": "{{apiKey}}",
+                "enabled": true
+              },
+              {
                 "name": "Content-Type",
                 "value": "application/json",
                 "enabled": true
@@ -1196,6 +1301,11 @@
             "method": "POST",
             "headers": [
               {
+                "name": "X-ApiKey",
+                "value": "{{apiKey}}",
+                "enabled": true
+              },
+              {
                 "name": "X-User-Name",
                 "value": "{{kullanici}}",
                 "enabled": true
@@ -1239,6 +1349,11 @@
             "url": "{{baseUrl}}/api/v1/declarations/TESTDEV1501-01/send",
             "method": "POST",
             "headers": [
+              {
+                "name": "X-ApiKey",
+                "value": "{{apiKey}}",
+                "enabled": true
+              },
               {
                 "name": "X-User-Name",
                 "value": "{{kullanici}}",
@@ -1284,6 +1399,11 @@
             "method": "GET",
             "headers": [
               {
+                "name": "X-ApiKey",
+                "value": "{{apiKey}}",
+                "enabled": true
+              },
+              {
                 "name": "X-User-Name",
                 "value": "{{kullanici}}",
                 "enabled": true
@@ -1327,6 +1447,11 @@
             "url": "{{baseUrl}}/api/v1/declarations/processes?sort=olmayanAlan",
             "method": "GET",
             "headers": [
+              {
+                "name": "X-ApiKey",
+                "value": "{{apiKey}}",
+                "enabled": true
+              },
               {
                 "name": "X-User-Name",
                 "value": "{{kullanici}}",
@@ -1379,6 +1504,11 @@
             "method": "GET",
             "headers": [
               {
+                "name": "X-ApiKey",
+                "value": "{{apiKey}}",
+                "enabled": true
+              },
+              {
                 "name": "X-User-Name",
                 "value": "{{kullanici}}",
                 "enabled": true
@@ -1422,6 +1552,11 @@
             "url": "{{baseUrl}}/api/v1/declarations/upload/validate",
             "method": "POST",
             "headers": [
+              {
+                "name": "X-ApiKey",
+                "value": "{{apiKey}}",
+                "enabled": true
+              },
               {
                 "name": "X-User-Name",
                 "value": "{{kullanici}}",
@@ -1500,6 +1635,13 @@
           "enabled": true,
           "secret": false,
           "type": "text"
+        },
+        {
+          "name": "apiKey",
+          "value": "",
+          "enabled": true,
+          "secret": true,
+          "type": "text"
         }
       ]
     },
@@ -1533,6 +1675,13 @@
           "enabled": true,
           "secret": false,
           "type": "text"
+        },
+        {
+          "name": "apiKey",
+          "value": "",
+          "enabled": true,
+          "secret": true,
+          "type": "text"
         }
       ]
     },
@@ -1565,6 +1714,13 @@
           "value": "1",
           "enabled": true,
           "secret": false,
+          "type": "text"
+        },
+        {
+          "name": "apiKey",
+          "value": "",
+          "enabled": true,
+          "secret": true,
           "type": "text"
         }
       ]
