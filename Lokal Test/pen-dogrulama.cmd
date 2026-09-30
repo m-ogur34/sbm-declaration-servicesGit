@@ -8,8 +8,13 @@ setlocal
 if "%BASE%"=="" set BASE=http://localhost:8081/sbm-declaration-services
 if "%APIKEY%"=="" (echo APIKEY tanimli degil: set APIKEY=... & exit /b 1)
 set API=%BASE%/api/v1/declarations
-set XSS=%~dp0..\Pen Test\pentest-2011-05-girdi-yansimasi.xlsx
-set OK=%~dp0..\Pen Test\pentest-2011-01-yukleme.xlsx
+rem Excel'ler script'in yaninda ya da repodaki "Pen Test" klasorunde aranir.
+set XSS=%~dp0pentest-2011-05-girdi-yansimasi.xlsx
+set OK=%~dp0pentest-2011-01-yukleme.xlsx
+if not exist "%XSS%" set XSS=%~dp0..\Pen Test\pentest-2011-05-girdi-yansimasi.xlsx
+if not exist "%OK%" set OK=%~dp0..\Pen Test\pentest-2011-01-yukleme.xlsx
+if not exist "%XSS%" (echo Excel bulunamadi: pentest-2011-05-girdi-yansimasi.xlsx & exit /b 1)
+if not exist "%OK%" (echo Excel bulunamadi: pentest-2011-01-yukleme.xlsx & exit /b 1)
 
 echo ===== 2.2 API anahtari =====
 echo [T1] Anahtarsiz toplu gonder - beklenen 401 ALZ-UNAUTHORIZED
