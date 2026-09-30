@@ -7,6 +7,9 @@ servisi. Bu rehber PEN ekibinin testi kısa adımlarla yürütmesi içindir.
 
 | Dosya | İçerik |
 |---|---|
+| `bruno-pentest-2010.json` | **Tekrar testi (öncelikli)** — 7 klasör, 39 istek: normal akış (2010/01–02), API anahtarı (2.2), girdi yansıması (2.1), sunucu hata sayfası (2.4), Swagger/actuator (2.3), iş kuralları |
+| `pentest-2010-01-yukleme.xlsx` / `pentest-2010-02-yukleme.xlsx` | Tekrar testi verisi: her biri 12 satır / 6 beyanname (`PENTEST1001-..`, `PENTEST1002-..`) |
+| `pentest-2010-01-guncelleme.xlsx` | 2010/01 güncellemesi: `-01`, `-03` tutarları değişmiş, `-07` yeni |
 | `bruno-pentest-2014-02-basit.json` | **Basit senaryo** — 5 istek: yükle → gönder → sorgula → güncelle → tekrar sorgula |
 | `bruno-pentest-2014-02.json` | Kapsamlı koleksiyon — 7 klasör, 38 istek (girdi doğrulama, başlık, bilgi ifşası) |
 | `pentest-2014-02-yukleme.xlsx` | Geçerli test verisi: 12 satır / 6 beyanname (`PENTEST1402-01..06`), dönem **2014/02** |
@@ -105,6 +108,6 @@ Raporda "bilinen" olarak işaretlenebilir; kararları geliştirici ekiptedir:
 
 ## 7. Test sonrası
 
-Test verisi (`PENTEST1402-…`, `PENTEST12…`, `PENTEST11…`) DB'den geliştirici tarafından silinir
+Test verisi (`PENTEST1402-…`, `PENTEST12…`, `PENTEST11…`, `PENTEST10…`) DB'den geliştirici tarafından silinir
 (`Lokal Test/temizle-test-verisi.sql`). SBM TEST'teki kayıtlar silinemez; geçmiş bir dönemde
 (2014/02) oldukları için gerçek aylara etki etmez.
