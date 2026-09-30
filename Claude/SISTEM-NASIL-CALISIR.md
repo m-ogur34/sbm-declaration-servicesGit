@@ -303,7 +303,7 @@ sequenceDiagram
 
 ---
 
-## 11. Bruno koleksiyonu → akış eşlemesi (`Lokal Test/bruno-lokal-test-2015-01.json`)
+## 11. Bruno koleksiyonu → akış eşlemesi (`Lokal Test/bruno-lokal-test-2016-01.json`)
 
 | İstek | Uç | Bölüm | DB'ye etkisi | SBM çağrısı |
 |---|---|---|---|---|
@@ -319,8 +319,8 @@ sequenceDiagram
 | 5.1 | `POST /upload/validate` (güncelleme) | §3 | yok | yok |
 | 5.2 | `POST /upload` (güncelleme) | §3 | 3 satır güncellenir (`→ SENT`), `-07` `NEW` | yok |
 | 5.3 | `PUT /update {liste}` | §5.2 | `SENT` | 2 × PUT |
-| 5.4 | `POST /TESTDEV1501-07/send` | §4.1 | `NEW` → `SENT` | POST |
-| 5.5 | `PUT /TESTDEV1501-04` | §5.1 | tutarlar + `SENT` | PUT |
-| 6.1 | `POST /TESTDEV1501-06/cancel` | §6 | tutarlar 0 | PUT (0) |
+| 5.4 | `POST /TESTDEV1601-07/send` | §4.1 | `NEW` → `SENT` | POST |
+| 5.5 | `PUT /TESTDEV1601-04` | §5.1 | tutarlar + `SENT` | PUT |
+| 6.1 | `POST /TESTDEV1601-06/cancel` | §6 | tutarlar 0 | PUT (0) |
 | 6.2 / 6.3 | `POST /upload` + `PUT /update` | §3, §5.2 | tutarlar Excel'e döner | 2 × PUT |
 | 7.1 – 7.7 | beklenen hatalar | §10 | yok | yok |

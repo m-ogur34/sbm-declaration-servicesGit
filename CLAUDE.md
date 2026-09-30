@@ -460,7 +460,7 @@ Tam liste `Claude/CALISMA-PRENSIBI.md` §11'de. Öne çıkanlar:
 - ⟳ Firma politikası: birim test kapsamı **≥ %90**; PEN testi 2026-09-25'te yapıldı, 4 bulgu
   2026-09-30'da çözüldü (§15). Rate limit gateway katmanında (`Claude/CALISMA-PRENSIBI.md` §14).
 - ⟳ DB scriptleri tüm ortamlara deploy edilecek → `db/rollback_db.sql` eklendi.
-  Lokal test: `Lokal Test/` (Bruno koleksiyonu + 2015/01 test Excel'leri); PEN: `Pen Test/`
+  Lokal test: `Lokal Test/` (Bruno koleksiyonu + 2016/01 test Excel'leri); PEN: `Pen Test/`
   (2014/02). Test verisi **geçmiş dönemlerdedir** — SBM TEST'te gerçek ayların yuvalarını
   kilitlememesi için (bkz. §14).
 - `functionName` (default `test`) ve `userName` token ekibiyle (Hüseyin Dağ /
@@ -533,7 +533,7 @@ Tam liste `Claude/CALISMA-PRENSIBI.md` §11'de. Öne çıkanlar:
   limitinin k8s'e taşınması. Tekrar önerilmez.
 - **Test verisi geçmiş dönemlerde:** SBM'de silme yok, yuva ilk dosya no'ya kalıcı bağlanır;
   test verisi gerçek ayları kullanırsa (2026/08'de olduğu gibi) SBM TEST'te gerçek veri
-  `RISK-HAVUZU-00004` alır. Lokal: 2015/01 (`TESTDEV…`), PEN: 2014/02 (`PENTEST25…`).
+  `RISK-HAVUZU-00004` alır. Lokal: 2016/01 (`TESTDEV…`; 2015/01 SBM TEST'te kullanıldı), PEN: 2014/02 (`PENTEST25…`).
 
 ---
 
