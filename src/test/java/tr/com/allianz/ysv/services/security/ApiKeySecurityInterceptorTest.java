@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.util.List;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -14,8 +15,8 @@ import tr.com.allianz.ysv.services.exception.ApiKeyException;
 
 class ApiKeySecurityInterceptorTest {
 
-    private static final String KEY_A = "7c429ff736b7aaaaaaaaaaaaaaaaaaaa";
-    private static final String KEY_B = "1940faa90da4bbbbbbbbbbbbbbbbbbbb";
+    private final String keyA = UUID.randomUUID().toString();
+    private final String keyB = UUID.randomUUID().toString();
 
     private ApiKeySecurityInterceptor interceptor;
     private MockHttpServletRequest request;
@@ -39,7 +40,7 @@ class ApiKeySecurityInterceptorTest {
     @BeforeEach
     void setUp() {
         ApiKeySecurityConfig config = new ApiKeySecurityConfig();
-        config.setApiKeys(List.of(key(KEY_A), key(KEY_B)));
+        config.setApiKeys(List.of(key(keyA), key(keyB)));
         interceptor = new ApiKeySecurityInterceptor(config);
         request = new MockHttpServletRequest("POST", "/api/v1/declarations/send");
     }
@@ -57,7 +58,7 @@ class ApiKeySecurityInterceptorTest {
     @Test
     @DisplayName("sınıfı işaretli controller'a geçerli anahtar (listedeki herhangi biri) ile girilir")
     void validKey_passes() throws Exception {
-        request.addHeader(ApiKeySecurityInterceptor.API_KEY_HEADER, KEY_B);
+        request.addHeader(ApiKeySecurityInterceptor.API_KEY_HEADER, keyB);
 
         assertThat(interceptor.preHandle(request, response, handler(new SecuredController(), "call"))).isTrue();
     }
@@ -81,7 +82,7 @@ class ApiKeySecurityInterceptorTest {
 
     @Test
     void wrongKey_isRejected() throws Exception {
-        request.addHeader(ApiKeySecurityInterceptor.API_KEY_HEADER, KEY_A + "x");
+        request.addHeader(ApiKeySecurityInterceptor.API_KEY_HEADER, keyA + "x");
         HandlerMethod secured = handler(new SecuredController(), "call");
 
         assertThatThrownBy(() -> interceptor.preHandle(request, response, secured))

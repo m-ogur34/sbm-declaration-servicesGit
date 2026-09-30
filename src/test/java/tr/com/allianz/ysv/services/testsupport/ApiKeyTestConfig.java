@@ -5,16 +5,19 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import org.springframework.boot.test.autoconfigure.web.servlet.MockMvcBuilderCustomizer;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
+import tr.com.allianz.ysv.services.security.ApiKeySecurityConfig;
 import tr.com.allianz.ysv.services.security.ApiKeySecurityInterceptor;
 
-/** {@code @WebMvcTest}'lerde her isteğe geçerli {@code X-ApiKey} ekler (test application.yml ile aynı). */
+/**
+ * {@code @WebMvcTest}'lerde her isteğe geçerli {@code X-ApiKey} ekler. Anahtar test
+ * application.yml'de {@code ${random.uuid}} ile üretilir; kodda sabit anahtar metni yoktur.
+ */
 @TestConfiguration(proxyBeanMethods = false)
 public class ApiKeyTestConfig {
 
-    public static final String API_KEY = "test-api-key-0123456789abcdef0123";
-
     @Bean
-    MockMvcBuilderCustomizer apiKeyHeader() {
-        return builder -> builder.defaultRequest(get("/").header(ApiKeySecurityInterceptor.API_KEY_HEADER, API_KEY));
+    MockMvcBuilderCustomizer apiKeyHeader(ApiKeySecurityConfig config) {
+        String apiKey = config.getApiKeys().get(0).getApiKey();
+        return builder -> builder.defaultRequest(get("/").header(ApiKeySecurityInterceptor.API_KEY_HEADER, apiKey));
     }
 }

@@ -24,7 +24,8 @@ token-management:
 
 api-key-security:
   api-keys:
-    - api-key: test-api-key-0123456789abcdef0123
+    # Test anahtari her calismada rastgele uretilir (repoda sabit anahtar metni olmasin).
+    - api-key: ${random.uuid}
 
 sbm:
   company-code: "045"

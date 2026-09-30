@@ -17,6 +17,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -78,7 +79,7 @@ class DeclarationControllerTest {
     @DisplayName("yanlış X-ApiKey: gövde doğrulanmadan 401, servis çağrılmaz")
     void wrongApiKey_returns401BeforeValidation() throws Exception {
         mockMvc.perform(post(BASE + "/send")
-                        .header(ApiKeySecurityInterceptor.API_KEY_HEADER, "wrong-key")
+                        .header(ApiKeySecurityInterceptor.API_KEY_HEADER, UUID.randomUUID().toString())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{}"))
                 .andExpect(status().isUnauthorized())
