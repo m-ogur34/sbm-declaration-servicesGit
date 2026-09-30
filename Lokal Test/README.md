@@ -31,3 +31,17 @@ gönderilmeyeceği geçmiş bir dönemdedir. PEN verisi ayrı dönemdedir (2014/
 5. Klasörleri **sırayla** çalıştır: 0 → 7. Her isteğin **Docs** sekmesinde beklenen sonuç yazılı.
 
 Baştan başlamak için: `temizle-test-verisi.sql` (yalnız test DB'si), sonra 1.1'den tekrar.
+
+## PEN düzeltmelerini doğrulama (`pen-dogrulama.cmd`)
+
+SBM'ye ve DB'ye yazmayan 15 istekle 2.1–2.4 düzeltmelerini kontrol eder (Windows `curl`):
+
+```cmd
+set APIKEY=<ortamin API anahtari>
+set BASE=http://localhost:8081/sbm-declaration-services
+"Lokal Test\pen-dogrulama.cmd" > pen-dogrulama-sonuc.txt
+```
+
+Her adımın beklenen sonucu çıktıda yazılıdır. Swagger lokalde bilinçli olarak açıktır; 2.3'ü
+doğrulamak için `BASE`'i UAT adresine çevirip çalıştırın.
+
